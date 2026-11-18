@@ -44,7 +44,9 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
           routes: [
             GoRoute(
               path: Routes.vault,
-              builder: (context, state) => const VaultScreen(),
+              builder: (context, state) => VaultScreen(
+                reviewOld: state.uri.queryParameters['review'] == 'old',
+              ),
               routes: [
                 GoRoute(
                   path: 'item/:id',
