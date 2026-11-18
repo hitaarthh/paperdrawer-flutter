@@ -108,6 +108,7 @@ void main() {
           bottomNavigationBar: PdTabBar(
             currentIndex: 0,
             onTap: (_) {},
+            onScan: () {},
             claimsBadge: 3,
           ),
         ),

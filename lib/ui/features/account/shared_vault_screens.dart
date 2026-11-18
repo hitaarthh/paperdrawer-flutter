@@ -11,7 +11,6 @@ import '../../../domain/item_status.dart';
 import '../../../domain/models/shared_vault.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
-import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/list_row.dart';
@@ -20,7 +19,6 @@ import '../../core/widgets/paper.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/vault_ticket.dart';
-import '../add/shared_add_flow.dart';
 import '../claims/claim_detail_sections.dart';
 import '../claims/claims_list_data.dart';
 import '../claims/claims_overview.dart';
@@ -51,14 +49,6 @@ class SharedClaimsScreen extends StatelessWidget {
           : vault == null && session.loading
           ? const _Loading()
           : null,
-      trailing: vault == null
-          ? null
-          : PdBrandAction(
-              key: const ValueKey('shared-claims-scan'),
-              label: 'Scan or add',
-              icon: LucideIcons.scanLine,
-              onPressed: () => showSharedAdd(context, session, vault),
-            ),
       empty: (filter) => filter == ClaimsFilter.settled
           ? const DashedTile(
               title: 'No settled claims yet',

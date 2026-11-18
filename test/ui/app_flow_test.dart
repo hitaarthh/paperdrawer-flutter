@@ -28,9 +28,10 @@ void main() {
     final items = _Items([]);
     await _launch(tester, items);
     expect(find.text('Add the last thing you bought.'), findsOneWidget);
-    await _tap(tester, 'vault-scan');
+    await _tap(tester, 'scan-or-add');
     await _tap(tester, 'add-sheet-manual');
     expect(find.text('Check the details'), findsOneWidget);
+    expect(_key('scan-or-add'), findsNothing);
 
     await _tap(tester, 'save-to-drawer');
     expect(find.text('Add a name so you can find it later.'), findsWidgets);
@@ -274,7 +275,8 @@ void main() {
       scrollable: claimsScroll,
     );
     expect(_key('claim-row-settled'), findsOneWidget);
-    await _tap(tester, 'claims-scan');
+    expect(_key('claims-scan'), findsNothing);
+    await _tap(tester, 'scan-or-add');
     expect(find.text('What are you adding?'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

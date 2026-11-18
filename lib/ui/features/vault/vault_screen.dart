@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -151,18 +150,7 @@ class _VaultViewState extends State<_VaultView> {
                       ? const Border(bottom: BorderSide(color: Pd.hairline))
                       : null,
                 ),
-                child: PdBrandBar(
-                  onMarkTap: _toTop,
-                  trailing: GestureDetector(
-                    onLongPress: () => AddFlow.camera(context),
-                    child: PdBrandAction(
-                      key: const ValueKey('vault-scan'),
-                      label: 'Scan or add',
-                      icon: LucideIcons.scanLine,
-                      onPressed: () => AddFlow.start(context),
-                    ),
-                  ),
-                ),
+                child: PdBrandBar(onMarkTap: _toTop),
               ),
               Expanded(
                 child: NotificationListener<ScrollNotification>(
@@ -208,7 +196,11 @@ class _VaultViewState extends State<_VaultView> {
                         )
                       else
                         ..._full(model),
-                      const SliverToBoxAdapter(child: SizedBox(height: Pd.s12)),
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: Pd.s12 + MediaQuery.paddingOf(context).bottom,
+                        ),
+                      ),
                     ],
                   ),
                 ),

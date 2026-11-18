@@ -6,6 +6,7 @@ import '../ui/core/widgets/tab_bar.dart';
 import '../ui/features/account/account_screen.dart';
 import '../ui/features/account/shared_session.dart';
 import '../ui/features/account/shared_vault_screens.dart';
+import '../ui/features/add/shared_add_flow.dart';
 import '../ui/features/intro/intro_flow.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
@@ -43,22 +44,26 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => ListenableBuilder(
         listenable: session,
-        builder: (context, child) => Scaffold(
-          backgroundColor: Pd.bg,
-          body: child,
-          bottomNavigationBar: PdTabBar(
-            currentIndex: shell.currentIndex,
-            claimsBadge:
-                session.vault?.claims
-                    .where((claim) => claim.needsAction)
-                    .length ??
-                0,
-            onTap: (index) => shell.goBranch(
-              index,
-              initialLocation: index == shell.currentIndex,
+        builder: (context, child) {
+          final vault = session.vault;
+          return Scaffold(
+            backgroundColor: Pd.bg,
+            extendBody: true,
+            body: child,
+            bottomNavigationBar: PdTabBar(
+              currentIndex: shell.currentIndex,
+              claimsBadge:
+                  vault?.claims.where((claim) => claim.needsAction).length ?? 0,
+              onTap: (index) => shell.goBranch(
+                index,
+                initialLocation: index == shell.currentIndex,
+              ),
+              onScan: vault == null
+                  ? null
+                  : () => showSharedAdd(context, session, vault),
             ),
-          ),
-        ),
+          );
+        },
         child: shell,
       ),
       branches: [

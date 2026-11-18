@@ -1,14 +1,11 @@
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
-import '../add/add_flow.dart';
 import '../shell/tab_reselect.dart';
 import 'claims_list_data.dart';
 import 'claims_overview.dart';
@@ -61,15 +58,6 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
       controller: _scroll,
       onVault: () => context.go(Routes.vault),
       onOpen: (id) => context.push(Routes.claim(id)),
-      trailing: GestureDetector(
-        onLongPress: () => AddFlow.camera(context),
-        child: PdBrandAction(
-          key: const ValueKey('claims-scan'),
-          label: 'Scan or add',
-          icon: LucideIcons.scanLine,
-          onPressed: () => AddFlow.start(context),
-        ),
-      ),
       empty: (filter) => filter == ClaimsFilter.settled
           ? const DashedTile(
               title: 'No settled claims yet',

@@ -17,7 +17,6 @@ class ClaimsOverview extends StatefulWidget {
     required this.onVault,
     required this.onOpen,
     required this.empty,
-    this.trailing,
     this.notice,
     this.controller,
     this.onRefresh,
@@ -29,7 +28,6 @@ class ClaimsOverview extends StatefulWidget {
   final VoidCallback onVault;
   final ValueChanged<String> onOpen;
   final Widget Function(ClaimsFilter) empty;
-  final Widget? trailing;
   final Widget? notice;
   final ScrollController? controller;
   final Future<void> Function()? onRefresh;
@@ -140,7 +138,9 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
             top: Pd.s6,
           ),
         ],
-        const SliverToBoxAdapter(child: SizedBox(height: Pd.s12)),
+        SliverToBoxAdapter(
+          child: SizedBox(height: Pd.s12 + MediaQuery.paddingOf(context).bottom),
+        ),
       ],
     );
     final refresh = widget.onRefresh;
@@ -154,10 +154,7 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
             constraints: const BoxConstraints(maxWidth: Pd.maxContent),
             child: Column(
               children: [
-                PdBrandBar(
-                  onMarkTap: widget.onVault,
-                  trailing: widget.trailing,
-                ),
+                PdBrandBar(onMarkTap: widget.onVault),
                 Expanded(
                   child: refresh == null
                       ? scroll

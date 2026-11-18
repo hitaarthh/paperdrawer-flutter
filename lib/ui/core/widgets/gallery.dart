@@ -139,9 +139,9 @@ class _WidgetGalleryState extends State<WidgetGallery> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    extendBody: true,
     body: PdLargeTitleScaffold(
       title: 'Gallery',
-      trailing: ScanButton(onTap: _showAdd),
       slivers: [
         SliverToBoxAdapter(
           child: PdChipRow(
@@ -286,6 +286,7 @@ class _WidgetGalleryState extends State<WidgetGallery> {
     bottomNavigationBar: PdTabBar(
       currentIndex: _tab,
       onTap: (index) => setState(() => _tab = index),
+      onScan: _showAdd,
       claimsBadge: 2,
     ),
   );

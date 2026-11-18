@@ -1,6 +1,6 @@
 # iOS and Android
 
-One brand, two platforms. Everything a person owns (the paper cards, stamps, tickets and meters) looks identical on both. The chrome around it (bars, back navigation, switches, sheets, the Scan entry point) follows each platform's conventions, so the app feels native in the hand.
+One brand, two platforms. Paper cards, stamps, tickets, meters, and the floating navigation dock share a design across platforms. The surrounding controls follow each platform’s conventions.
 
 ## What changes per platform
 
@@ -8,10 +8,10 @@ One brand, two platforms. Everything a person owns (the paper cards, stamps, tic
 |---|---|---|
 | Top-level title | Large title (`large-title` 34), collapses to an inline 17pt title on scroll | Small top app bar 64dp with `title-2` 22; a large top app bar may be used on the Vault |
 | Back | Lime chevron + previous screen's name ("Vault") at top left, plus edge swipe | Arrow icon (`text`) at top left, plus system back gesture |
-| Scan entry | Lime "Scan" button, trailing in the nav bar on Vault and Claims (`radius-md`, 36pt visual / 44pt hit) | Extended FAB "Scan" bottom right, 56dp, `radius-md`, `shadow-fab`; shrinks to icon-only on scroll |
-| Primary navigation | Tab bar 49pt + home indicator; selected tab in `lime`, others `text-subtle` | Navigation bar 80dp; selected icon on a `lime-tint` pill indicator; labels always shown |
+| Scan entry | Lime-tinted Scan or add button in the floating dock | Same |
+| Primary navigation | Floating glass dock above the home indicator, with a moving pill and lime icon for the selected tab | Same, above the gesture inset |
 | Tabs | Vault · Claims · Settings | Same |
-| Badge on Claims | `signal` pill with count, `on-lime` text | Same |
+| Badge on Claims | Inline count in `signal` | Same |
 | Switch | iOS switch, on = `lime` track with `bg` thumb | Material 3 switch, on = `lime` track with `on-lime` thumb |
 | Sheets | Native sheet with grabber; medium and large detents | Modal bottom sheet with drag handle |
 | Confirmations | Snackbar-style toast at the bottom, above the tab bar (custom) | Material snackbar above the nav bar |
@@ -30,7 +30,7 @@ One brand, two platforms. Everything a person owns (the paper cards, stamps, tic
 | `tap-min` | 48 | Use 48 on both; it exceeds iOS's 44pt minimum |
 | `control-h` | 52 | Buttons and fields |
 | `appbar-ios` / `appbar-android` | 44 / 64 | Plus status bar |
-| `tabbar-ios` / `navbar-android` | 49 / 80 | Plus home indicator or gesture inset |
+| `dock-max-width` | 440 | Dock grows in height with text size |
 | `fab` | 56 | Android only |
 
 ## Type mapping and scaling
@@ -55,7 +55,7 @@ One brand, two platforms. Everything a person owns (the paper cards, stamps, tic
 ## Safe areas and edges
 
 - **Edge-to-edge:** draw the dark ground under the status bar and the home indicator on both platforms. Keep content inside the safe areas.
-- **Clear the bottom controls:** the last card in a list needs `space-12` of bottom inset, so it clears the FAB or the tab bar.
+- **Clear the bottom controls:** scrollable tab content adds the measured dock inset so the last row can scroll above the floating controls.
 - **Android:** use edge-to-edge with transparent system bars and light icons, and apply the window insets.
 
 ## Status bar and theme

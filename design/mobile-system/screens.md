@@ -4,9 +4,7 @@ How the components build the app's main screens. The web designs on paperdrawer.
 
 ## Vault (tab 1)
 
-1. **NavBar:**
-   - iOS: large title "Vault" with the ScanAction trailing.
-   - Android: app bar "Vault" plus the ScanAction FAB.
+1. **Header:** Paper Drawer brand bar followed by "The vault". Scan or add lives in the floating dock.
 2. **CountdownTicket** for the single most urgent deadline, if one is due within 14 days.
 3. **Chip** row of filters (All · Due · In claim · Covered · Expired), scrolling sideways, with `space-5` / `space-4` edge padding.
 4. **Cards** in one column, sorted by days left: a ReceiptCard for bills, a DocumentCard for policies, PUC and agreements, `space-3` apart.
@@ -37,7 +35,7 @@ How the components build the app's main screens. The web designs on paperdrawer.
 
 ## Claims (tab 2)
 
-1. **Header:** Paper Drawer brand bar with the Scan or add action, followed by the Claims title.
+1. **Header:** Paper Drawer brand bar followed by the Claims title.
 2. **Needs You:** when a claim needs attention, link to the oldest such claim with a lime ticket and the reason it needs attention.
 3. **Filters:** underlined Open, Settled and All tabs with live counts. List claims that need attention first, then other open claims by oldest reply. List settled claims newest first.
 4. **Claim rows on `surface-2`:** display the claim day beside a dashed rule, the claim type and item, title, current step, next action and a status stamp. Shared claims can also show DOCS ASKED.

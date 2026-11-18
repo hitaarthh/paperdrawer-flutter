@@ -50,7 +50,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(_key('add-sheet'), findsNothing);
 
-      await _tap(tester, 'vault-scan');
+      expect(_key('vault-scan'), findsNothing);
+      await _tap(tester, 'scan-or-add');
       expect(_key('add-sheet'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

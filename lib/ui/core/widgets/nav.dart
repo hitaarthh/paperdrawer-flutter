@@ -72,7 +72,11 @@ class _PdLargeTitleScaffoldState extends State<PdLargeTitleScaffold> {
                       : null,
                 ),
                 ...widget.slivers,
-                const SliverToBoxAdapter(child: SizedBox(height: Pd.s12)),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: Pd.s12 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                ),
               ],
             ),
           ),

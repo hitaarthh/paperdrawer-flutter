@@ -6,10 +6,11 @@ import '../../../data/repositories/claim_repository.dart';
 import '../../../data/services/today.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/tab_bar.dart';
+import '../add/add_flow.dart';
 import 'tab_reselect.dart';
 
-/// Hosts the three tabs (Vault · Claims · Settings) and the tab bar. Pushed
-/// screens inside a tab keep the tab bar; add and edit flows cover it.
+/// Hosts the three tabs and the Scan or add action. Pushed screens inside a
+/// tab keep the dock; full-screen add and edit flows cover it.
 class AppShell extends StatefulWidget {
   const AppShell({required this.navigationShell, super.key});
 
@@ -54,10 +55,13 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     );
     return Scaffold(
       backgroundColor: Pd.bg,
+      extendBody: true,
       body: widget.navigationShell,
       bottomNavigationBar: PdTabBar(
         currentIndex: widget.navigationShell.currentIndex,
         onTap: _select,
+        onScan: () => AddFlow.start(context),
+        onScanLongPress: () => AddFlow.camera(context),
         claimsBadge: badge,
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -81,16 +80,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: Column(
             children: [
-              PdBrandBar(
-                trailing: vault == null
-                    ? null
-                    : PdBrandAction(
-                        key: const ValueKey('shared-vault-add'),
-                        label: 'Scan or add',
-                        icon: LucideIcons.scanLine,
-                        onPressed: () => showSharedAdd(context, session, vault),
-                      ),
-              ),
+              const PdBrandBar(),
               Expanded(
                 child: RefreshIndicator.adaptive(
                   onRefresh: session.refresh,
@@ -131,7 +121,11 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         ),
                       if (vault != null && summaries.isNotEmpty)
                         ..._full(vault, summaries, claims, today),
-                      const SliverToBoxAdapter(child: SizedBox(height: Pd.s12)),
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: Pd.s12 + MediaQuery.paddingOf(context).bottom,
+                        ),
+                      ),
                     ],
                   ),
                 ),

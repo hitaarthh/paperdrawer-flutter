@@ -11,7 +11,6 @@ import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/core/widgets/icons.dart';
 import 'package:paperdrawer/ui/features/account/shared_session.dart';
 import 'package:paperdrawer/ui/features/account/shared_vault_screens.dart';
-import 'package:paperdrawer/ui/features/vault/shared_vault_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -106,12 +105,13 @@ void main() {
       ],
       claims: const [],
     );
-    await _launchVault(tester, session);
+    await _launchDrawer(tester, session);
     expect(find.text('The vault'), findsOneWidget);
     expect(find.text('1 OF 25'), findsOneWidget);
     expect(find.text('DUE NEXT'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('shared-vault-add')));
+    expect(find.byKey(const ValueKey('shared-vault-add')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('scan-or-add')));
     await tester.pumpAndSettle();
     expect(find.text('What are you adding?'), findsOneWidget);
     final manual = find.byKey(const ValueKey('add-sheet-manual'));
@@ -136,7 +136,7 @@ void main() {
   ) async {
     final session = _SharedVaultSession()
       ..vault = const SharedVault(items: [], claims: []);
-    await _launchVault(tester, session);
+    await _launchDrawer(tester, session);
     expect(find.text('Add the last thing you bought.'), findsOneWidget);
     final add = find.byKey(const ValueKey('scan-first-bill'));
     await tester.ensureVisible(add);
@@ -170,17 +170,8 @@ void main() {
           }),
         ],
       );
-      _setPhoneSize(tester, 1.3);
-      addTearDown(session.dispose);
-      await tester.pumpWidget(
-        ChangeNotifierProvider<SharedSession>.value(
-          value: session,
-          child: MaterialApp(
-            theme: pdTheme(),
-            home: const SharedClaimsScreen(),
-          ),
-        ),
-      );
+      await _launchDrawer(tester, session);
+      await tester.tap(find.byKey(const ValueKey('claims-tab')));
       await tester.pumpAndSettle();
 
       expect(find.text('1 OPEN · 0 SETTLED · 1 NEEDS YOU'), findsNothing);
@@ -193,7 +184,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('No settled claims yet'), findsOneWidget);
 
-      await tester.tap(find.byKey(const ValueKey('shared-claims-scan')));
+      expect(find.byKey(const ValueKey('shared-claims-scan')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('scan-or-add')));
       await tester.pumpAndSettle();
       final manual = find.byKey(const ValueKey('add-sheet-manual'));
       await tester.ensureVisible(manual);
@@ -301,13 +293,15 @@ void main() {
   );
 }
 
-Future<void> _launchVault(WidgetTester tester, SharedSession session) async {
+Future<void> _launchDrawer(WidgetTester tester, SharedSession session) async {
   _setPhoneSize(tester, 1.3);
+  final router = buildSharedRouter(session);
   addTearDown(session.dispose);
+  addTearDown(router.dispose);
   await tester.pumpWidget(
     ChangeNotifierProvider.value(
       value: session,
-      child: MaterialApp(theme: pdTheme(), home: const SharedVaultScreen()),
+      child: MaterialApp.router(routerConfig: router, theme: pdTheme()),
     ),
   );
   await tester.pumpAndSettle();
@@ -355,6 +349,9 @@ class _SharedVaultSession extends SharedSession {
   _SharedVaultSession() : super(_SignedOutAccount());
 
   String? opened;
+
+  @override
+  bool get signedIn => true;
 
   @override
   Future<void> openWeb(String path) async => opened = path;

@@ -83,11 +83,11 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                     child: ListView(
                       key: const PageStorageKey('shared-settings-scroll'),
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                         Pd.margin,
                         Pd.s2,
                         Pd.margin,
-                        Pd.s8,
+                        Pd.s8 + MediaQuery.paddingOf(context).bottom,
                       ),
                       children: [
                         Column(
