@@ -14,3 +14,10 @@ class AddDetailsArgs {
   final ScanReading? reading;
   final ItemKind kind;
 }
+
+class CaptureReadingArgs {
+  const CaptureReadingArgs(this.files, {this.kind});
+
+  final List<PendingFile> files;
+  final ItemKind? kind;
+}

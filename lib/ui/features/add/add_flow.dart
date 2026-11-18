@@ -28,11 +28,14 @@ abstract final class AddFlow {
     if (!context.mounted || choice == null) return;
     switch (choice.action) {
       case AddSheetAction.camera:
-        context.push(Routes.camera);
+        context.push(Routes.camera, extra: choice.kind);
       case AddSheetAction.upload:
         final files = await chooseOriginals(context);
         if (!context.mounted || files.isEmpty) return;
-        context.push(Routes.reading, extra: files);
+        context.push(
+          Routes.reading,
+          extra: CaptureReadingArgs(files, kind: choice.kind),
+        );
       case AddSheetAction.manual:
         context.push(Routes.details, extra: AddDetailsArgs(kind: choice.kind));
     }

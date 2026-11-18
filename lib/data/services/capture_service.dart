@@ -1,9 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:camera/camera.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../domain/models/item.dart';
+import 'file_store.dart' show maxAttachmentBytes;
 
 const _acceptedFiles = XTypeGroup(
   label: 'Photos and PDFs',
@@ -29,6 +33,19 @@ const _acceptedFiles = XTypeGroup(
 /// On-device picker and camera access for the add flow.
 class CaptureService {
   const CaptureService();
+
+  Future<CaptureOriginal> inspect(PendingFile original) async {
+    try {
+      final source = File(original.path);
+      final size = await source.length();
+      final preview = original.isPdf || size > maxAttachmentBytes
+          ? null
+          : await source.readAsBytes();
+      return CaptureOriginal(size: size, preview: preview);
+    } on FileSystemException {
+      return const CaptureOriginal();
+    }
+  }
 
   Future<List<PendingFile>> pickFiles() async {
     final files = await openFiles(acceptedTypeGroups: const [_acceptedFiles]);
@@ -80,10 +97,18 @@ class CaptureService {
   }
 }
 
+class CaptureOriginal {
+  const CaptureOriginal({this.size, this.preview});
+
+  final int? size;
+  final Uint8List? preview;
+}
+
 /// The preview and shutter share one camera resource, owned by the screen.
 abstract interface class CaptureSession {
   Widget buildPreview();
   Future<PendingFile> takePicture();
+  Future<void> setTorch(bool enabled);
   Future<void> close();
 }
 
@@ -100,6 +125,10 @@ class _CameraSession implements CaptureSession {
     final file = await _controller.takePicture();
     return PendingFile(path: file.path, name: file.name);
   }
+
+  @override
+  Future<void> setTorch(bool enabled) =>
+      _controller.setFlashMode(enabled ? FlashMode.torch : FlashMode.off);
 
   @override
   Future<void> close() => _controller.dispose();

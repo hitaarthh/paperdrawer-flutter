@@ -104,7 +104,9 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
       pageBuilder: (context, state) => CupertinoPage(
         key: state.pageKey,
         fullscreenDialog: true,
-        child: const CameraScreen(),
+        child: CameraScreen(
+          kind: state.extra is ItemKind ? state.extra! as ItemKind : null,
+        ),
       ),
     ),
     GoRoute(
@@ -113,11 +115,14 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
       pageBuilder: (context, state) => CupertinoPage(
         key: state.pageKey,
         fullscreenDialog: true,
-        child: ReadingScreen(
-          files: state.extra is List<PendingFile>
-              ? state.extra! as List<PendingFile>
-              : const [],
-        ),
+        child: switch (state.extra) {
+          final CaptureReadingArgs args => ReadingScreen(
+            files: args.files,
+            kind: args.kind,
+          ),
+          final List<PendingFile> files => ReadingScreen(files: files),
+          _ => const ReadingScreen(files: []),
+        },
       ),
     ),
     GoRoute(
