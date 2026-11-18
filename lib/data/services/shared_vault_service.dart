@@ -15,9 +15,19 @@ class SharedVaultService {
 
   Future<SharedVault> fetch(String userId) async {
     final rows = await Future.wait([
-      _page('bills', '*,bill_parts(name,years),$_files', userId, 'purchased_on'),
+      _page(
+        'bills',
+        '*,bill_parts(name,years),$_files',
+        userId,
+        'purchased_on',
+      ),
       _page('documents', '*,$_files', userId, 'end_on'),
-      _page('claims', '*,claim_events(title,note,occurred_on,created_at),$_files', userId, 'opened_on'),
+      _page(
+        'claims',
+        '*,claim_events(title,note,occurred_on,created_at),$_files',
+        userId,
+        'opened_on',
+      ),
     ]);
     return SharedVault(
       items: [
@@ -37,7 +47,9 @@ class SharedVaultService {
     const size = 100;
     final rows = <Map<String, dynamic>>[];
     while (true) {
-      final page = await _client.from(table).select(selection)
+      final page = await _client
+          .from(table)
+          .select(selection)
           .eq('user_id', userId)
           .order(ordering, ascending: false)
           .order('id')
@@ -59,8 +71,9 @@ class SharedVaultService {
     final cache = await getTemporaryDirectory();
     final folder = Directory(p.join(cache.path, 'paperdrawer-shared', userId));
     await folder.create(recursive: true);
-    final file = File(p.join(folder.path,
-        '${const Uuid().v4()}-${p.basename(original.name)}'));
+    final file = File(
+      p.join(folder.path, '${const Uuid().v4()}-${p.basename(original.name)}'),
+    );
     await file.writeAsBytes(data, flush: true);
     if (_client.auth.currentUser?.id != userId) {
       await file.delete();

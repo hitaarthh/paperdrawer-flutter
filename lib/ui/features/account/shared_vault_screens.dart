@@ -31,7 +31,11 @@ class SharedVaultScreen extends StatelessWidget {
     };
     final cards = [
       for (final entry in inbox?.items ?? const <SharedItem>[])
-        ItemSummary.of(entry.item, today, hasOpenClaim: claims.contains(entry.item.id)),
+        ItemSummary.of(
+          entry.item,
+          today,
+          hasOpenClaim: claims.contains(entry.item.id),
+        ),
     ]..sort((a, b) => a.sortRank.compareTo(b.sortRank));
     return PdLargeTitleScaffold(
       title: 'Vault',
@@ -41,17 +45,23 @@ class SharedVaultScreen extends StatelessWidget {
         if (session.failed) _inset(_LoadFailure(session)),
         if (inbox == null && session.loading) _inset(const _Loading()),
         if (inbox != null && cards.isEmpty)
-          _inset(DashedTile(
-            title: 'Your drawer is empty',
-            body: 'Add a bill on PaperDrawer web. It will appear here when you refresh.',
-            action: PdButton.primary(label: 'Open PaperDrawer web',
-              onPressed: () => _open(context, session, '/vault')),
-          ))
+          _inset(
+            DashedTile(
+              title: 'Your drawer is empty',
+              body: 'Add a bill on PaperDrawer web. It will appear here when you refresh.',
+              action: PdButton.primary(
+                label: 'Open PaperDrawer web',
+                onPressed: () => _open(context, session, '/vault'),
+              ),
+            ),
+          )
         else if (cards.isNotEmpty) ...[
-          _inset(PdButton.text(
-            label: 'Manage vault on web',
-            onPressed: () => _open(context, session, '/vault'),
-          )),
+          _inset(
+            PdButton.text(
+              label: 'Manage vault on web',
+              onPressed: () => _open(context, session, '/vault'),
+            ),
+          ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: Pd.margin),
             sliver: SliverList.builder(
@@ -90,25 +100,31 @@ class SharedClaimsScreen extends StatelessWidget {
         if (session.failed) _inset(_LoadFailure(session)),
         if (claims == null && session.loading) _inset(const _Loading()),
         if (claims != null && claims.isEmpty)
-          _inset(DashedTile(
-            title: 'No claims yet',
-            body: 'Claims you start on the web will appear here.',
-            action: PdButton.primary(label: 'Open claims on web',
-              onPressed: () => _open(context, session, '/claims')),
-          )),
+          _inset(
+            DashedTile(
+              title: 'No claims yet',
+              body: 'Claims you start on the web will appear here.',
+              action: PdButton.primary(
+                label: 'Open claims on web',
+                onPressed: () => _open(context, session, '/claims'),
+              ),
+            ),
+          ),
         if (claims != null && claims.isNotEmpty)
-          _inset(PdListGroup(
-            children: [
-              for (final claim in claims)
-                PdListRow(
-                  key: ValueKey('shared-claim-${claim.id}'),
-                  title: claim.title,
-                  value: claim.statusLabel,
-                  chevron: true,
-                  onTap: () => context.push('/claims/${claim.id}'),
-                ),
-            ],
-          )),
+          _inset(
+            PdListGroup(
+              children: [
+                for (final claim in claims)
+                  PdListRow(
+                    key: ValueKey('shared-claim-${claim.id}'),
+                    title: claim.title,
+                    value: claim.statusLabel,
+                    chevron: true,
+                    onTap: () => context.push('/claims/${claim.id}'),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -121,14 +137,19 @@ class SharedItemScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = context.watch<SharedSession>();
-    final item = session.vault?.items.where((entry) => entry.item.id == id).firstOrNull;
+    final item = session.vault?.items
+        .where((entry) => entry.item.id == id)
+        .firstOrNull;
     if (item == null) {
       return _missing(context, session, 'Vault', '/vault');
     }
     final draft = item.item.draft;
     final summary = ItemSummary.of(
-      item.item, session.today.value,
-      hasOpenClaim: session.vault!.claims.any((claim) => claim.itemId == id && claim.settled == null),
+      item.item,
+      session.today.value,
+      hasOpenClaim: session.vault!.claims.any(
+        (claim) => claim.itemId == id && claim.settled == null,
+      ),
     );
     return PdPushedScaffold(
       backLabel: 'Vault',
@@ -150,8 +171,10 @@ class SharedItemScreen extends StatelessWidget {
         ],
         _Originals(item.originals, session),
         const SizedBox(height: Pd.s5),
-        PdButton.secondary(label: 'Open on web',
-          onPressed: () => _open(context, session, item.webPath)),
+        PdButton.secondary(
+          label: 'Open on web',
+          onPressed: () => _open(context, session, item.webPath),
+        ),
       ],
     );
   }
@@ -164,7 +187,9 @@ class SharedClaimScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = context.watch<SharedSession>();
-    final claim = session.vault?.claims.where((entry) => entry.id == id).firstOrNull;
+    final claim = session.vault?.claims
+        .where((entry) => entry.id == id)
+        .firstOrNull;
     if (claim == null) {
       return _missing(context, session, 'Claims', '/claims');
     }
@@ -174,7 +199,8 @@ class SharedClaimScreen extends StatelessWidget {
       title: claim.title,
       kicker: claim.statusLabel.toUpperCase(),
       children: [
-        if (claim.itemLabel.isNotEmpty) Text(claim.itemLabel, style: PdType.bodyStrong),
+        if (claim.itemLabel.isNotEmpty)
+          Text(claim.itemLabel, style: PdType.bodyStrong),
         const SizedBox(height: Pd.s2),
         Text(claim.problem, style: PdType.body),
         const SizedBox(height: Pd.s5),
@@ -198,7 +224,8 @@ class SharedClaimScreen extends StatelessWidget {
                     children: [
                       Text(monoDate(event.date), style: PdType.label),
                       Text(event.title, style: PdType.bodyStrong),
-                      if (event.note.isNotEmpty) Text(event.note, style: PdType.callout),
+                      if (event.note.isNotEmpty)
+                        Text(event.note, style: PdType.callout),
                     ],
                   ),
                 ),
@@ -206,8 +233,10 @@ class SharedClaimScreen extends StatelessWidget {
           ),
         ],
         const SizedBox(height: Pd.s5),
-        PdButton.secondary(label: 'Manage claim on web',
-          onPressed: () => _open(context, session, claim.webPath)),
+        PdButton.secondary(
+          label: 'Manage claim on web',
+          onPressed: () => _open(context, session, claim.webPath),
+        ),
       ],
     );
   }
@@ -229,7 +258,10 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
       await session.account.signOut();
     } catch (_) {
       if (!mounted) return;
-      showPdSnackbar(context, 'Couldn’t sign out. Check your connection and try again.');
+      showPdSnackbar(
+        context,
+        'Couldn’t sign out. Check your connection and try again.',
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -242,19 +274,24 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
       title: 'Settings',
       heroTag: 'shared-settings',
       slivers: [
-        _inset(PdListGroup(
-          header: 'Account',
-          children: [
-            PdListRow(title: 'Email', value: session.email),
-            PdListRow(title: 'Manage account on web', chevron: true,
-              onTap: () => _open(context, session, '/settings')),
-            PdListRow(
-              key: const ValueKey('account-sign-out'),
-              title: 'Sign out',
-              onTap: _busy ? null : () => _signOut(session),
-            ),
-          ],
-        )),
+        _inset(
+          PdListGroup(
+            header: 'Account',
+            children: [
+              PdListRow(title: 'Email', value: session.email),
+              PdListRow(
+                title: 'Manage account on web',
+                chevron: true,
+                onTap: () => _open(context, session, '/settings'),
+              ),
+              PdListRow(
+                key: const ValueKey('account-sign-out'),
+                title: 'Sign out',
+                onTap: _busy ? null : () => _signOut(session),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -349,27 +386,44 @@ class _Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: true,
-    child: Text('Loading your drawer…', style: PdType.callout.copyWith(color: Pd.textMuted)),
+    child: Text(
+      'Loading your drawer…',
+      style: PdType.callout.copyWith(color: Pd.textMuted),
+    ),
   );
 }
 
-Widget _missing(BuildContext context, SharedSession session, String back, String route) =>
-    PdPushedScaffold(
-      backLabel: back,
-      onBack: () => context.canPop() ? context.pop() : context.go(route),
-      children: [
-        if (session.loading) const _Loading()
-        else if (session.failed) _LoadFailure(session)
-        else const DashedTile(title: 'Record unavailable', body: 'Go back to see what’s in your drawer.'),
-      ],
-    );
+Widget _missing(
+  BuildContext context,
+  SharedSession session,
+  String back,
+  String route,
+) => PdPushedScaffold(
+  backLabel: back,
+  onBack: () => context.canPop() ? context.pop() : context.go(route),
+  children: [
+    if (session.loading)
+      const _Loading()
+    else if (session.failed)
+      _LoadFailure(session)
+    else
+      const DashedTile(
+        title: 'Record unavailable',
+        body: 'Go back to see what’s in your drawer.',
+      ),
+  ],
+);
 
 Widget _inset(Widget child) => SliverPadding(
   padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s3, Pd.margin, Pd.s4),
   sliver: SliverToBoxAdapter(child: child),
 );
 
-Future<void> _open(BuildContext context, SharedSession session, String path) async {
+Future<void> _open(
+  BuildContext context,
+  SharedSession session,
+  String path,
+) async {
   try {
     await session.openWeb(path);
   } catch (_) {

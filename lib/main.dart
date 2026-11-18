@@ -15,16 +15,22 @@ import 'data/services/device_storage.dart';
 import 'data/services/exporter.dart';
 import 'data/services/file_store.dart';
 import 'data/services/reminder_scheduler.dart';
+import 'data/services/shared_account.dart';
 import 'data/services/text_recognizer.dart';
 import 'data/services/today.dart';
 import 'ui/core/theme/tokens.dart';
 import 'ui/core/widgets/icons.dart';
+import 'ui/features/account/shared_app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   // Dark-only at launch: light status-bar content everywhere.
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
-  runApp(const _Bootstrap());
+  runApp(
+    SharedAccountConfig.requested
+        ? const SharedBootstrap()
+        : const _Bootstrap(),
+  );
 }
 
 class _Opened {

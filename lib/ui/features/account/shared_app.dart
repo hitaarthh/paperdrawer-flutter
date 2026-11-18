@@ -1,0 +1,112 @@
+import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
+
+import '../../../data/services/shared_account.dart';
+import '../../../routing/shared_router.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/theme/tokens.dart';
+import '../../core/widgets/button.dart';
+import '../../core/widgets/icons.dart';
+import 'shared_session.dart';
+
+class SharedBootstrap extends StatefulWidget {
+  const SharedBootstrap({super.key});
+
+  @override
+  State<SharedBootstrap> createState() => _SharedBootstrapState();
+}
+
+class _SharedBootstrapState extends State<SharedBootstrap> {
+  late Future<SharedAccount> _opening = _open();
+
+  Future<SharedAccount> _open() async =>
+      SharedAccount.open(SharedAccountConfig.fromEnvironment());
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder(
+    future: _opening,
+    builder: (context, snapshot) {
+      if (snapshot.data case final account?) return _SharedApp(account);
+      return MaterialApp(
+        theme: pdTheme(),
+        home: Scaffold(
+          body: Center(
+            child: snapshot.hasError
+                ? Padding(
+                    padding: const EdgeInsets.all(Pd.margin),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: Pd.s4,
+                      children: [
+                        Text(
+                          snapshot.error is FormatException
+                              ? (snapshot.error! as FormatException).message
+                              : 'PaperDrawer couldn’t open the account service.',
+                          textAlign: TextAlign.center,
+                        ),
+                        PdButton.text(
+                          label: 'Try again',
+                          onPressed: () => setState(() => _opening = _open()),
+                        ),
+                      ],
+                    ),
+                  )
+                : const PaperDrawerMark(size: Pd.s10),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _SharedApp extends StatefulWidget {
+  const _SharedApp(this.account);
+  final SharedAccount account;
+
+  @override
+  State<_SharedApp> createState() => _SharedAppState();
+}
+
+class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
+  late final _session = SharedSession(widget.account);
+  late final _router = buildSharedRouter(_session);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _session.refresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _router.dispose();
+    _session.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ChangeNotifierProvider.value(
+    value: _session,
+    child: MaterialApp.router(
+      title: 'PaperDrawer',
+      theme: pdTheme(),
+      debugShowCheckedModeBanner: false,
+      routerConfig: _router,
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: media.textScaler.clamp(maxScaleFactor: 2),
+          ),
+          child: child!,
+        );
+      },
+    ),
+  );
+}

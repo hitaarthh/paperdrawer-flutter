@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -24,18 +25,37 @@ class SharedAccountConfig {
   factory SharedAccountConfig.fromEnvironment() {
     final api = Uri.tryParse(_url);
     final web = Uri.tryParse(_web);
-    if (!_validOrigin(api) || !_validOrigin(web) || _key.isEmpty ||
-        _key.startsWith('sb_secret_')) {
-      throw const FormatException('Set the Supabase URL, publishable key and PaperDrawer web URL.');
+    if (!_validOrigin(api) || !_validOrigin(web) || !_isPublicKey(_key)) {
+      throw const FormatException(
+        'Set the Supabase URL, publishable key and PaperDrawer web URL.',
+      );
     }
     return SharedAccountConfig(api!, _key, web!);
   }
 
-  static bool _validOrigin(Uri? uri) => uri != null &&
-      uri.host.isNotEmpty && uri.userInfo.isEmpty &&
+  static bool _validOrigin(Uri? uri) =>
+      uri != null &&
+      uri.host.isNotEmpty &&
+      uri.userInfo.isEmpty &&
       (uri.scheme == 'https' ||
-          (!kReleaseMode && uri.scheme == 'http' &&
+          (!kReleaseMode &&
+              uri.scheme == 'http' &&
               const {'localhost', '127.0.0.1', '::1'}.contains(uri.host)));
+
+  static bool _isPublicKey(String key) {
+    if (key.startsWith('sb_publishable_')) return true;
+    final segments = key.split('.');
+    if (segments.length != 3) return false;
+    try {
+      // Legacy Supabase JWT keys encode the role in their payload.
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(segments[1]))),
+      );
+      return payload is Map && payload['role'] == 'anon';
+    } on FormatException {
+      return false;
+    }
+  }
 }
 
 class SharedAccount {
@@ -97,8 +117,10 @@ class _KeychainSession extends LocalStorage {
   @override
   Future<bool> hasAccessToken() async => await accessToken() != null;
   @override
-  Future<void> persistSession(String value) =>
-      _channel.invokeMethod<void>('write', {'account': account, 'value': value});
+  Future<void> persistSession(String value) => _channel.invokeMethod<void>(
+    'write',
+    {'account': account, 'value': value},
+  );
   @override
   Future<void> removePersistedSession() =>
       _channel.invokeMethod<void>('remove', {'account': account});

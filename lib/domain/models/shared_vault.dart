@@ -2,7 +2,11 @@ import '../formats.dart';
 import 'item.dart';
 
 class SharedOriginal {
-  const SharedOriginal({required this.name, required this.path, required this.mime});
+  const SharedOriginal({
+    required this.name,
+    required this.path,
+    required this.mime,
+  });
 
   final String name;
   final String path;
@@ -94,7 +98,8 @@ class SharedItem {
         'helpline': 'Helpline',
         'tpa': 'Administrator',
       }),
-      if (_minor(row['sum_insured']) case final insured?) ('Sum insured', money(insured, 'USD')),
+      if (_minor(row['sum_insured']) case final insured?)
+        ('Sum insured', money(insured, 'USD')),
     ],
   );
 }
@@ -109,7 +114,10 @@ class SharedClaim {
       settled = parseIsoDate(row['settled_on']),
       problem = _text(row['description']),
       itemLabel = _text(row['item_label']),
-      facts = _facts(row, const {'reference': 'Reference', 'wants': 'Requested resolution'}),
+      facts = _facts(row, const {
+        'reference': 'Reference',
+        'wants': 'Requested resolution',
+      }),
       originals = _originals(row),
       events = _rows(row['claim_events']).map(SharedClaimEvent.fromRow).toList()
         ..sort((a, b) {
@@ -161,7 +169,12 @@ class SharedVault {
 }
 
 String _text(Object? value) => value as String? ?? '';
-int? _minor(Object? value) => value == null ? null : parseMoney(value.toString());
+int? _minor(Object? value) {
+  if (value == null) return null;
+  final parts = value.toString().split('.');
+  final fraction = parts.length == 2 ? parts[1].padRight(2, '0') : '00';
+  return int.parse(parts.first) * 100 + int.parse(fraction);
+}
 
 Iterable<Map<String, dynamic>> _rows(Object? value) =>
     (value as List<dynamic>? ?? const []).cast<Map<String, dynamic>>();
@@ -169,7 +182,10 @@ Iterable<Map<String, dynamic>> _rows(Object? value) =>
 List<SharedOriginal> _originals(Map<String, dynamic> row) =>
     _rows(row['attachments']).map(SharedOriginal.fromRow).toList();
 
-List<(String, String)> _facts(Map<String, dynamic> row, Map<String, String> labels) => [
+List<(String, String)> _facts(
+  Map<String, dynamic> row,
+  Map<String, String> labels,
+) => [
   for (final entry in labels.entries)
     if (_text(row[entry.key]).isNotEmpty) (entry.value, _text(row[entry.key])),
 ];

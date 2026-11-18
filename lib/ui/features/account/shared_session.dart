@@ -11,8 +11,7 @@ import '../../../data/services/today.dart';
 import '../../../domain/models/shared_vault.dart';
 
 class SharedSession extends ChangeNotifier {
-  SharedSession(this.account)
-    : _service = SharedVaultService(account.client) {
+  SharedSession(this.account) : _service = SharedVaultService(account.client) {
     _subscription = account.changes.listen(
       (_) => _onAccount(),
       onError: (Object _, StackTrace _) => _onAccount(),

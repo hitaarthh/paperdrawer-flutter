@@ -38,11 +38,14 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_busy) return;
     final email = _email.text.trim();
     final password = _password.text;
-    if (!email.contains('@') || password.isEmpty ||
+    if (!email.contains('@') ||
+        password.isEmpty ||
         (_creating && (password.length < 8 || _name.text.trim().isEmpty))) {
-      setState(() => _error = _creating
-          ? 'Enter your name, a valid email and at least 8 characters for your password.'
-          : 'Enter your email and password.');
+      setState(
+        () => _error = _creating
+            ? 'Enter your name, a valid email and at least 8 characters for your password.'
+            : 'Enter your email and password.',
+      );
       return;
     }
     FocusManager.instance.primaryFocus?.unfocus();
@@ -53,7 +56,9 @@ class _AccountScreenState extends State<AccountScreen> {
     try {
       if (_creating) {
         final signedIn = await widget.session.account.signUp(
-          _name.text.trim(), email, password,
+          _name.text.trim(),
+          email,
+          password,
         );
         if (!mounted) return;
         if (!signedIn) {
@@ -66,16 +71,22 @@ class _AccountScreenState extends State<AccountScreen> {
       TextInput.finishAutofillContext();
     } on AuthException catch (error) {
       if (!mounted) return;
-      setState(() => _error = switch (error.code) {
-        'email_not_confirmed' => 'Confirm your email first, then sign in.',
-        'invalid_credentials' => 'That email or password didn’t match.',
-        'over_email_send_rate_limit' || 'over_request_rate_limit' =>
-          'Too many attempts. Wait a moment and try again.',
-        _ => 'Couldn’t ${_creating ? 'create your account' : 'sign in'}. Check your details and try again.',
-      });
+      setState(
+        () => _error = switch (error.code) {
+          'email_not_confirmed' => 'Confirm your email first, then sign in.',
+          'invalid_credentials' => 'That email or password didn’t match.',
+          'over_email_send_rate_limit' || 'over_request_rate_limit' =>
+            'Too many attempts. Wait a moment and try again.',
+          _ =>
+            'Couldn’t ${_creating ? 'create your account' : 'sign in'}. Check your details and try again.',
+        },
+      );
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = 'Couldn’t reach PaperDrawer. Check your connection and try again.');
+      setState(
+        () => _error =
+            'Couldn’t reach PaperDrawer. Check your connection and try again.',
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -83,7 +94,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _reset() async {
     try {
-      await widget.session.openWeb('/signin?reset=1');
+      await widget.session.openWeb('/signin');
     } catch (_) {
       if (!mounted) return;
       setState(() => _error = 'Couldn’t open the reset page.');
@@ -114,9 +125,14 @@ class _AccountScreenState extends State<AccountScreen> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: Pd.s4,
                 children: [
-                  const Align(alignment: Alignment.centerLeft, child: PaperDrawerMark(size: Pd.s10)),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: PaperDrawerMark(size: Pd.s10),
+                  ),
                   Text(
-                    _checkEmail ? 'Check your email' : 'Never lose a claim to a missing bill.',
+                    _checkEmail
+                        ? 'Check your email'
+                        : 'Never lose a claim to a missing bill.',
                     style: PdType.title1,
                   ),
                   Text(
@@ -126,46 +142,68 @@ class _AccountScreenState extends State<AccountScreen> {
                     style: PdType.callout.copyWith(color: Pd.textMuted),
                   ),
                   if (_checkEmail)
-                    PdButton.primary(label: 'Back to sign in', onPressed: () => _switch(false))
+                    PdButton.primary(
+                      label: 'Back to sign in',
+                      onPressed: () => _switch(false),
+                    )
                   else ...[
                     if (_creating)
                       PdTextField(
-                        label: 'Name', controller: _name,
-                        autofillHints: const [AutofillHints.name], enabled: !_busy,
+                        label: 'Name',
+                        controller: _name,
+                        autofillHints: const [AutofillHints.name],
+                        enabled: !_busy,
                         fieldKey: const ValueKey('account-name'),
                         textInputAction: TextInputAction.next,
                       ),
                     PdTextField(
-                      label: 'Email', controller: _email,
+                      label: 'Email',
+                      controller: _email,
                       fieldKey: const ValueKey('account-email'),
-                      hint: 'you@example.com', enabled: !_busy,
+                      hint: 'you@example.com',
+                      enabled: !_busy,
                       textCapitalization: TextCapitalization.none,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
                     ),
                     PdTextField(
-                      label: 'Password', controller: _password,
+                      label: 'Password',
+                      controller: _password,
                       fieldKey: const ValueKey('account-password'),
-                      enabled: !_busy, obscureText: true,
+                      enabled: !_busy,
+                      obscureText: true,
                       help: _creating ? 'Use at least 8 characters.' : null,
                       textCapitalization: TextCapitalization.none,
                       autofillHints: [
-                        _creating ? AutofillHints.newPassword : AutofillHints.password,
+                        _creating
+                            ? AutofillHints.newPassword
+                            : AutofillHints.password,
                       ],
                     ),
                     if (_error case final error?)
-                      Semantics(liveRegion: true,
-                        child: Text(error, style: PdType.callout.copyWith(color: Pd.signal))),
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          error,
+                          style: PdType.callout.copyWith(color: Pd.signal),
+                        ),
+                      ),
                     PdButton.primary(
                       key: const ValueKey('account-submit'),
                       label: _creating ? 'Create account' : 'Sign in',
-                      busy: _busy, onPressed: _busy ? null : _submit,
+                      busy: _busy,
+                      onPressed: _busy ? null : _submit,
                     ),
                     if (!_creating)
-                      PdButton.text(label: 'Forgot password?', onPressed: _busy ? null : _reset),
+                      PdButton.text(
+                        label: 'Reset password on web',
+                        onPressed: _busy ? null : _reset,
+                      ),
                     PdButton.text(
-                      label: _creating ? 'Already have an account? Sign in' : 'Create an account',
+                      label: _creating
+                          ? 'Already have an account? Sign in'
+                          : 'Create an account',
                       onPressed: _busy ? null : () => _switch(!_creating),
                     ),
                   ],
