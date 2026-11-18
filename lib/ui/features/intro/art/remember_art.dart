@@ -105,7 +105,11 @@ final _number = _bricolage(50, 0.9, 800, -0.04);
 final _days = _mono(11, 700, 0.1);
 final _kicker = _mono(10, 700, 0.1);
 final _title = _bricolage(20, 1.1, 700, -0.02);
-final _sub = _inter(13, 1.35, 500).copyWith(color: Pd.ink.withValues(alpha: .85));
+final _sub = _inter(
+  13,
+  1.35,
+  500,
+).copyWith(color: Pd.ink.withValues(alpha: .85));
 final _reminderLabel = _mono(10, 400, 0.1).copyWith(color: Pd.textMuted);
 final _reminderTitle = _inter(14, 1.21, 600).copyWith(color: Pd.text);
 
@@ -209,7 +213,10 @@ Path _stubPath(Size size) {
   const notch = 10.0;
   final ticket = Path()
     ..addRRect(
-      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(Pd.rSm)),
+      RRect.fromRectAndRadius(
+        Offset.zero & size,
+        const Radius.circular(Pd.rSm),
+      ),
     );
   final notches = Path()
     ..addOval(

@@ -25,7 +25,14 @@ class PdBrandBar extends StatelessWidget {
       children: [
         const PaperDrawerMark(size: 21),
         const SizedBox(width: Pd.s2),
-        Text('PaperDrawer', style: PdType.wordmark, maxLines: 1),
+        Flexible(
+          child: Text(
+            'PaperDrawer',
+            style: PdType.wordmark,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
     brand = Semantics(
@@ -50,11 +57,25 @@ class PdBrandBar extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(Pd.margin, top, Pd.margin, 0),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: Pd.appbarIos),
-        child: Row(
-          children: [
-            Flexible(child: brand),
-            if (trailing != null) ...[const SizedBox(width: Pd.s3), trailing!],
-          ],
+        // The action keeps up to 60% of the width; the wordmark truncates
+        // first at large text sizes.
+        child: LayoutBuilder(
+          builder: (context, constraints) => Row(
+            children: [
+              Expanded(
+                child: Align(alignment: Alignment.centerLeft, child: brand),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: Pd.s3),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth * 0.6,
+                  ),
+                  child: trailing!,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
