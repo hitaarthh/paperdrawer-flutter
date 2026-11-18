@@ -12,13 +12,14 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
-import '../../core/widgets/icons.dart';
 import '../../core/widgets/snackbar.dart';
 import 'add_details_args.dart';
 import 'add_flow.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+  const CameraScreen({this.kind, super.key});
+
+  final ItemKind? kind;
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -32,6 +33,8 @@ class _CameraScreenState extends State<CameraScreen>
   bool _active = true;
   bool _starting = false;
   bool _taking = false;
+  bool _torch = false;
+  bool _changingTorch = false;
   String? _error;
 
   @override
@@ -54,7 +57,10 @@ class _CameraScreenState extends State<CameraScreen>
         _active = false;
         final session = _session;
         if (session != null) {
-          setState(() => _session = null);
+          setState(() {
+            _session = null;
+            _torch = false;
+          });
           _closing = _closeQuietly(session);
         }
     }
@@ -107,8 +113,29 @@ class _CameraScreenState extends State<CameraScreen>
     _finish([..._pages, ...files]);
   }
 
+  Future<void> _toggleTorch() async {
+    final session = _session;
+    if (session == null || _changingTorch || _taking) return;
+    final enabled = !_torch;
+    setState(() => _changingTorch = true);
+    try {
+      await session.setTorch(enabled);
+      if (!mounted || _session != session) return;
+      setState(() => _torch = enabled);
+    } catch (_) {
+      if (mounted && _session == session) {
+        showPdSnackbar(context, 'The flash isn’t available on this camera.');
+      }
+    } finally {
+      if (mounted) setState(() => _changingTorch = false);
+    }
+  }
+
   void _finish(List<PendingFile> files) {
-    context.pushReplacement(Routes.reading, extra: List<PendingFile>.of(files));
+    context.pushReplacement(
+      Routes.reading,
+      extra: CaptureReadingArgs(List.of(files), kind: widget.kind),
+    );
   }
 
   void _close() {
@@ -149,15 +176,30 @@ class _CameraScreenState extends State<CameraScreen>
               child: Column(
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: Pd.s2,
                     children: [
-                      PdButton.text(label: 'Cancel', onPressed: _close),
-                      const Spacer(),
-                      PdButton.text(
-                        key: const ValueKey('capture-done'),
-                        label: 'Done',
-                        onPressed: _pages.isEmpty || _taking
+                      _CameraButton(
+                        key: const ValueKey('capture-close'),
+                        icon: LucideIcons.x,
+                        label: 'Close camera',
+                        onTap: _close,
+                      ),
+                      Flexible(
+                        child: _CameraCaption(
+                          widget.kind == null || widget.kind == ItemKind.bill
+                              ? 'BILL & WARRANTY'
+                              : widget.kind!.chip,
+                        ),
+                      ),
+                      _CameraButton(
+                        key: const ValueKey('capture-flash'),
+                        icon: _torch ? LucideIcons.zap : LucideIcons.zapOff,
+                        label: _torch ? 'Turn flash off' : 'Turn flash on',
+                        onTap: session == null || _taking || _changingTorch
                             ? null
-                            : () => _finish(_pages),
+                            : _toggleTorch,
+                        selected: _torch,
                       ),
                     ],
                   ),
@@ -182,6 +224,7 @@ class _CameraScreenState extends State<CameraScreen>
                                         Routes.details,
                                         extra: AddDetailsArgs(
                                           files: List.of(_pages),
+                                          kind: widget.kind ?? ItemKind.bill,
                                         ),
                                       ),
                                     ),
@@ -194,16 +237,37 @@ class _CameraScreenState extends State<CameraScreen>
                   ),
                   if (_error == null) ...[
                     const SizedBox(height: Pd.s6),
-                    Text(
+                    _CameraCaption(
                       _pages.isEmpty
-                          ? 'Fit the whole document in the frame.'
-                          : '${_pages.length} ${_pages.length == 1 ? 'page' : 'pages'} captured',
-                      textAlign: TextAlign.center,
-                      style: PdType.callout.copyWith(color: Pd.textMuted),
+                          ? 'FILL THE FRAME · FADED BILLS WORK TOO'
+                          : '${_pages.length} ${_pages.length == 1 ? 'PAGE' : 'PAGES'} CAPTURED',
                     ),
                     const SizedBox(height: Pd.s4),
-                    _Shutter(
-                      onTap: session == null || _taking ? null : _takePicture,
+                    Row(
+                      spacing: Pd.s2,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: _CameraButton(
+                              key: const ValueKey('capture-upload'),
+                              icon: LucideIcons.upload,
+                              label: 'Upload',
+                              showLabel: true,
+                              onTap: _taking ? null : _pick,
+                            ),
+                          ),
+                        ),
+                        _Shutter(onTap: session == null || _taking ? null : _takePicture),
+                        Expanded(
+                          child: PdButton.text(
+                            key: const ValueKey('capture-done'),
+                            label: 'Done',
+                            onPressed: _pages.isEmpty || _taking
+                                ? null
+                                : () => _finish(_pages),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   const SizedBox(height: Pd.s6),
@@ -236,13 +300,10 @@ class _CameraStage extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (session != null) Center(child: session!.buildPreview()),
-            const Center(
-              child: ExcludeSemantics(
-                child: PdIcon(
-                  PdGlyph.scan,
-                  size: Pd.s12 + Pd.s4,
-                  color: Pd.lime,
-                ),
+            const Padding(
+              padding: EdgeInsets.all(Pd.s4),
+              child: IgnorePointer(
+                child: CustomPaint(painter: _FramePainter()),
               ),
             ),
             if (session == null)
@@ -260,6 +321,99 @@ class _CameraStage extends StatelessWidget {
   }
 }
 
+class _CameraCaption extends StatelessWidget {
+  const _CameraCaption(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: Pd.surface2,
+      borderRadius: BorderRadius.circular(Pd.rSm),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Pd.s3, vertical: Pd.s2),
+      child: Text(label, style: PdType.label, textAlign: TextAlign.center),
+    ),
+  );
+}
+
+class _CameraButton extends StatelessWidget {
+  const _CameraButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.selected = false,
+    this.showLabel = false,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool selected;
+  final bool showLabel;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: label,
+    onPressed: onTap,
+    isSelected: selected,
+    style: IconButton.styleFrom(
+      backgroundColor: showLabel ? Pd.bg : Pd.surface2,
+      foregroundColor: selected ? Pd.lime : Pd.text,
+      minimumSize: const Size.square(Pd.tapMin),
+    ),
+    icon: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: Pd.iconMd),
+        if (showLabel) ...[
+          const SizedBox(height: Pd.s1),
+          Text(label.toUpperCase(), style: PdType.tabLabel),
+        ],
+      ],
+    ),
+  );
+}
+
+class _FramePainter extends CustomPainter {
+  const _FramePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final pen = Paint()
+      ..color = Pd.lime
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    for (final (x, y, dx, dy) in [
+      (0.0, 0.0, 1, 1),
+      (size.width, 0.0, -1, 1),
+      (0.0, size.height, 1, -1),
+      (size.width, size.height, -1, -1),
+    ]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(x, y + Pd.s8 * dy)
+          ..lineTo(x, y)
+          ..lineTo(x + Pd.s8 * dx, y),
+        pen,
+      );
+    }
+    canvas.drawLine(
+      Offset(Pd.s3, size.height * 0.4),
+      Offset(size.width - Pd.s3, size.height * 0.4),
+      pen..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_FramePainter oldDelegate) => false;
+}
+
 class _Shutter extends StatelessWidget {
   const _Shutter({required this.onTap});
 
@@ -270,20 +424,27 @@ class _Shutter extends StatelessWidget {
     button: true,
     enabled: onTap != null,
     label: 'Take a photo',
+    onTap: onTap,
     child: Material(
-      color: onTap == null ? Pd.surface3 : Pd.lime,
-      shape: const CircleBorder(),
+      color: Pd.bg,
+      shape: CircleBorder(
+        side: BorderSide(color: onTap == null ? Pd.line : Pd.lime, width: 3),
+      ),
       child: InkWell(
         key: const ValueKey('capture-shutter'),
         customBorder: const CircleBorder(),
         onTap: onTap,
         excludeFromSemantics: true,
         child: SizedBox.square(
-          dimension: Pd.controlH + Pd.s5,
-          child: Icon(
-            LucideIcons.camera,
-            size: Pd.iconMd,
-            color: onTap == null ? Pd.textSubtle : Pd.onLime,
+          dimension: Pd.controlH + Pd.s6,
+          child: Center(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: onTap == null ? Pd.surface3 : Pd.lime,
+              ),
+              child: const SizedBox.square(dimension: Pd.s12 + Pd.s3),
+            ),
           ),
         ),
       ),

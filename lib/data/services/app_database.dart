@@ -6,8 +6,9 @@ import 'package:uuid/uuid.dart';
 /// Version history:
 /// - v1: a single `records` table with one optional attachment per record.
 /// - v2: items, attachments (many per item), claims, claim events.
+/// - v3: optional bill serial numbers.
 abstract final class AppDatabase {
-  static const version = 2;
+  static const version = 3;
 
   static Future<Database> open(String path, {DatabaseFactory? factory}) =>
       (factory ?? databaseFactory).openDatabase(
@@ -15,12 +16,20 @@ abstract final class AppDatabase {
         options: OpenDatabaseOptions(
           version: version,
           onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
-          onCreate: (db, _) => db.transaction(_createV2),
+          onCreate: (db, _) => db.transaction((txn) async {
+            await _createV2(txn);
+            await _addSerialNumber(txn);
+          }),
           onUpgrade: (db, from, to) => db.transaction((txn) async {
             if (from < 2) await _migrateV1ToV2(txn);
+            if (from < 3) await _addSerialNumber(txn);
           }),
         ),
       );
+
+  static Future<void> _addSerialNumber(Transaction db) => db.execute(
+    "ALTER TABLE items ADD COLUMN serial_number TEXT NOT NULL DEFAULT ''",
+  );
 
   static Future<void> _createV2(Transaction db) async {
     await db.execute('''

@@ -10,13 +10,13 @@ class ItemFormViewModel extends ChangeNotifier {
   ItemFormViewModel(this._items, {AddDetailsArgs? initial, this.original}) {
     final reading = initial?.reading;
     final saved = original?.draft;
-    _kind = saved?.kind ?? reading?.kind ?? initial?.kind ?? ItemKind.bill;
+    _kind = saved?.kind ?? initial?.kind ?? ItemKind.bill;
     _startsOn = saved?.startsOn ?? reading?.startsOn;
     _details[_kind] = _KindDetails(
       subtype: saved?.subtype ?? '',
       coverUntil: saved?.coverUntil ?? reading?.coverUntil,
       returnUntil: saved?.returnUntil,
-      warrantyMonths: reading?.warrantyMonths,
+      warrantyMonths: _kind == ItemKind.bill ? reading?.warrantyMonths : null,
     );
     _remind = saved?.remind ?? true;
     _added.addAll(initial?.files ?? const []);
@@ -25,6 +25,7 @@ class ItemFormViewModel extends ChangeNotifier {
     initialName = saved?.name ?? reading?.name ?? '';
     initialSource = saved?.source ?? reading?.source ?? '';
     initialReference = saved?.reference ?? reading?.reference ?? '';
+    initialSerial = saved?.serialNumber ?? reading?.serialNumber ?? '';
     initialNotes = saved?.notes ?? '';
     final amount = saved?.amountMinor ?? reading?.amountMinor;
     initialAmount = amount == null ? '' : editableMoney(amount);
@@ -38,6 +39,7 @@ class ItemFormViewModel extends ChangeNotifier {
   late final String initialName;
   late final String initialSource;
   late final String initialReference;
+  late final String initialSerial;
   late final String initialNotes;
   late final String initialAmount;
 
@@ -56,6 +58,11 @@ class ItemFormViewModel extends ChangeNotifier {
   String get subtype => _active.subtype;
   DateTime? get startsOn => _startsOn;
   int? get warrantyMonths => _active.warrantyMonths;
+  int? get returnDays {
+    final start = startsOn;
+    final end = returnUntil;
+    return start == null || end == null ? _active.returnDays : daysBetween(start, end);
+  }
 
   DateTime? get coverUntil {
     final months = warrantyMonths;
@@ -180,6 +187,7 @@ class ItemFormViewModel extends ChangeNotifier {
     required String name,
     required String source,
     required String reference,
+    String serialNumber = '',
     required String amount,
     required String notes,
   }) async {
@@ -195,6 +203,7 @@ class ItemFormViewModel extends ChangeNotifier {
       source: source.trim(),
       subtype: subtype,
       reference: reference.trim(),
+      serialNumber: kind == ItemKind.bill ? serialNumber.trim() : '',
       notes: notes.trim(),
       amountMinor: parseMoney(amount),
       currency: currency,
@@ -232,6 +241,9 @@ class ItemFormViewModel extends ChangeNotifier {
     final start = startsOn;
     if (warrantyMonths != null && start == null) {
       return 'Add the purchase date to work out when the warranty ends.';
+    }
+    if (_active.returnDays != null && start == null) {
+      return 'Add the purchase date to work out when the return window closes.';
     }
     if (start == null) return null;
     final end = coverUntil;

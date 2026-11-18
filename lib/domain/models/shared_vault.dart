@@ -42,6 +42,7 @@ class SharedItem {
           name: row['name'] as String,
           source: _text(row['store']),
           reference: _text(row['invoice_no']),
+          serialNumber: _text(row['serial_no']),
           notes: _text(row['notes']),
           startsOn: bought,
           returnUntil: returnDays == 0 ? null : addDays(bought, returnDays),

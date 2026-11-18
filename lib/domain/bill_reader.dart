@@ -6,6 +6,7 @@ enum ReadField {
   name,
   source,
   reference,
+  serialNumber,
   amount,
   startsOn,
   coverUntil,
@@ -18,6 +19,7 @@ class ScanReading {
     this.name,
     this.source,
     this.reference,
+    this.serialNumber,
     this.amountMinor,
     this.startsOn,
     this.coverUntil,
@@ -28,6 +30,7 @@ class ScanReading {
   final String? name;
   final String? source;
   final String? reference;
+  final String? serialNumber;
   final int? amountMinor;
   final DateTime? startsOn;
   final DateTime? coverUntil;
@@ -38,6 +41,7 @@ class ScanReading {
     if (name != null) ReadField.name,
     if (source != null) ReadField.source,
     if (reference != null) ReadField.reference,
+    if (serialNumber != null) ReadField.serialNumber,
     if (amountMinor != null) ReadField.amount,
     if (startsOn != null) ReadField.startsOn,
     if (coverUntil != null) ReadField.coverUntil,
@@ -68,11 +72,15 @@ final _rupees = RegExp(
   caseSensitive: false,
 );
 final _warranty = RegExp(
-  r'\b(\d{1,2})\s*[- ]?\s*(years?|months?)\s+warranty\b',
+  r'(?:\bwarranty\s*[:\-]\s*(\d{1,2})\s*(years?|yrs?|months?|mos?)\b)|(?:\b(\d{1,2})\s*[- ]?\s*(years?|yrs?|months?|mos?)\s+warranty\b)',
   caseSensitive: false,
 );
 final _ref = RegExp(
-  r'\b(?:invoice|bill|policy|certificate)\s*(?:no\.?|number|#)\s*[:#-]?\s*([\w/-]+)|\border\s+id\s*[:#-]?\s*([\w/-]+)',
+  r'\b(?:invoice|bill|policy|certificate)\s*(?:no\.?|number|#)\s*[:#-]?\s*([\w/-]+)|\border\s+id\s*[:#-]?\s*([\w/-]+)|^inv\.?\s+([0-9][\w/-]+)',
+  caseSensitive: false,
+);
+final _serial = RegExp(
+  r'\b(?:serial\s*(?:no\.?|number|#)|s\s*/\s*n)\s*[:#-]?\s*([a-z0-9][\w/-]*)',
   caseSensitive: false,
 );
 final _vehicle = RegExp(
@@ -83,7 +91,7 @@ final _policy = RegExp(
   r'\b(?:policy schedule|sum insured|premium|insurance)\b',
   caseSensitive: false,
 );
-final _bill = RegExp(r'\b(?:invoice|receipt|bill)\b', caseSensitive: false);
+final _bill = RegExp(r'\b(?:invoice|receipt|bill|inv\.?\s+[0-9])\b', caseSensitive: false);
 final _sourceLabel = RegExp(
   r'^(?:seller|sold by|store|insurer|issued by)\s*:\s*(.+)$',
   caseSensitive: false,
@@ -131,6 +139,7 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
   int? amount;
   int? warrantyMonths;
   String? reference;
+  String? serialNumber;
   String? source;
   final productNames = <String>{};
 
@@ -149,7 +158,9 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
 
     if (_totalLabel.hasMatch(line)) {
       for (final match in _rupees.allMatches(line)) {
-        final candidate = parseMoney(match.group(1)!);
+        final raw = match.group(1)!;
+        if (raw.replaceAll(',', '').split('.').first.length > 10) continue;
+        final candidate = parseMoney(raw);
         if (candidate != null && (amount == null || candidate > amount)) {
           amount = candidate;
         }
@@ -158,15 +169,15 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
 
     final warranty = _warranty.firstMatch(line);
     if (warranty != null && warrantyMonths == null) {
-      final count = int.parse(warranty.group(1)!);
+      final count = int.parse(warranty.group(1) ?? warranty.group(3)!);
+      final unit = (warranty.group(2) ?? warranty.group(4)!).toLowerCase();
       if (count > 0) {
-        warrantyMonths = warranty.group(2)!.toLowerCase().startsWith('year')
-            ? count * 12
-            : count;
+        warrantyMonths = unit.startsWith('y') ? count * 12 : count;
       }
     }
     final ref = _ref.firstMatch(line);
-    reference ??= ref?.group(1) ?? ref?.group(2);
+    reference ??= ref?.group(1) ?? ref?.group(2) ?? ref?.group(3);
+    serialNumber ??= _serial.firstMatch(line)?.group(1);
     source ??= _sourceLabel.firstMatch(line)?.group(1);
     final product = _nameLabel.firstMatch(line)?.group(1);
     if (product != null) productNames.add(product);
@@ -196,12 +207,14 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
       startsOn != null ||
       amount != null ||
       reference != null ||
+      serialNumber != null ||
       warrantyMonths != null;
   return ScanReading(
     kind: kind ?? (foundFacts ? ItemKind.bill : null),
     name: productNames.length == 1 ? productNames.single : null,
     source: source,
     reference: reference,
+    serialNumber: serialNumber,
     amountMinor: amount,
     startsOn: startsOn,
     coverUntil: kind == ItemKind.bill ? null : coverUntil,

@@ -30,6 +30,7 @@ ClaimMessage draftMessage({
   final amount = details?.amountMinor;
   final source = details?.source.trim();
   final itemReference = details?.reference.trim();
+  final serialNumber = details?.serialNumber.trim();
   final noticed = claim.noticedOn;
   final reference = claim.reference.trim();
   final previousContact = claim.events
@@ -47,6 +48,8 @@ ClaimMessage draftMessage({
       '${kind == ItemKind.policy ? 'Premium' : 'Amount paid'}: ${money(amount, details!.currency)}',
     if (itemReference != null && itemReference.isNotEmpty)
       '${_referenceLabel(kind)}: $itemReference',
+    if (serialNumber != null && serialNumber.isNotEmpty)
+      'Serial number: $serialNumber',
     if (reference.isNotEmpty) 'Support or claim reference: $reference',
   ];
 

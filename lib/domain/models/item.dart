@@ -109,6 +109,7 @@ class ItemDraft {
     this.source = '',
     this.subtype = '',
     this.reference = '',
+    this.serialNumber = '',
     this.notes = '',
     this.amountMinor,
     this.currency = 'INR',
@@ -127,6 +128,7 @@ class ItemDraft {
 
   /// Invoice, policy or certificate number.
   final String reference;
+  final String serialNumber;
   final String notes;
   final int? amountMinor;
   final String currency;
