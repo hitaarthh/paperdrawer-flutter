@@ -60,6 +60,44 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('dock fits narrow and wide layouts and clears the keyboard', (
+    tester,
+  ) async {
+    await root(
+      tester,
+      Scaffold(
+        bottomNavigationBar: PdTabBar(
+          currentIndex: 0,
+          onTap: (_) {},
+          onScan: () {},
+          claimsBadge: 3,
+        ),
+      ),
+      1.3,
+    );
+    final scan = find.byKey(const ValueKey('scan-or-add'));
+    final vault = find.byKey(const ValueKey('vault-tab'));
+    tester.view.physicalSize = const Size(960, 1920);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(scan).shortestSide, greaterThanOrEqualTo(48));
+    expect(tester.getRect(scan).right, lessThan(320));
+    expect(tester.getRect(scan).bottom, lessThan(640 - 34));
+    expect(tester.takeException(), isNull);
+
+    tester.view.physicalSize = const Size(2400, 1920);
+    await tester.pumpAndSettle();
+    final controls = tester.getRect(vault).expandToInclude(tester.getRect(scan));
+    expect(controls.width, lessThanOrEqualTo(440));
+    expect(controls.center.dx, 400);
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 864);
+    await tester.pumpAndSettle();
+    expect(scan, findsNothing);
+    tester.view.viewInsets = FakeViewPadding.zero;
+    await tester.pumpAndSettle();
+    expect(scan, findsOneWidget);
+  });
+
   for (final scale in [1.0, 1.3, 2.0]) {
     testWidgets('card, countdown, large header, tabs and chip row at $scale', (
       tester,

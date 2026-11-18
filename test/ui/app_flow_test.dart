@@ -17,11 +17,30 @@ import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/ui/core/widgets/stamp.dart';
+import 'package:paperdrawer/ui/features/add/camera_screen.dart';
 import 'package:paperdrawer/ui/features/claims/claim_detail_screen.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
 
 void main() {
+  testWidgets('the Settings dock opens the Add sheet and camera at 130%', (
+    tester,
+  ) async {
+    await _launch(tester, _Items([]), scale: 1.3);
+    await _tap(tester, 'settings-tab');
+    await _tap(tester, 'scan-or-add');
+    expect(_key('add-sheet'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 120));
+    await tester.pumpAndSettle();
+    expect(_key('add-sheet'), findsNothing);
+
+    await tester.longPress(_key('scan-or-add'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CameraScreen), findsOneWidget);
+    expect(_key('scan-or-add'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('first bill can be added manually and opened from the vault', (
     tester,
   ) async {
