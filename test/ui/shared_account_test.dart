@@ -262,7 +262,7 @@ void main() {
       await tester.tap(mark);
       await tester.pumpAndSettle();
       expect(find.text('HOW WAS IT RESOLVED?'), findsOneWidget);
-      await tester.pageBack();
+      await tester.tapAt(const Offset(40, 125));
       await tester.pumpAndSettle();
       expect(service.writes, isEmpty);
 
