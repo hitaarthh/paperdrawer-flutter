@@ -41,7 +41,7 @@ class _SharedBootstrapState extends State<SharedBootstrap> {
                         Text(
                           snapshot.error is FormatException
                               ? (snapshot.error! as FormatException).message
-                              : 'PaperDrawer couldn’t open the account service.',
+                              : 'Paper Drawer couldn’t open the account service.',
                           textAlign: TextAlign.center,
                         ),
                         PdButton.text(
@@ -94,7 +94,7 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) => ChangeNotifierProvider.value(
     value: _session,
     child: MaterialApp.router(
-      title: 'PaperDrawer',
+      title: 'Paper Drawer',
       theme: pdTheme(),
       debugShowCheckedModeBanner: false,
       routerConfig: _router,

@@ -307,7 +307,7 @@ class _Refresh extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PdNavIcon(
     icon: const Icon(LucideIcons.refreshCw),
-    semanticLabel: 'Refresh from PaperDrawer web',
+    semanticLabel: 'Refresh from Paper Drawer web',
     onTap: session.refresh,
   );
 }
@@ -318,7 +318,7 @@ class _LoadFailure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DashedTile(
-    title: 'Couldn’t refresh PaperDrawer',
+    title: 'Couldn’t refresh Paper Drawer',
     body: 'Check your connection and try again.',
     action: PdButton.text(label: 'Try again', onPressed: session.refresh),
   );
@@ -372,6 +372,6 @@ Future<void> _open(
     await session.openWeb(path);
   } catch (_) {
     if (!context.mounted) return;
-    showPdSnackbar(context, 'Couldn’t open PaperDrawer web.');
+    showPdSnackbar(context, 'Couldn’t open Paper Drawer web.');
   }
 }

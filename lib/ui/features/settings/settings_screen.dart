@@ -171,7 +171,7 @@ class _SettingsViewState extends State<_SettingsView> {
                     value: 'Coming soon',
                     onTap: () => showPdSheet<void>(
                       context,
-                      title: 'PaperDrawer Pro',
+                      title: 'Paper Drawer Pro',
                       subtitle: 'The Pro waitlist is opening soon.',
                     ),
                     chevron: true,
@@ -230,7 +230,7 @@ class _SettingsViewState extends State<_SettingsView> {
               ),
               const SizedBox(height: Pd.s5),
               Text(
-                'PaperDrawer gives general guidance. For legal advice, speak to a qualified professional.',
+                'Paper Drawer gives general guidance. For legal advice, speak to a qualified professional.',
                 style: PdType.footnote.copyWith(color: Pd.textMuted),
               ),
             ],

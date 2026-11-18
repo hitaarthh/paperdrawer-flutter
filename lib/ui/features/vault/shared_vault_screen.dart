@@ -70,7 +70,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
       await session.openWeb(path);
     } catch (_) {
       if (!mounted) return;
-      showPdSnackbar(context, 'Couldn’t open PaperDrawer web.');
+      showPdSnackbar(context, 'Couldn’t open Paper Drawer web.');
     }
   }
 
@@ -151,7 +151,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                       if (session.failed)
                         _inset(
                           DashedTile(
-                            title: 'Couldn’t refresh PaperDrawer',
+                            title: 'Couldn’t refresh Paper Drawer',
                             body: 'Check your connection and try again.',
                             action: PdButton.text(
                               label: 'Try again',

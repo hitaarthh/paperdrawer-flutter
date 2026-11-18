@@ -29,7 +29,7 @@ const _phases = [
   _Phase(
     '01 · KEEP',
     'Keep it.',
-    'Snap a bill or upload a policy PDF. PaperDrawer reads the details and '
+    'Snap a bill or upload a policy PDF. Paper Drawer reads the details and '
         'files the original.',
     KeepArt(),
   ),
@@ -171,7 +171,7 @@ class _Header extends StatelessWidget {
           const SizedBox(width: Pd.s2),
           Expanded(
             child: Text(
-              'PaperDrawer',
+              'Paper Drawer',
               style: PdType.cardTitle.copyWith(letterSpacing: 20 * -0.03),
             ),
           ),

@@ -45,7 +45,7 @@ class SettingsViewModel extends ChangeNotifier {
     if (!value) return _settings.setRemindersOn(false);
     if (!await turnOnReminders(_reminders, _settings)) {
       throw const FormatException(
-        'Allow notifications for PaperDrawer in your device settings to turn on reminders.',
+        'Allow notifications for Paper Drawer in your device settings to turn on reminders.',
       );
     }
   }, 'Reminders couldn’t be updated. Try again.');

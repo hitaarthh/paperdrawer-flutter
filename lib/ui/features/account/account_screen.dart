@@ -93,7 +93,7 @@ class _AccountScreenState extends State<AccountScreen> {
       if (!mounted) return;
       setState(
         () => _error =
-            'Couldn’t reach PaperDrawer. Check your connection and try again.',
+            'Couldn’t reach Paper Drawer. Check your connection and try again.',
       );
     } finally {
       if (mounted) setState(() => _busy = false);

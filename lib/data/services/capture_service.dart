@@ -84,7 +84,7 @@ class CaptureService {
     } on CameraException catch (error) {
       await controller.dispose();
       throw FormatException(switch (error.code) {
-        'CameraAccessDenied' || 'CameraAccessDeniedWithoutPrompt' => 'To scan a document, allow camera access for PaperDrawer in Settings.',
+        'CameraAccessDenied' || 'CameraAccessDeniedWithoutPrompt' => 'To scan a document, allow camera access for Paper Drawer in Settings.',
         'CameraAccessRestricted' =>
           'Camera access is restricted on this device.',
         _ => 'The camera couldn’t open. Try again or choose a photo or PDF.',

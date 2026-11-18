@@ -154,7 +154,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
     final model = _model;
     final message = model.denied
         ? 'No problem, notifications stay off. To turn them on later, allow '
-              'PaperDrawer in your iPhone’s Settings, then switch on Device '
+              'Paper Drawer in your iPhone’s Settings, then switch on Device '
               'notifications in Settings here.'
         : model.error;
     return SafeArea(

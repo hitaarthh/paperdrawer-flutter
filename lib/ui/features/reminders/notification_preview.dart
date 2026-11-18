@@ -87,7 +87,7 @@ class _Notice extends StatelessWidget {
                 if (header)
                   Row(
                     children: [
-                      Expanded(child: Text('PAPERDRAWER', style: caption)),
+                      Expanded(child: Text('PAPER DRAWER', style: caption)),
                       Text('NOW', style: caption),
                     ],
                   ),

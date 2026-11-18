@@ -95,7 +95,7 @@ abstract final class AddFlow {
       case _LimitAction.waitlist:
         await showPdSheet<void>(
           context,
-          title: 'PaperDrawer Pro',
+          title: 'Paper Drawer Pro',
           subtitle: 'The Pro waitlist is opening soon.',
         );
       case null:

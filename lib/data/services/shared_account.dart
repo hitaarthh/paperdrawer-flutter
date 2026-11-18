@@ -38,7 +38,7 @@ class SharedAccountConfig {
         !_validOrigin(confirmation) ||
         !_isPublicKey(_key)) {
       throw const FormatException(
-        'Set the Supabase URL, publishable key and PaperDrawer web URL.',
+        'Set the Supabase URL, publishable key and Paper Drawer web URL.',
       );
     }
     return SharedAccountConfig(

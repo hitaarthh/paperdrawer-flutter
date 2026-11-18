@@ -27,7 +27,7 @@ class PdBrandBar extends StatelessWidget {
         const SizedBox(width: Pd.s2),
         Flexible(
           child: Text(
-            'PaperDrawer',
+            'Paper Drawer',
             style: PdType.wordmark,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -36,7 +36,7 @@ class PdBrandBar extends StatelessWidget {
       ],
     );
     brand = Semantics(
-      label: 'PaperDrawer',
+      label: 'Paper Drawer',
       header: onMarkTap == null,
       button: onMarkTap != null,
       excludeSemantics: true,

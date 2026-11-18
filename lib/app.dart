@@ -98,7 +98,7 @@ class _PaperDrawerAppState extends State<PaperDrawerApp> {
         Provider<ReminderScheduler?>.value(value: deps.reminders),
       ],
       child: MaterialApp.router(
-        title: 'PaperDrawer',
+        title: 'Paper Drawer',
         debugShowCheckedModeBanner: false,
         theme: pdTheme(),
         themeMode: ThemeMode.dark,

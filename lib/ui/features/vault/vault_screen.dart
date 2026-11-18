@@ -239,7 +239,7 @@ class _VaultViewState extends State<_VaultView> {
             onReview: _reviewOld,
             onWaitlist: () => showPdSheet<void>(
               context,
-              title: 'PaperDrawer Pro',
+              title: 'Paper Drawer Pro',
               subtitle: 'The Pro waitlist is opening soon.',
             ),
           ),

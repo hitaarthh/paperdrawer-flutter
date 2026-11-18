@@ -84,7 +84,7 @@ class _AddSheetState extends State<AddSheet> {
           ),
           if (widget.shared)
             Text(
-              'Continue on PaperDrawer web to save to your shared vault.',
+              'Continue on Paper Drawer web to save to your shared vault.',
               style: PdType.footnote.copyWith(color: Pd.textMuted),
             ),
         ],
