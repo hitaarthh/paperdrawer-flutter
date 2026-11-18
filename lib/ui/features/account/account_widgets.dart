@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/gestures.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme/tokens.dart';
@@ -71,7 +72,6 @@ class _Tab extends StatelessWidget {
       onTap: selected ? null : onTap,
       child: Container(
         constraints: const BoxConstraints(minHeight: Pd.tapMin),
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -80,14 +80,17 @@ class _Tab extends StatelessWidget {
             ),
           ),
         ),
-        child: Text(
-          label,
-          // The design sets these at regular weight; selection reads from
-          // the colour and the underline.
-          style: PdType.monoButton.copyWith(
-            fontWeight: FontWeight.w400,
-            fontVariations: const [FontVariation.weight(400)],
-            color: selected ? Pd.text : Pd.textSubtle,
+        child: Align(
+          widthFactor: 1,
+          child: Text(
+            label,
+            // The design sets these at regular weight; selection reads from
+            // the colour and the underline.
+            style: PdType.monoButton.copyWith(
+              fontWeight: FontWeight.w400,
+              fontVariations: const [FontVariation.weight(400)],
+              color: selected ? Pd.text : Pd.textSubtle,
+            ),
           ),
         ),
       ),
@@ -162,9 +165,9 @@ class AccountPromises extends StatelessWidget {
   }
 }
 
-/// "By continuing you agree to the Terms and Privacy policy." The two links
-/// open the web pages and keep a full-height tap target.
-class AccountLegalLine extends StatelessWidget {
+/// "By continuing you agree to the Terms and Privacy policy." The two lime
+/// links open the web pages.
+class AccountLegalLine extends StatefulWidget {
   const AccountLegalLine({
     required this.onTerms,
     required this.onPrivacy,
@@ -175,52 +178,37 @@ class AccountLegalLine extends StatelessWidget {
   final VoidCallback? onPrivacy;
 
   @override
-  Widget build(BuildContext context) {
-    final style = PdType.footnote.copyWith(color: Pd.textMuted);
-    return DefaultTextStyle.merge(
-      style: style,
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          const Text('By continuing you agree to the '),
-          _InlineLink(
-            key: const ValueKey('account-terms'),
-            label: 'Terms',
-            onTap: onTerms,
-          ),
-          const Text(' and '),
-          _InlineLink(
-            key: const ValueKey('account-privacy'),
-            label: 'Privacy policy',
-            onTap: onPrivacy,
-          ),
-          const Text('.'),
-        ],
-      ),
-    );
-  }
+  State<AccountLegalLine> createState() => _AccountLegalLineState();
 }
 
-class _InlineLink extends StatelessWidget {
-  const _InlineLink({required this.label, required this.onTap, super.key});
-
-  final String label;
-  final VoidCallback? onTap;
+class _AccountLegalLineState extends State<AccountLegalLine> {
+  final _terms = TapGestureRecognizer();
+  final _privacy = TapGestureRecognizer();
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    link: true,
-    enabled: onTap != null,
-    child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: Pd.tapMin),
-        child: Align(
-          widthFactor: 1,
-          child: Text(label, style: PdType.footnote.copyWith(color: Pd.lime)),
-        ),
+  void dispose() {
+    _terms.dispose();
+    _privacy.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _terms.onTap = widget.onTerms;
+    _privacy.onTap = widget.onPrivacy;
+    final link = PdType.footnote.copyWith(color: Pd.lime);
+    return Text.rich(
+      key: const ValueKey('account-legal'),
+      TextSpan(
+        children: [
+          const TextSpan(text: 'By continuing you agree to the '),
+          TextSpan(text: 'Terms', style: link, recognizer: _terms),
+          const TextSpan(text: ' and '),
+          TextSpan(text: 'Privacy policy', style: link, recognizer: _privacy),
+          const TextSpan(text: '.'),
+        ],
       ),
-    ),
-  );
+      style: PdType.footnote.copyWith(color: Pd.textMuted),
+    );
+  }
 }
