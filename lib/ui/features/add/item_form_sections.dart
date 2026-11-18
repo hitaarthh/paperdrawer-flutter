@@ -13,6 +13,7 @@ import '../../core/widgets/button.dart';
 import '../../core/widgets/chips.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/sheets.dart';
+import '../../core/widgets/snackbar.dart';
 import 'add_flow.dart';
 import 'item_form_view_model.dart';
 
@@ -101,7 +102,12 @@ class _FormCoverSectionState extends State<FormCoverSection> {
       ],
     );
     if (!mounted || days == null || _form.busy) return;
-    await settings.setLeadDays(days);
+    try {
+      await settings.setLeadDays(days);
+    } catch (_) {
+      if (!mounted) return;
+      showPdSnackbar(context, 'Couldn’t change the reminder timing. Try again.');
+    }
   }
 
   @override
@@ -214,7 +220,9 @@ class _FormCoverSectionState extends State<FormCoverSection> {
             if (dates > 0)
               PdListRow(
                 title: '$dates ${dates == 1 ? 'date' : 'dates'} watched',
-                value: 'Remind ${daysWord(settings.leadDays)} before',
+                value: _form.remind
+                    ? 'Remind ${daysWord(settings.leadDays)} before'
+                    : 'Reminder off for this item',
                 tag: 'Change',
                 onTap: _form.busy ? null : () => _chooseLead(settings),
               ),

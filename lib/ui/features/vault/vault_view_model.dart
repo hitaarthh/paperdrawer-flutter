@@ -27,6 +27,7 @@ class VaultViewModel extends ChangeNotifier {
   final Today _today;
   Set<String> _knownIds;
   String? _landOn;
+  String? _justAddedId;
   String? _dismissing;
   bool _disposed = false;
   bool _oldestFirst = false;
@@ -39,6 +40,9 @@ class VaultViewModel extends ChangeNotifier {
   String get query => _query;
   int get activeCount => _summaries.length;
   bool get atLimit => _items.atLimit;
+  ItemSummary? get justAdded => _summaries.where(
+    (summary) => summary.item.id == _justAddedId,
+  ).firstOrNull;
 
   /// "010 ITEMS · 4 DUE SOON · 3 OPEN CLAIMS", over the hero title.
   String get kicker {
@@ -139,12 +143,14 @@ class VaultViewModel extends ChangeNotifier {
   void choose(VaultFilter filter) {
     _filter = filter;
     _oldestFirst = false;
+    _justAddedId = null;
     notifyListeners();
   }
 
   void search(String query) {
     if (query == _query) return;
     _query = query;
+    _justAddedId = null;
     notifyListeners();
   }
 
@@ -152,12 +158,17 @@ class VaultViewModel extends ChangeNotifier {
     _filter = VaultFilter.all;
     _query = '';
     _oldestFirst = true;
+    _justAddedId = null;
     notifyListeners();
   }
 
   void _reload() {
     final ids = _items.items.map((item) => item.id).toSet();
-    _landOn = ids.difference(_knownIds).firstOrNull ?? _landOn;
+    if (ids.difference(_knownIds).firstOrNull case final added?) {
+      _landOn = added;
+      _justAddedId = added;
+    }
+    if (!ids.contains(_justAddedId)) _justAddedId = null;
     _knownIds = ids;
     _summaries =
         _items.active

@@ -183,6 +183,18 @@ class _VaultViewState extends State<_VaultView> {
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     slivers: [
                       _inset(VaultHeader(kicker: model.kicker), top: Pd.s3),
+                      if (model.justAdded case final recent?)
+                        _inset(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            spacing: Pd.s3,
+                            children: [
+                              Text('JUST ADDED', style: PdType.label.copyWith(color: Pd.lime)),
+                              _card(model, recent),
+                            ],
+                          ),
+                          top: Pd.s6,
+                        ),
                       if (empty)
                         _inset(
                           VaultEmpty(
@@ -209,7 +221,8 @@ class _VaultViewState extends State<_VaultView> {
     final tickets = model.query.isEmpty
         ? model.tickets
         : const <VaultTicketData>[];
-    final visible = model.visible;
+    final recent = model.justAdded?.item.id;
+    final visible = model.visible.where((item) => item.item.id != recent).toList();
     return [
       _inset(
         VaultSearchField(
@@ -262,9 +275,9 @@ class _VaultViewState extends State<_VaultView> {
         ),
         top: Pd.s3,
       ),
-      if (visible.isEmpty)
+      if (visible.isEmpty && recent == null)
         _inset(_noMatches(model), top: Pd.s6)
-      else
+      else if (visible.isNotEmpty)
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s6, Pd.margin, 0),
           sliver: SliverList.builder(
@@ -275,13 +288,7 @@ class _VaultViewState extends State<_VaultView> {
               return Padding(
                 key: ValueKey(id),
                 padding: const EdgeInsets.only(bottom: Pd.s5),
-                child: ItemCard(
-                  key: ValueKey('vault-item-$id'),
-                  summary: summary,
-                  onTap: () => context.push(Routes.item(id)),
-                  landStamp: model.shouldLand(id),
-                  onLanded: () => model.landed(id),
-                ),
+                child: _card(model, summary),
               );
             },
           ),
@@ -292,6 +299,17 @@ class _VaultViewState extends State<_VaultView> {
           top: Pd.s2,
         ),
     ];
+  }
+
+  Widget _card(VaultViewModel model, ItemSummary summary) {
+    final id = summary.item.id;
+    return ItemCard(
+      key: ValueKey('vault-item-$id'),
+      summary: summary,
+      onTap: () => context.push(Routes.item(id)),
+      landStamp: model.shouldLand(id),
+      onLanded: () => model.landed(id),
+    );
   }
 
   Widget _noMatches(VaultViewModel model) {
