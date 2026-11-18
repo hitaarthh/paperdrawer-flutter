@@ -18,6 +18,38 @@ Camera capture needs a physical iPhone. The Photos and Files import flows can be
 used on a simulator with sample images and PDFs. The format limits are shown by
 the picker and checked when the record is saved.
 
+## Shared vault development
+
+The mobile app can use the web app's Supabase account and vault. Start the web
+project's Docker-backed Supabase and Next.js server in separate terminals from
+`paperdrawer-web/`:
+
+```sh
+npm run db:start
+npm run dev
+```
+
+Then, from `paperdrawer-flutter/`, run the app with the web project's local
+publishable configuration. Choose the iOS simulator when prompted:
+
+```sh
+python3 tool/run_shared_local.py
+```
+
+Sign in with your local web account or create one in the app. Local confirmation
+emails appear at `http://localhost:54324`. Confirm in the browser, then sign in
+on the phone. Create or edit bills and claims on the web, then refresh the
+mobile Vault or Claims tab. The mobile account build reads the shared vault and
+its originals. Its edit and account-management links open the existing website.
+Device-only bills are available via the standard `flutter run` launch.
+
+For a hosted build, supply `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and
+optionally `PAPERDRAWER_WEB_URL` as Dart defines. The backend must allow the web
+origin's `/auth/confirm` URL as a redirect. The app accepts Supabase publishable
+and legacy anon keys. It uses the same owner-level policies as the web app.
+
+## Checks
+
 ```sh
 flutter analyze
 flutter test
@@ -25,20 +57,13 @@ flutter test
 
 ## How the pieces fit
 
-- `lib/src/ui` contains the shared shell and page layout, the vault list, the
-  add/edit form, document details, and settings.
-- `lib/src/theme` contains light and dark palettes and the shared type styles.
+- `lib/ui/features` contains the vault, add and edit forms, claims, settings,
+  and shared account screens.
+- `lib/ui/core/theme` contains the dark palette and shared type styles.
   The asset folder holds the launcher icon, bundled fonts, and their licenses.
-- `VaultController` exposes the current vault snapshot and uses Flutter's
-  ChangeNotifier through Provider. It serializes writes, refreshes after saving,
-  and keeps views up to date.
-- `VaultRepository` is the storage boundary. The SQLite implementation stores
-  metadata and appearance settings. Imported originals live under private
+- `ItemRepository` is the storage boundary for the device-only vault. The
+  SQLite implementation stores metadata and settings. Originals live under private
   Application Support with relative paths, outside temporary picker storage.
   Archived records retain their originals and can be restored.
-- On iOS, the application-created vault directory is excluded from device
-  backups. The app uses no sign-in, network backend, analytics, or cloud sync.
-  Uninstalling can remove the entire vault.
-
-The first pass includes manual entry and deadline dates. Receipt OCR, scheduled
-reminders, and cloud storage are future features.
+- On iOS, the device-only vault directory is excluded from backups.
+  Uninstalling can remove the entire device-only vault.

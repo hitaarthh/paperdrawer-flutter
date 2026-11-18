@@ -64,8 +64,6 @@ void main() {
     testWidgets('card, countdown, large header, tabs and chip row at $scale', (
       tester,
     ) async {
-      final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
       var tapped = false;
       var dismissed = false;
       await root(
@@ -116,11 +114,12 @@ void main() {
         scale,
       );
       expect(tester.takeException(), isNull);
+      final card = find.byType(ItemCard);
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
       expect(find.bySemanticsLabel(summary.semanticLabel), findsOneWidget);
       expect(find.bySemanticsLabel('Claims, 3 need action'), findsOneWidget);
       expect(find.bySemanticsLabel('DUE'), findsNothing);
-      final card = find.byType(ItemCard);
-      await tester.ensureVisible(card);
       await tester.tap(card);
       expect(tapped, isTrue);
       final ticket = find.byType(CountdownTicket);

@@ -8,6 +8,22 @@ Imports: use `package:material_ui/material_ui.dart` and `package:cupertino_ui/cu
 
 Region: India first (₹, Indian grouping, 1915 / IRDAI ladders). All money is minor units + currency code.
 
+## Shared account build
+
+When `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are configured, `main.dart`
+opens `SharedBootstrap`. `SharedAccount` uses the same Supabase Auth backend as
+the web app. iOS session data is stored in the app's Keychain. Signup verification
+uses the existing web callback and password reset uses the web sign-in flow.
+`SharedSession` resets the in-memory vault on account changes.
+
+`SharedVaultService` reads bills, bill parts, documents, claims, events and
+originals with the current user's session and owner RLS. The shared router gates
+`/vault`, `/claims` and `/settings` behind `/account`. Shared records can be
+viewed on the phone, and editing uses the web app. Originals are downloaded
+into the temporary directory as needed. The shared build does not open the
+SQLite database or transfer existing device-only originals. The unconfigured
+build uses the on-device repositories and routes below.
+
 ## Folder layout
 
 ```
