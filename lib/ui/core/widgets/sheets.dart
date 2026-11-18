@@ -34,6 +34,58 @@ Future<T?> showPdSheet<T>(
   String? subtitle,
   List<PdSheetOption<T>> options = const [],
   Widget? body,
+}) => _presentSheet<T>(
+  context,
+  padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, Pd.s4),
+  builder: (context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const _Grabber(),
+      const SizedBox(height: Pd.s4),
+      Semantics(header: true, child: Text(title, style: PdType.title2)),
+      if (subtitle != null) ...[
+        const SizedBox(height: Pd.s1),
+        Text(subtitle, style: PdType.callout.copyWith(color: Pd.textMuted)),
+      ],
+      const SizedBox(height: Pd.s3),
+      for (final option in options) _OptionRow(option: option),
+      ?body,
+    ],
+  ),
+);
+
+/// A sheet whose content the caller composes (the Add sheet). The kit still
+/// owns the surface, grabber, scrim, safe area, keyboard inset and scrolling.
+/// The content sits [Pd.s4] below the grabber, and ends at the home indicator
+/// or [Pd.s4] above the screen edge, whichever is higher. Pop the sheet's own
+/// navigator (`Navigator.pop(context, value)`) to return a value.
+Future<T?> showPdCustomSheet<T>(
+  BuildContext context, {
+  required WidgetBuilder builder,
+  String? semanticLabel,
+}) => _presentSheet<T>(
+  context,
+  padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, 0),
+  bottomMinimum: Pd.s4,
+  semanticLabel: semanticLabel,
+  builder: (context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const _Grabber(),
+      const SizedBox(height: Pd.s4),
+      Builder(builder: builder),
+    ],
+  ),
+);
+
+Future<T?> _presentSheet<T>(
+  BuildContext context, {
+  required EdgeInsets padding,
+  required WidgetBuilder builder,
+  double bottomMinimum = 0,
+  String? semanticLabel,
 }) => showModalBottomSheet<T>(
   context: context,
   useRootNavigator: true,
@@ -43,39 +95,36 @@ Future<T?> showPdSheet<T>(
   backgroundColor: CupertinoColors.transparent,
   barrierColor: Pd.scrim,
   constraints: const BoxConstraints(maxWidth: Pd.maxContent),
-  builder: (context) => Padding(
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-    child: _SheetSurface(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, Pd.s4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _Grabber(),
-            const SizedBox(height: Pd.s4),
-            Semantics(header: true, child: Text(title, style: PdType.title2)),
-            if (subtitle != null) ...[
-              const SizedBox(height: Pd.s1),
-              Text(
-                subtitle,
-                style: PdType.callout.copyWith(color: Pd.textMuted),
-              ),
-            ],
-            const SizedBox(height: Pd.s3),
-            for (final option in options) _OptionRow(option: option),
-            ?body,
-          ],
+  builder: (context) {
+    Widget sheet = Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: _SheetSurface(
+        bottomMinimum: bottomMinimum,
+        child: SingleChildScrollView(
+          padding: padding,
+          child: Builder(builder: builder),
         ),
       ),
-    ),
-  ),
+    );
+    if (semanticLabel != null) {
+      sheet = Semantics(
+        container: true,
+        explicitChildNodes: true,
+        label: semanticLabel,
+        child: sheet,
+      );
+    }
+    return sheet;
+  },
 );
 
 class _SheetSurface extends StatelessWidget {
-  const _SheetSurface({required this.child});
+  const _SheetSurface({required this.child, this.bottomMinimum = 0});
 
   final Widget child;
+
+  /// Space kept below the content when there is no home indicator.
+  final double bottomMinimum;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -84,7 +133,11 @@ class _SheetSurface extends StatelessWidget {
       borderRadius: BorderRadius.vertical(top: Radius.circular(Pd.rLg)),
       boxShadow: Pd.shadowSheet,
     ),
-    child: SafeArea(top: false, child: child),
+    child: SafeArea(
+      top: false,
+      minimum: EdgeInsets.only(bottom: bottomMinimum),
+      child: child,
+    ),
   );
 }
 
