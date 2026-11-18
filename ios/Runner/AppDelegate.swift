@@ -1,6 +1,7 @@
 import Flutter
 import ImageIO
 import PDFKit
+import Security
 import UIKit
 import Vision
 import flutter_local_notifications
@@ -24,6 +25,56 @@ import flutter_local_notifications
     let messenger = engineBridge.applicationRegistrar.messenger()
     registerStorageChannel(messenger)
     registerTextChannel(messenger)
+    registerAccountChannel(messenger)
+  }
+
+  private func registerAccountChannel(_ messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "app.paperdrawer.mobile/account", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard let args = call.arguments as? [String: Any], let account = args["account"] as? String else {
+        result(FlutterError(code: "invalid_account", message: nil, details: nil))
+        return
+      }
+      let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: "app.paperdrawer.mobile.supabase",
+        kSecAttrAccount as String: account,
+      ]
+      var status: OSStatus
+      switch call.method {
+      case "read":
+        var search = query
+        search[kSecReturnData as String] = true
+        search[kSecMatchLimit as String] = kSecMatchLimitOne
+        var value: CFTypeRef?
+        status = SecItemCopyMatching(search as CFDictionary, &value)
+        if status == errSecSuccess || status == errSecItemNotFound {
+          result((value as? Data).flatMap { String(data: $0, encoding: .utf8) })
+          return
+        }
+      case "write":
+        guard let value = args["value"] as? String else {
+          result(FlutterError(code: "invalid_session", message: nil, details: nil))
+          return
+        }
+        let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8)]
+        status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+          var item = query.merging(attributes) { _, value in value }
+          item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+          status = SecItemAdd(item as CFDictionary, nil)
+        }
+      case "remove":
+        status = SecItemDelete(query as CFDictionary)
+        if status == errSecItemNotFound { status = errSecSuccess }
+      default:
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      result(status == errSecSuccess ? nil : FlutterError(
+        code: "account_storage_failed", message: "Couldn’t access the device Keychain.", details: nil
+      ))
+    }
   }
 
   // MARK: - Private storage

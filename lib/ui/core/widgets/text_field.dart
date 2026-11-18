@@ -20,6 +20,8 @@ class PdTextField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.sentences,
     this.fieldKey,
     this.enabled = true,
+    this.obscureText = false,
+    this.autofillHints,
     super.key,
   });
 
@@ -37,6 +39,8 @@ class PdTextField extends StatefulWidget {
   final TextCapitalization textCapitalization;
   final Key? fieldKey;
   final bool enabled;
+  final bool obscureText;
+  final Iterable<String>? autofillHints;
 
   @override
   State<PdTextField> createState() => _PdTextFieldState();
@@ -113,6 +117,10 @@ class _PdTextFieldState extends State<PdTextField> {
               controller: widget.controller,
               focusNode: _focus,
               enabled: widget.enabled,
+              obscureText: widget.obscureText,
+              autocorrect: !widget.obscureText,
+              enableSuggestions: !widget.obscureText,
+              autofillHints: widget.autofillHints,
               placeholder: widget.hint,
               placeholderStyle: PdType.body.copyWith(color: Pd.placeholder),
               style: PdType.body.copyWith(
