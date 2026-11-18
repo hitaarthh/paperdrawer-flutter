@@ -54,7 +54,7 @@ class SharedAccountConfig {
       uri.host.isNotEmpty &&
       uri.userInfo.isEmpty &&
       (uri.scheme == 'https' ||
-          (kDebugMode && uri.scheme == 'http' && _localHost(uri.host)));
+          (!kReleaseMode && uri.scheme == 'http' && _localHost(uri.host)));
 
   static bool _localHost(String host) {
     if (host == 'localhost') return true;

@@ -20,6 +20,9 @@ the picker and checked when the record is saved.
 
 ## Shared vault development
 
+See the [iPhone runbook](IOS_DEVICE_RUNBOOK.md) for pairing, installation,
+local test accounts, and the Xcode errors encountered during setup.
+
 The mobile app can use the web app's Supabase account and vault. Start the web
 project's Docker-backed Supabase and Next.js server in separate terminals from
 `paperdrawer-web/`:
@@ -42,11 +45,12 @@ can reach the Docker services:
 
 ```sh
 flutter devices
-python3 tool/run_shared_local.py --lan-host "$(ipconfig getifaddr en0)" -d <iphone-id>
+python3 tool/run_shared_local.py --profile --lan-host "$(ipconfig getifaddr en0)" -d <iphone-id>
 ```
 
-Allow local network access if the iPhone asks. Use the local demo account with
-the development server. Open local confirmation emails on the Mac.
+The profile build can also be opened from the Home Screen. Allow local network
+access if the iPhone asks. Use the local demo account with the development
+server. Open local confirmation emails on the Mac.
 
 Sign in with your local web account or create one in the app. Local confirmation
 emails appear at `http://localhost:54324`. Confirm in the browser, then sign in
