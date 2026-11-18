@@ -12,15 +12,7 @@ void main() {
   testWidgets('shared vault starts at sign-in and offers account creation', (
     tester,
   ) async {
-    final origin = Uri.parse('https://example.invalid');
-    final client = SupabaseClient(
-      origin.toString(),
-      'test-publishable-key',
-      authOptions: const AuthClientOptions(autoRefreshToken: false),
-    );
-    final session = SharedSession(
-      SharedAccount(client, SharedAccountConfig(origin, 'unused', origin)),
-    );
+    final session = SharedSession(_SignedOutAccount());
     final router = buildSharedRouter(session);
     tester.view.devicePixelRatio = 3;
     tester.view.physicalSize = const Size(1179, 2556);
@@ -28,7 +20,6 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    addTearDown(client.dispose);
     addTearDown(session.dispose);
     addTearDown(router.dispose);
 
@@ -61,4 +52,27 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+}
+
+class _SignedOutAccount extends SharedAccount {
+  _SignedOutAccount()
+    : super(
+        _UnusedClient(),
+        SharedAccountConfig(
+          Uri.parse('https://example.invalid'),
+          'unused',
+          Uri.parse('https://example.invalid'),
+        ),
+      );
+
+  @override
+  User? get user => null;
+
+  @override
+  Stream<AuthState> get changes => const Stream.empty();
+}
+
+class _UnusedClient implements SupabaseClient {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
