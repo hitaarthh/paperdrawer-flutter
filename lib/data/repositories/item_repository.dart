@@ -80,7 +80,9 @@ class ItemRepository extends ChangeNotifier {
     Set<String> removeAttachmentIds = const {},
   }) => _enqueue(() async {
     final existing = byId(id);
-    if (existing == null) throw StateError('This item is no longer in the drawer.');
+    if (existing == null) {
+      throw StateError('This item is no longer in the drawer.');
+    }
     _validate(draft);
     final copied = await _importAll(id, addFiles);
     final removed = existing.attachments
@@ -91,11 +93,16 @@ class ItemRepository extends ChangeNotifier {
       await _db.transaction((txn) async {
         final count = await txn.update(
           'items',
-          {..._encode(draft), 'updated_at': DateTime.now().millisecondsSinceEpoch},
+          {
+            ..._encode(draft),
+            'updated_at': DateTime.now().millisecondsSinceEpoch,
+          },
           where: 'id = ?',
           whereArgs: [id],
         );
-        if (count != 1) throw StateError('This item is no longer in the drawer.');
+        if (count != 1) {
+          throw StateError('This item is no longer in the drawer.');
+        }
         for (final attachment in removed) {
           await txn.delete(
             'attachments',
@@ -143,6 +150,10 @@ class ItemRepository extends ChangeNotifier {
     await _db.transaction((txn) async {
       await txn.delete('attachments');
       await txn.delete('items');
+      final legacy = await txn.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'records_v1_backup'",
+      );
+      if (legacy.isNotEmpty) await txn.delete('records_v1_backup');
     });
     await _files.removeAll();
     await _refresh();
@@ -167,7 +178,10 @@ class ItemRepository extends ChangeNotifier {
     }
   }
 
-  Future<List<Attachment>> _importAll(String itemId, List<PendingFile> files) async {
+  Future<List<Attachment>> _importAll(
+    String itemId,
+    List<PendingFile> files,
+  ) async {
     final copied = <Attachment>[];
     try {
       for (final file in files) {
@@ -230,40 +244,48 @@ class ItemRepository extends ChangeNotifier {
     );
     final byItem = <String, List<Attachment>>{};
     for (final row in attachmentRows) {
-      byItem.putIfAbsent(row['item_id']! as String, () => []).add(
-        Attachment(
-          id: row['id']! as String,
-          path: _files.absolute(row['rel_path']! as String),
-          name: row['name']! as String,
-          bytes: row['bytes'] as int? ?? 0,
-        ),
-      );
+      byItem
+          .putIfAbsent(row['item_id']! as String, () => [])
+          .add(
+            Attachment(
+              id: row['id']! as String,
+              path: _files.absolute(row['rel_path']! as String),
+              name: row['name']! as String,
+              bytes: row['bytes'] as int? ?? 0,
+            ),
+          );
     }
-    return rows.map((row) {
-      final id = row['id']! as String;
-      final archivedAt = row['archived_at'] as int?;
-      return Item(
-        id: id,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at']! as int),
-        archivedAt: archivedAt == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(archivedAt),
-        attachments: List.unmodifiable(byItem[id] ?? const <Attachment>[]),
-        draft: ItemDraft(
-          kind: ItemKind.values.asNameMap()[row['kind']] ?? ItemKind.agreement,
-          name: row['name']! as String,
-          source: row['source'] as String? ?? '',
-          subtype: row['subtype'] as String? ?? '',
-          reference: row['reference'] as String? ?? '',
-          notes: row['notes'] as String? ?? '',
-          amountMinor: row['amount_minor'] as int?,
-          currency: row['currency'] as String? ?? 'INR',
-          startsOn: parseIsoDate(row['starts_on']),
-          returnUntil: parseIsoDate(row['return_until']),
-          coverUntil: parseIsoDate(row['cover_until']),
-          remind: (row['remind'] as int? ?? 1) == 1,
-        ),
-      );
-    }).toList(growable: false);
+    return rows
+        .map((row) {
+          final id = row['id']! as String;
+          final archivedAt = row['archived_at'] as int?;
+          return Item(
+            id: id,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(
+              row['created_at']! as int,
+            ),
+            archivedAt: archivedAt == null
+                ? null
+                : DateTime.fromMillisecondsSinceEpoch(archivedAt),
+            attachments: List.unmodifiable(byItem[id] ?? const <Attachment>[]),
+            draft: ItemDraft(
+              kind:
+                  ItemKind.values.asNameMap()[row['kind']] ??
+                  ItemKind.agreement,
+              name: row['name']! as String,
+              source: row['source'] as String? ?? '',
+              subtype: row['subtype'] as String? ?? '',
+              reference: row['reference'] as String? ?? '',
+              notes: row['notes'] as String? ?? '',
+              amountMinor: row['amount_minor'] as int?,
+              currency: row['currency'] as String? ?? 'INR',
+              startsOn: parseIsoDate(row['starts_on']),
+              returnUntil: parseIsoDate(row['return_until']),
+              coverUntil: parseIsoDate(row['cover_until']),
+              remind: (row['remind'] as int? ?? 1) == 1,
+            ),
+          );
+        })
+        .toList(growable: false);
   }
 }

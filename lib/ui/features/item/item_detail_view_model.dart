@@ -14,7 +14,12 @@ import '../../../domain/models/item.dart';
 
 class ItemDetailViewModel extends ChangeNotifier {
   ItemDetailViewModel(
-    this.id, this._items, this._claims, this._today, this._exporter, this._actions,
+    this.id,
+    this._items,
+    this._claims,
+    this._today,
+    this._exporter,
+    this._actions,
   ) {
     _items.addListener(notifyListeners);
     _claims.addListener(notifyListeners);
@@ -35,15 +40,15 @@ class ItemDetailViewModel extends ChangeNotifier {
   Claim? get claim => _claims.openFor(id);
   ItemSummary? get summary {
     final item = this.item;
-    return item == null ? null : ItemSummary.of(
-      item,
-      _today.value,
-      hasOpenClaim: claim != null,
-    );
+    return item == null
+        ? null
+        : ItemSummary.of(item, _today.value, hasOpenClaim: claim != null);
   }
 
-  Future<bool> archive(bool value) =>
-      _run(() => _items.setArchived(id, value), 'The archive couldn’t be updated.');
+  Future<bool> archive(bool value) => _run(
+    () => _items.setArchived(id, value),
+    'The archive couldn’t be updated.',
+  );
 
   Future<bool> delete() => _run(() async {
     await _items.delete(id);
@@ -66,8 +71,10 @@ class ItemDetailViewModel extends ChangeNotifier {
   Future<Uint8List?> thumbnail(Attachment attachment) =>
       _actions.thumbnailBytes(attachment);
 
-  Future<bool> open(Attachment attachment) =>
-      _run(() => _actions.openAttachment(attachment), 'This original couldn’t open.');
+  Future<bool> open(Attachment attachment) => _run(
+    () => _actions.openAttachment(attachment),
+    'This original couldn’t open.',
+  );
 
   Future<bool> _run(Future<void> Function() write, String fallback) async {
     if (busy) return false;

@@ -116,9 +116,7 @@ class _BootstrapState extends State<_Bootstrap> {
           color: Pd.bg,
           child: Center(
             child: snapshot.hasError
-                ? _OpenError(
-                    onRetry: () => setState(() => _opening = _open()),
-                  )
+                ? _OpenError(onRetry: () => setState(() => _opening = _open()))
                 : const PaperDrawerMark(size: 40),
           ),
         ),

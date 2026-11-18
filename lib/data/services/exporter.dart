@@ -25,10 +25,9 @@ class Exporter {
   }) async {
     final cache = await getTemporaryDirectory();
     final folder = await cache.createTemp('paperdrawer-');
-    final output = File(p.join(
-      folder.path,
-      'paperdrawer-export-${isoDate(_today.value)}.zip',
-    ));
+    final output = File(
+      p.join(folder.path, 'paperdrawer-export-${isoDate(_today.value)}.zip'),
+    );
     final zip = ZipFileEncoder();
     try {
       zip.create(output.path);
@@ -55,7 +54,8 @@ class Exporter {
     }
   }
 
-  Future<void> discardExport(File export) => export.parent.delete(recursive: true);
+  Future<void> discardExport(File export) =>
+      export.parent.delete(recursive: true);
 
   Future<List<XFile>> claimKit(Item item, {Claim? claim}) async {
     final draft = item.draft;
@@ -70,7 +70,12 @@ class Exporter {
       if (draft.returnUntil case final date?) 'Return by: ${longDate(date)}',
       if (draft.coverUntil case final date?) 'Cover ends: ${longDate(date)}',
       if (draft.notes.isNotEmpty) draft.notes,
-      if (claim != null) ...['', claim.title, claim.problem, 'Requested: ${claim.want.phrase}'],
+      if (claim != null) ...[
+        '',
+        claim.title,
+        claim.problem,
+        'Requested: ${claim.want.phrase}',
+      ],
     ].join('\n');
     final name = '${_safeName(item.name)}-claim-kit.txt';
     return [
@@ -87,7 +92,8 @@ class Exporter {
   String _archivePath(Item item, Attachment file) =>
       'originals/${item.id}/${file.id}-${_safeName(file.name)}';
 
-  String _safeName(String name) => name.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-');
+  String _safeName(String name) =>
+      name.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-');
 
   Map<String, Object?> _encodeItem(Item item) => {
     'id': item.id,
@@ -107,7 +113,12 @@ class Exporter {
     'archived_at': item.archivedAt?.toUtc().toIso8601String(),
     'attachments': [
       for (final file in item.attachments)
-        {'id': file.id, 'name': file.name, 'bytes': file.bytes, 'path': _archivePath(item, file)},
+        {
+          'id': file.id,
+          'name': file.name,
+          'bytes': file.bytes,
+          'path': _archivePath(item, file),
+        },
     ],
   };
 
@@ -128,7 +139,12 @@ class Exporter {
     'nudge_days': claim.nudgeDays,
     'events': [
       for (final event in claim.events)
-        {'id': event.id, 'on': isoDate(event.on), 'kind': event.kind.name, 'text': event.text},
+        {
+          'id': event.id,
+          'on': isoDate(event.on),
+          'kind': event.kind.name,
+          'text': event.text,
+        },
     ],
   };
 

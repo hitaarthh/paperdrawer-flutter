@@ -30,9 +30,12 @@ class VaultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
-    create: (context) => VaultViewModel(context.read<ItemRepository>(),
-      context.read<ClaimRepository>(), context.read<SettingsRepository>(),
-      context.read<Today>()),
+    create: (context) => VaultViewModel(
+      context.read<ItemRepository>(),
+      context.read<ClaimRepository>(),
+      context.read<SettingsRepository>(),
+      context.read<Today>(),
+    ),
     child: _VaultView(reviewOld: reviewOld),
   );
 }
@@ -63,16 +66,21 @@ class _VaultViewState extends State<_VaultView> {
     if (widget.reviewOld && !oldWidget.reviewOld) _reviewOnNextFrame();
   }
 
-  void _reviewOnNextFrame() => WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (mounted) context.read<VaultViewModel>().reviewOld();
-  });
+  void _reviewOnNextFrame() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<VaultViewModel>().reviewOld();
+      });
 
   void _onTabReselect() {
     if (_reselect.index != 0 || !_scroll.hasClients) return;
     if (MediaQuery.disableAnimationsOf(context)) {
       _scroll.jumpTo(0);
     } else {
-      _scroll.animateTo(0, duration: Pd.sheetDuration, curve: Curves.easeOutCubic);
+      _scroll.animateTo(
+        0,
+        duration: Pd.sheetDuration,
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -88,7 +96,10 @@ class _VaultViewState extends State<_VaultView> {
       await model.dismissTicket(key);
     } catch (_) {
       if (!mounted) return;
-      showPdSnackbar(context, 'The countdown couldn’t be dismissed. Try again.');
+      showPdSnackbar(
+        context,
+        'The countdown couldn’t be dismissed. Try again.',
+      );
     }
   }
 
@@ -108,61 +119,85 @@ class _VaultViewState extends State<_VaultView> {
       ),
       slivers: [
         if (ticket != null)
-          _inset(SizedBox(
-            key: ValueKey(model.ticketKey(ticket.$1, ticket.$2)),
-            child: CountdownTicket(
-              summary: ticket.$1,
-              window: ticket.$2,
-              onTap: () => context.push(Routes.item(ticket.$1.item.id)),
-              onDismissed: () => _dismiss(model, model.ticketKey(ticket.$1, ticket.$2)),
-            ),
-          ), bottom: Pd.s4),
-        SliverToBoxAdapter(
-          child: PdChipRow(children: [
-            for (final filter in VaultFilter.values)
-              PdFilterChip(
-                key: ValueKey('vault-filter-${filter.name}'),
-                label: filter.label,
-                count: model.count(filter),
-                selected: model.filter == filter,
-                onTap: () => model.choose(filter),
+          _inset(
+            SizedBox(
+              key: ValueKey(model.ticketKey(ticket.$1, ticket.$2)),
+              child: CountdownTicket(
+                summary: ticket.$1,
+                window: ticket.$2,
+                onTap: () => context.push(Routes.item(ticket.$1.item.id)),
+                onDismissed: () =>
+                    _dismiss(model, model.ticketKey(ticket.$1, ticket.$2)),
               ),
-          ]),
+            ),
+            bottom: Pd.s4,
+          ),
+        SliverToBoxAdapter(
+          child: PdChipRow(
+            children: [
+              for (final filter in VaultFilter.values)
+                PdFilterChip(
+                  key: ValueKey('vault-filter-${filter.name}'),
+                  label: filter.label,
+                  count: model.count(filter),
+                  selected: model.filter == filter,
+                  onTap: () => model.choose(filter),
+                ),
+            ],
+          ),
         ),
         if (model.atLimit)
-          _inset(LimitNotice(
-            count: model.activeCount,
-            onReview: model.reviewOld,
-            onWaitlist: () => showPdSheet<void>(
-              context,
-              title: 'PaperDrawer Pro',
-              subtitle: 'The Pro waitlist is opening soon.',
+          _inset(
+            LimitNotice(
+              count: model.activeCount,
+              onReview: model.reviewOld,
+              onWaitlist: () => showPdSheet<void>(
+                context,
+                title: 'PaperDrawer Pro',
+                subtitle: 'The Pro waitlist is opening soon.',
+              ),
             ),
-          ), top: Pd.s3),
+            top: Pd.s3,
+          ),
         if (model.oldestFirst)
-          _inset(Text('OLDEST ITEMS FIRST', style: PdType.label.copyWith(color: Pd.textMuted)), top: Pd.s4),
-        if (model.activeCount == 0)
-          _inset(DashedTile(
-            title: 'Your drawer is empty',
-            body: 'Scan your first bill. We’ll read the dates.',
-            action: PdButton.primary(
-              key: const ValueKey('scan-first-bill'),
-              label: 'Scan a bill',
-              onPressed: () => AddFlow.start(context),
+          _inset(
+            Text(
+              'OLDEST ITEMS FIRST',
+              style: PdType.label.copyWith(color: Pd.textMuted),
             ),
-          ), top: Pd.s4)
+            top: Pd.s4,
+          ),
+        if (model.activeCount == 0)
+          _inset(
+            DashedTile(
+              title: 'Your drawer is empty',
+              body: 'Scan your first bill. We’ll read the dates.',
+              action: PdButton.primary(
+                key: const ValueKey('scan-first-bill'),
+                label: 'Scan a bill',
+                onPressed: () => AddFlow.start(context),
+              ),
+            ),
+            top: Pd.s4,
+          )
         else if (visible.isEmpty)
-          _inset(DashedTile(
-            title: switch (model.filter) {
-              VaultFilter.due => 'Nothing is due',
-              VaultFilter.inClaim => 'No items in a claim',
-              VaultFilter.covered => 'No items with active cover',
-              VaultFilter.expired => 'No expired items',
-              VaultFilter.all => 'Your drawer is empty',
-            },
-            body: 'Choose All to see everything in your drawer.',
-            action: PdButton.text(label: 'Show all items', onPressed: () => model.choose(VaultFilter.all)),
-          ), top: Pd.s4)
+          _inset(
+            DashedTile(
+              title: switch (model.filter) {
+                VaultFilter.due => 'Nothing is due',
+                VaultFilter.inClaim => 'No items in a claim',
+                VaultFilter.covered => 'No items with active cover',
+                VaultFilter.expired => 'No expired items',
+                VaultFilter.all => 'Your drawer is empty',
+              },
+              body: 'Choose All to see everything in your drawer.',
+              action: PdButton.text(
+                label: 'Show all items',
+                onPressed: () => model.choose(VaultFilter.all),
+              ),
+            ),
+            top: Pd.s4,
+          )
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s4, Pd.margin, 0),
@@ -186,7 +221,10 @@ class _VaultViewState extends State<_VaultView> {
             ),
           ),
         if (model.activeCount >= baseItemWarnAt && !model.atLimit)
-          _inset(LimitFootnote(left: baseItemLimit - model.activeCount), top: Pd.s2),
+          _inset(
+            LimitFootnote(left: baseItemLimit - model.activeCount),
+            top: Pd.s2,
+          ),
       ],
     );
   }

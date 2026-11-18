@@ -55,9 +55,8 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                   routes: [
                     GoRoute(
                       path: 'claim',
-                      builder: (context, state) => StartClaimScreen(
-                        itemId: state.pathParameters['id']!,
-                      ),
+                      builder: (context, state) =>
+                          StartClaimScreen(itemId: state.pathParameters['id']!),
                     ),
                   ],
                 ),

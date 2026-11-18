@@ -18,6 +18,7 @@ class SettingsRepository extends ChangeNotifier {
     final value = int.tryParse(_values[_lead] ?? '');
     return leadDayChoices.contains(value) ? value! : 7;
   }
+
   String? get ticketDismissedKey => _values[_ticket];
 
   Future<void> load() async {
@@ -28,13 +29,17 @@ class SettingsRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setRemindersOn(bool value) => _set(_reminders, value ? '1' : '0');
+  Future<void> setRemindersOn(bool value) =>
+      _set(_reminders, value ? '1' : '0');
   Future<void> setLeadDays(int value) {
     if (!leadDayChoices.contains(value)) {
-      return Future.error(const FormatException('Choose a reminder lead time.'));
+      return Future.error(
+        const FormatException('Choose a reminder lead time.'),
+      );
     }
     return _set(_lead, value.toString());
   }
+
   Future<void> dismissTicket(String key) => _set(_ticket, key);
 
   Future<void> eraseAll() => _write(() async {

@@ -1,7 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/repositories/claim_repository.dart';
@@ -33,8 +32,12 @@ class ItemDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
     create: (context) => ItemDetailViewModel(
-      id, context.read<ItemRepository>(), context.read<ClaimRepository>(),
-      context.read<Today>(), context.read<Exporter>(), context.read<DrawerActions>(),
+      id,
+      context.read<ItemRepository>(),
+      context.read<ClaimRepository>(),
+      context.read<Today>(),
+      context.read<Exporter>(),
+      context.read<DrawerActions>(),
     ),
     child: const _ItemDetailView(),
   );
@@ -52,7 +55,9 @@ class _ItemDetailView extends StatelessWidget {
   }
 
   Future<void> _perform(
-    BuildContext context, ItemDetailViewModel model, Future<bool> operation, {
+    BuildContext context,
+    ItemDetailViewModel model,
+    Future<bool> operation, {
     String? success,
     bool pop = false,
   }) async {
@@ -66,7 +71,11 @@ class _ItemDetailView extends StatelessWidget {
     }
   }
 
-  Future<void> _actions(BuildContext context, ItemDetailViewModel model, Item item) async {
+  Future<void> _actions(
+    BuildContext context,
+    ItemDetailViewModel model,
+    Item item,
+  ) async {
     if (model.busy) return;
     final action = await showPdActions<_ItemAction>(
       context,
@@ -77,7 +86,11 @@ class _ItemDetailView extends StatelessWidget {
           const PdAction(label: 'Restore to vault', value: _ItemAction.restore)
         else
           const PdAction(label: 'Move to archive', value: _ItemAction.archive),
-        const PdAction(label: 'Delete item', value: _ItemAction.delete, destructive: true),
+        const PdAction(
+          label: 'Delete item',
+          value: _ItemAction.delete,
+          destructive: true,
+        ),
       ],
     );
     if (!context.mounted) return;
@@ -85,9 +98,20 @@ class _ItemDetailView extends StatelessWidget {
       case _ItemAction.edit:
         context.push(Routes.edit(item.id));
       case _ItemAction.archive:
-        await _perform(context, model, model.archive(true), success: 'Moved to archive', pop: true);
+        await _perform(
+          context,
+          model,
+          model.archive(true),
+          success: 'Moved to archive',
+          pop: true,
+        );
       case _ItemAction.restore:
-        await _perform(context, model, model.archive(false), success: 'Restored to vault');
+        await _perform(
+          context,
+          model,
+          model.archive(false),
+          success: 'Restored to vault',
+        );
       case _ItemAction.delete:
         final confirmed = await showPdConfirm(
           context,
@@ -97,7 +121,13 @@ class _ItemDetailView extends StatelessWidget {
           destructive: true,
         );
         if (!context.mounted || !confirmed) return;
-        await _perform(context, model, model.delete(), success: 'Item deleted', pop: true);
+        await _perform(
+          context,
+          model,
+          model.delete(),
+          success: 'Item deleted',
+          pop: true,
+        );
       case null:
         break;
     }
@@ -105,7 +135,9 @@ class _ItemDetailView extends StatelessWidget {
 
   Rect? _origin(BuildContext context) {
     final box = context.findRenderObject();
-    return box is RenderBox && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+    return box is RenderBox && box.hasSize
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
   }
 
   @override
@@ -118,7 +150,10 @@ class _ItemDetailView extends StatelessWidget {
         title: 'Item unavailable',
         onBack: () => _back(context),
         children: const [
-          DashedTile(title: 'This item is gone', body: 'Go back to see the rest of your drawer.'),
+          DashedTile(
+            title: 'This item is gone',
+            body: 'Go back to see the rest of your drawer.',
+          ),
         ],
       );
     }
@@ -129,12 +164,18 @@ class _ItemDetailView extends StatelessWidget {
       onBack: () => _back(context),
       actions: [
         if (item.attachments.isNotEmpty)
-          Builder(builder: (anchor) => PdNavIcon(
-            key: const ValueKey('item-share'),
-            icon: const Icon(CupertinoIcons.share),
-            semanticLabel: 'Share originals',
-            onTap: () => _perform(context, model, model.shareOriginals(item, _origin(anchor))),
-          )),
+          Builder(
+            builder: (anchor) => PdNavIcon(
+              key: const ValueKey('item-share'),
+              icon: const Icon(CupertinoIcons.share),
+              semanticLabel: 'Share originals',
+              onTap: () => _perform(
+                context,
+                model,
+                model.shareOriginals(item, _origin(anchor)),
+              ),
+            ),
+          ),
         PdNavIcon(
           key: const ValueKey('item-actions'),
           icon: const Icon(LucideIcons.ellipsis),
@@ -146,7 +187,10 @@ class _ItemDetailView extends StatelessWidget {
         if (item.isArchived)
           Padding(
             padding: const EdgeInsets.only(bottom: Pd.s3),
-            child: Text('ARCHIVED', style: PdType.label.copyWith(color: Pd.textMuted)),
+            child: Text(
+              'ARCHIVED',
+              style: PdType.label.copyWith(color: Pd.textMuted),
+            ),
           ),
         ItemCard(summary: summary),
         for (final window in summary.windows)
@@ -156,7 +200,10 @@ class _ItemDetailView extends StatelessWidget {
           ),
         if (item.attachments.isNotEmpty) ...[
           const SizedBox(height: Pd.s6),
-          Text('ORIGINAL DOCUMENTS', style: PdType.label.copyWith(color: Pd.textMuted)),
+          Text(
+            'ORIGINAL DOCUMENTS',
+            style: PdType.label.copyWith(color: Pd.textMuted),
+          ),
           const SizedBox(height: Pd.s3),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -169,7 +216,10 @@ class _ItemDetailView extends StatelessWidget {
                     key: ValueKey('attachment-${attachment.id}'),
                     attachment: attachment,
                     thumbnail: model.thumbnail,
-                    onOpen: model.busy ? null : () => _perform(context, model, model.open(attachment)),
+                    onOpen: model.busy
+                        ? null
+                        : () =>
+                              _perform(context, model, model.open(attachment)),
                   ),
               ],
             ),
@@ -186,26 +236,43 @@ class _ItemDetailView extends StatelessWidget {
           PdButton.primary(
             key: const ValueKey('item-claim'),
             label: claim == null ? 'Start a claim' : 'View claim',
-            onPressed: model.busy ? null : () {
-              if (claim != null) {
-                context.go(Routes.claim(claim.id));
-              } else {
-                context.push(Routes.startClaim(item.id));
-              }
-            },
+            onPressed: model.busy
+                ? null
+                : () {
+                    if (claim != null) {
+                      context.go(Routes.claim(claim.id));
+                    } else {
+                      context.push(Routes.startClaim(item.id));
+                    }
+                  },
           )
         else
           PdButton.primary(
             key: const ValueKey('item-restore'),
             label: 'Restore to vault',
-            onPressed: model.busy ? null : () => _perform(context, model, model.archive(false), success: 'Restored to vault'),
+            onPressed: model.busy
+                ? null
+                : () => _perform(
+                    context,
+                    model,
+                    model.archive(false),
+                    success: 'Restored to vault',
+                  ),
           ),
         const SizedBox(height: Pd.s2),
-        Builder(builder: (anchor) => PdButton.secondary(
-          key: const ValueKey('item-export-kit'),
-          label: 'Export claim kit',
-          onPressed: model.busy ? null : () => _perform(context, model, model.exportKit(item, _origin(anchor))),
-        )),
+        Builder(
+          builder: (anchor) => PdButton.secondary(
+            key: const ValueKey('item-export-kit'),
+            label: 'Export claim kit',
+            onPressed: model.busy
+                ? null
+                : () => _perform(
+                    context,
+                    model,
+                    model.exportKit(item, _origin(anchor)),
+                  ),
+          ),
+        ),
       ],
     );
   }

@@ -1,6 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:material_ui/material_ui.dart';
 
 import '../../../domain/models/item.dart';
 import '../../core/theme/tokens.dart';
@@ -37,11 +38,13 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
   @override
   Widget build(BuildContext context) {
     final document = widget.attachment;
-    final placeholder = Center(child: Icon(
-      document.isPdf ? LucideIcons.fileText : LucideIcons.image,
-      size: Pd.iconMd,
-      color: Pd.textMuted,
-    ));
+    final placeholder = Center(
+      child: Icon(
+        document.isPdf ? LucideIcons.fileText : LucideIcons.image,
+        size: Pd.iconMd,
+        color: Pd.textMuted,
+      ),
+    );
     return SizedBox(
       width: Pd.s12 + Pd.s6,
       child: Semantics(
@@ -69,7 +72,10 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
                         if (data == null) return placeholder;
                         return Image.memory(
                           data,
-                          cacheWidth: (MediaQuery.devicePixelRatioOf(context) * (Pd.s12 + Pd.s6)).ceil(),
+                          cacheWidth:
+                              (MediaQuery.devicePixelRatioOf(context) *
+                                      (Pd.s12 + Pd.s6))
+                                  .ceil(),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stack) => placeholder,
                         );
@@ -79,7 +85,12 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
                 ),
               ),
               const SizedBox(height: Pd.s1),
-              Text(document.name, style: PdType.footnote, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                document.name,
+                style: PdType.footnote,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
         ),

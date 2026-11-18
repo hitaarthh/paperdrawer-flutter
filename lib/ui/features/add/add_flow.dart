@@ -114,9 +114,13 @@ abstract final class AddFlow {
     if (!context.mounted) return true;
     switch (action) {
       case _LimitAction.review:
-        context.go(Routes.vault);
+        context.go('${Routes.vault}?review=old');
       case _LimitAction.waitlist:
-        context.go(Routes.settings);
+        await showPdSheet<void>(
+          context,
+          title: 'PaperDrawer Pro',
+          subtitle: 'The Pro waitlist is opening soon.',
+        );
       case null:
         break;
     }

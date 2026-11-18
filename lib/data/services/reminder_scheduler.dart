@@ -33,7 +33,8 @@ class PlannedReminder {
   final String location;
   final bool timeSensitive;
 
-  int get id => key.codeUnits.fold(0, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
+  int get id =>
+      key.codeUnits.fold(0, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
 }
 
 List<PlannedReminder> planReminders({
@@ -43,7 +44,8 @@ List<PlannedReminder> planReminders({
   required DateTime now,
 }) {
   final plans = <PlannedReminder>[];
-  DateTime localMorning(DateTime day) => DateTime(day.year, day.month, day.day, 9);
+  DateTime localMorning(DateTime day) =>
+      DateTime(day.year, day.month, day.day, 9);
   for (final item in items) {
     if (item.isArchived || !item.draft.remind) continue;
     for (final window in windowsOf(item)) {
@@ -55,29 +57,39 @@ List<PlannedReminder> planReminders({
       for (final days in offsets) {
         final morning = localMorning(addDays(window.end, -days));
         if (!morning.isAfter(now)) continue;
-        plans.add(PlannedReminder(
-          key: 'item/${item.id}/${window.type.name}/$days',
-          at: morning,
-          title: '${item.name} ${window.fact(civil(morning))}',
-          body: window.action(),
-          location: '/vault/item/${item.id}',
-          timeSensitive: window.type == WindowType.returnWindow && days == 1,
-        ));
+        plans.add(
+          PlannedReminder(
+            key: 'item/${item.id}/${window.type.name}/$days',
+            at: morning,
+            title: '${item.name} ${window.fact(civil(morning))}',
+            body: window.action(),
+            location: '/vault/item/${item.id}',
+            timeSensitive: window.type == WindowType.returnWindow && days == 1,
+          ),
+        );
       }
     }
   }
   for (final claim in claims) {
     final next = claim.step + 1;
-    if (!claim.isOpen || claim.nudgeDays <= 0 || next >= ladderFor(claim.type).length) continue;
+    if (!claim.isOpen ||
+        claim.nudgeDays <= 0 ||
+        next >= ladderFor(claim.type).length) {
+      continue;
+    }
     final morning = localMorning(claim.nudgeOn);
     if (!morning.isAfter(now)) continue;
-    plans.add(PlannedReminder(
-      key: 'claim/${claim.id}',
-      at: morning,
-      title: '${claim.itemLabel} claim: no reply in ${daysWord(claim.nudgeDays)}',
-      body: 'You can write to ${stepTitle(claim.type, next)}. Your message is drafted.',
-      location: '/claims/${claim.id}',
-    ));
+    plans.add(
+      PlannedReminder(
+        key: 'claim/${claim.id}',
+        at: morning,
+        title:
+            '${claim.itemLabel} claim: no reply in ${daysWord(claim.nudgeDays)}',
+        body:
+            'You can write to ${stepTitle(claim.type, next)}. Your message is drafted.',
+        location: '/claims/${claim.id}',
+      ),
+    );
   }
   plans.sort((a, b) {
     final time = a.at.compareTo(b.at);
@@ -121,7 +133,10 @@ class FlutterLocalNotificationsGateway implements NotificationGateway {
   @override
   Future<bool> requestPermission() async {
     if (!Platform.isIOS) return false;
-    final ios = _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     return await ios?.requestPermissions(alert: true, sound: true) ?? false;
   }
 
@@ -136,7 +151,13 @@ class FlutterLocalNotificationsGateway implements NotificationGateway {
     final at = reminder.at;
     await _plugin.zonedSchedule(
       id: reminder.id,
-      scheduledDate: tz.TZDateTime(tz.local, at.year, at.month, at.day, at.hour),
+      scheduledDate: tz.TZDateTime(
+        tz.local,
+        at.year,
+        at.month,
+        at.day,
+        at.hour,
+      ),
       notificationDetails: NotificationDetails(
         iOS: DarwinNotificationDetails(
           interruptionLevel: reminder.timeSensitive

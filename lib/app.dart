@@ -49,11 +49,7 @@ class AppDependencies {
 }
 
 class PaperDrawerApp extends StatefulWidget {
-  const PaperDrawerApp({
-    required this.deps,
-    this.initialLocation,
-    super.key,
-  });
+  const PaperDrawerApp({required this.deps, this.initialLocation, super.key});
 
   final AppDependencies deps;
   final String? initialLocation;

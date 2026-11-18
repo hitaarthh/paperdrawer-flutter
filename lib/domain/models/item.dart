@@ -70,7 +70,12 @@ enum ItemKind {
   List<String> get subtypes => switch (this) {
     bill => const [],
     policy => const ['Health', 'Motor', 'Life', 'Home', 'Travel'],
-    vehicle => const ['PUC certificate', 'Registration', 'Insurance', 'Service record'],
+    vehicle => const [
+      'PUC certificate',
+      'Registration',
+      'Insurance',
+      'Service record',
+    ],
     agreement => const ['Rent agreement', 'AMC', 'Membership', 'Other'],
   };
 }

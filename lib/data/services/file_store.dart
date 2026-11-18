@@ -35,7 +35,8 @@ class FileStore {
   /// where it was; picker and camera files are temporary.
   Future<Attachment> import(String itemId, PendingFile file) async {
     final source = File(file.path);
-    final ext = p.extension(file.name.isEmpty ? file.path : file.name)
+    final ext = p
+        .extension(file.name.isEmpty ? file.path : file.name)
         .toLowerCase();
     if (!attachmentExtensions.contains(ext) || !await source.exists()) {
       throw const FormatException('Choose a photo or PDF up to 20 MB.');

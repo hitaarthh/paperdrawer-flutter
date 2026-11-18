@@ -227,12 +227,9 @@ Future<DateTime?> showPdDatePicker(
 }) {
   final earliest = min == null ? null : civil(min);
   final latest = max == null ? null : civil(max);
-  final fallbackClock = initial == null && context.read<Today?>() == null
-      ? Today()
-      : null;
-  var selected = civil(
-    initial ?? context.read<Today?>()?.value ?? fallbackClock!.value,
-  );
+  final candidate = initial ?? context.read<Today?>()?.value;
+  final fallbackClock = candidate == null ? Today() : null;
+  var selected = civil(candidate ?? fallbackClock!.value);
   fallbackClock?.dispose();
   if (earliest != null && selected.isBefore(earliest)) selected = earliest;
   if (latest != null && selected.isAfter(latest)) selected = latest;
@@ -262,18 +259,20 @@ Future<DateTime?> showPdDatePicker(
                   ],
                 ),
               ),
-              SizedBox(
-                height: Pd.s12 * 5,
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  dateOrder: DatePickerDateOrder.dmy,
-                  backgroundColor: Pd.surface2,
-                  initialDateTime: selected,
-                  minimumDate: earliest,
-                  maximumDate: latest,
-                  minimumYear: earliest?.year ?? 1,
-                  maximumYear: latest?.year,
-                  onDateTimeChanged: (date) => selected = civil(date),
+              Flexible(
+                child: SizedBox(
+                  height: Pd.s12 * 5,
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    dateOrder: DatePickerDateOrder.dmy,
+                    backgroundColor: Pd.surface2,
+                    initialDateTime: selected,
+                    minimumDate: earliest,
+                    maximumDate: latest,
+                    minimumYear: earliest?.year ?? 1,
+                    maximumYear: latest?.year,
+                    onDateTimeChanged: (date) => selected = civil(date),
+                  ),
                 ),
               ),
               Padding(

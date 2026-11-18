@@ -14,9 +14,11 @@ class ClaimRepository extends ChangeNotifier {
   Future<void> _pending = Future.value();
 
   List<Claim> get claims => _claims;
-  Claim? byId(String id) => _claims.where((claim) => claim.id == id).firstOrNull;
-  Claim? openFor(String itemId) =>
-      _claims.where((claim) => claim.itemId == itemId && claim.isOpen).firstOrNull;
+  Claim? byId(String id) =>
+      _claims.where((claim) => claim.id == id).firstOrNull;
+  Claim? openFor(String itemId) => _claims
+      .where((claim) => claim.itemId == itemId && claim.isOpen)
+      .firstOrNull;
   bool hasOpenClaim(String itemId) => openFor(itemId) != null;
   int needsAction(DateTime today) => _claims
       .where((claim) => claim.status(today) == ClaimStatus.escalate)
@@ -31,21 +33,25 @@ class ClaimRepository extends ChangeNotifier {
       );
       final events = <String, List<ClaimEvent>>{};
       for (final row in eventRows) {
-        events.putIfAbsent(row['claim_id']! as String, () => []).add(
-          ClaimEvent(
-            id: row['id']! as String,
-            on: parseIsoDate(row['on_date'])!,
-            kind: ClaimEventKind.values.asNameMap()[row['kind']] ??
-                ClaimEventKind.note,
-            text: row['text']! as String,
-          ),
-        );
+        events
+            .putIfAbsent(row['claim_id']! as String, () => [])
+            .add(
+              ClaimEvent(
+                id: row['id']! as String,
+                on: parseIsoDate(row['on_date'])!,
+                kind:
+                    ClaimEventKind.values.asNameMap()[row['kind']] ??
+                    ClaimEventKind.note,
+                text: row['text']! as String,
+              ),
+            );
       }
       return (rows, events);
     });
     final claims = rows.map((row) {
       final id = row['id']! as String;
-      final type = ClaimType.values.asNameMap()[row['type']] ?? ClaimType.repair;
+      final type =
+          ClaimType.values.asNameMap()[row['type']] ?? ClaimType.repair;
       return Claim(
         id: id,
         itemId: row['item_id'] as String?,
@@ -104,7 +110,11 @@ class ClaimRepository extends ChangeNotifier {
     final claim = _getOpen(id);
     final recipient = ladderFor(claim.type)[claim.step].recipient;
     await _event(
-      txn, id, today, ClaimEventKind.sent, 'Sent the message to $recipient',
+      txn,
+      id,
+      today,
+      ClaimEventKind.sent,
+      'Sent the message to $recipient',
     );
   });
 
@@ -112,7 +122,13 @@ class ClaimRepository extends ChangeNotifier {
       _write((txn) async {
         _getOpen(id);
         await _update(txn, id, {'last_heard_on': isoDate(today)});
-        await _event(txn, id, today, ClaimEventKind.reply, _note(note, 'Reply received'));
+        await _event(
+          txn,
+          id,
+          today,
+          ClaimEventKind.reply,
+          _note(note, 'Reply received'),
+        );
       });
 
   Future<void> advance(String id, DateTime today) => _write((txn) async {
@@ -125,21 +141,34 @@ class ClaimRepository extends ChangeNotifier {
       'step_since': isoDate(today),
       'nudge_days': ladder[step].waitDays,
     });
-    await _event(txn, id, today, ClaimEventKind.step, stepTitle(claim.type, step));
+    await _event(
+      txn,
+      id,
+      today,
+      ClaimEventKind.step,
+      stepTitle(claim.type, step),
+    );
   });
 
-  Future<void> addNote(String id, DateTime today, String text) =>
-      _write((txn) async {
-        _get(id);
-        if (text.trim().isEmpty) throw const FormatException('Write a short note.');
-        await _event(txn, id, today, ClaimEventKind.note, text.trim());
-      });
+  Future<void> addNote(String id, DateTime today, String text) => _write((
+    txn,
+  ) async {
+    _get(id);
+    if (text.trim().isEmpty) throw const FormatException('Write a short note.');
+    await _event(txn, id, today, ClaimEventKind.note, text.trim());
+  });
 
   Future<void> settle(String id, DateTime today, {String note = ''}) =>
       _write((txn) async {
         if (!_get(id).isOpen) return;
         await _update(txn, id, {'settled_on': isoDate(today)});
-        await _event(txn, id, today, ClaimEventKind.settled, _note(note, 'Claim settled'));
+        await _event(
+          txn,
+          id,
+          today,
+          ClaimEventKind.settled,
+          _note(note, 'Claim settled'),
+        );
       });
 
   Future<void> reopen(String id, DateTime today) => _write((txn) async {
@@ -170,26 +199,39 @@ class ClaimRepository extends ChangeNotifier {
   }
 
   Claim _get(String id) =>
-      byId(id) ?? (throw const FormatException('This claim is no longer here.'));
+      byId(id) ??
+      (throw const FormatException('This claim is no longer here.'));
 
   Claim _getOpen(String id) {
     final claim = _get(id);
-    if (!claim.isOpen) throw const FormatException('Reopen this claim to continue.');
+    if (!claim.isOpen) {
+      throw const FormatException('Reopen this claim to continue.');
+    }
     return claim;
   }
 
   void _checkNoOpenClaim(String itemId) {
     if (hasOpenClaim(itemId)) {
-      throw const FormatException('There’s already an open claim for this item.');
+      throw const FormatException(
+        'There’s already an open claim for this item.',
+      );
     }
   }
 
-  Future<void> _update(Transaction txn, String id, Map<String, Object?> fields) async {
+  Future<void> _update(
+    Transaction txn,
+    String id,
+    Map<String, Object?> fields,
+  ) async {
     await txn.update('claims', fields, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> _event(
-    Transaction txn, String id, DateTime date, ClaimEventKind kind, String text,
+    Transaction txn,
+    String id,
+    DateTime date,
+    ClaimEventKind kind,
+    String text,
   ) async {
     await txn.insert('claim_events', {
       'id': const Uuid().v4(),

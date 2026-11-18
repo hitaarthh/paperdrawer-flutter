@@ -68,7 +68,9 @@ class ItemFormViewModel extends ChangeNotifier {
   DateTime? get returnUntil {
     final days = _active.returnDays;
     final start = startsOn;
-    return days != null && start != null ? addDays(start, days) : _active.returnUntil;
+    return days != null && start != null
+        ? addDays(start, days)
+        : _active.returnUntil;
   }
 
   String get startsLabel => switch (kind) {
@@ -94,8 +96,10 @@ class ItemFormViewModel extends ChangeNotifier {
   bool get busy => _busy;
   String? get error => _error;
 
-  Iterable<Attachment> get retained => (original?.attachments ?? const <Attachment>[])
-      .where((attachment) => !_removed.contains(attachment.id));
+  Iterable<Attachment> get retained =>
+      (original?.attachments ?? const <Attachment>[]).where(
+        (attachment) => !_removed.contains(attachment.id),
+      );
 
   List<PendingFile> get added => List.unmodifiable(_added);
 

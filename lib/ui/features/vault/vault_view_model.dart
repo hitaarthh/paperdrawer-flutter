@@ -89,14 +89,22 @@ class VaultViewModel extends ChangeNotifier {
     final ids = _items.items.map((item) => item.id).toSet();
     _landOn = ids.difference(_knownIds).firstOrNull ?? _landOn;
     _knownIds = ids;
-    _summaries = _items.active.map((item) => ItemSummary.of(
-      item,
-      _today.value,
-      hasOpenClaim: _claims.hasOpenClaim(item.id),
-    )).toList()..sort((a, b) {
-      final rank = a.sortRank.compareTo(b.sortRank);
-      return rank == 0 ? b.item.createdAt.compareTo(a.item.createdAt) : rank;
-    });
+    _summaries =
+        _items.active
+            .map(
+              (item) => ItemSummary.of(
+                item,
+                _today.value,
+                hasOpenClaim: _claims.hasOpenClaim(item.id),
+              ),
+            )
+            .toList()
+          ..sort((a, b) {
+            final rank = a.sortRank.compareTo(b.sortRank);
+            return rank == 0
+                ? b.item.createdAt.compareTo(a.item.createdAt)
+                : rank;
+          });
     notifyListeners();
   }
 

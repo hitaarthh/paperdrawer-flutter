@@ -48,7 +48,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     final id = widget.id;
     final original = id == null ? null : _items.byId(id);
     if (id != null && original == null) return;
-    final form = ItemFormViewModel(_items, initial: widget.initial, original: original);
+    final form = ItemFormViewModel(
+      _items,
+      initial: widget.initial,
+      original: original,
+    );
     _form = form;
     _name = TextEditingController(text: form.initialName);
     _source = TextEditingController(text: form.initialSource);
@@ -102,8 +106,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               try {
                 await _items.delete(saved.id);
               } catch (_) {
-                if (appContext?.mounted ?? false) {
-                  showPdSnackbar(appContext!, 'The save couldn’t be undone. Try again from the item.');
+                if (appContext != null && appContext.mounted) {
+                  showPdSnackbar(
+                    appContext,
+                    'The save couldn’t be undone. Try again from the item.',
+                  );
                 }
               }
             }
@@ -116,7 +123,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       form.readFields.contains(field) && !_edited.contains(field);
 
   void _edit(ReadField field) {
-    if (_form!.readFields.contains(field) && _edited.add(field)) setState(() {});
+    if (_form!.readFields.contains(field) && _edited.add(field)) {
+      setState(() {});
+    }
   }
 
   Future<void> _chooseStart(ItemFormViewModel form) async {
@@ -155,7 +164,10 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         title: 'Edit details',
         onBack: _close,
         children: const [
-          DashedTile(title: 'Item unavailable', body: 'This item is no longer in your drawer.'),
+          DashedTile(
+            title: 'Item unavailable',
+            body: 'This item is no longer in your drawer.',
+          ),
         ],
       );
     }
@@ -216,7 +228,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               validator: ItemFormViewModel.validateAmount,
               readFromBill: _read(form, ReadField.amount),
               enabled: !form.busy,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (_) => _edit(ReadField.amount),
             ),
             const SizedBox(height: Pd.s4),
@@ -263,7 +277,10 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                   padding: const EdgeInsets.only(bottom: Pd.s2),
                   child: Semantics(
                     liveRegion: true,
-                    child: Text(error, style: PdType.footnote.copyWith(color: Pd.signal)),
+                    child: Text(
+                      error,
+                      style: PdType.footnote.copyWith(color: Pd.signal),
+                    ),
                   ),
                 ),
               PdButton.primary(

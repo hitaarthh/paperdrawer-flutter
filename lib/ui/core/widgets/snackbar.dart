@@ -20,7 +20,7 @@ void showPdSnackbar(
       margin: const EdgeInsets.all(Pd.s4),
       padding: const EdgeInsets.symmetric(horizontal: Pd.s4, vertical: Pd.s2),
       backgroundColor: Pd.surface2,
-      elevation: 0,
+      elevation: Pd.s2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Pd.rMd),
         side: const BorderSide(color: Pd.hairline),

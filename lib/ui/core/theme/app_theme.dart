@@ -22,6 +22,9 @@ ThemeData pdTheme() => ThemeData(
   splashFactory: NoSplash.splashFactory,
   highlightColor: Pd.limeTint,
   focusColor: Pd.limeTint,
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(textStyle: PdType.monoButton),
+  ),
   textSelectionTheme: const TextSelectionThemeData(
     cursorColor: Pd.lime,
     selectionColor: Pd.limeTint,

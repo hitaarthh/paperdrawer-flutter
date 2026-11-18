@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -9,6 +11,14 @@ import '../../domain/models/item.dart';
 /// OS actions invoked only in response to a user's tap.
 class DrawerActions {
   const DrawerActions();
+
+  Future<String?> appVersion() async {
+    try {
+      return (await PackageInfo.fromPlatform()).version;
+    } on MissingPluginException {
+      return null;
+    }
+  }
 
   Future<void> copyText(String text) =>
       Clipboard.setData(ClipboardData(text: text));

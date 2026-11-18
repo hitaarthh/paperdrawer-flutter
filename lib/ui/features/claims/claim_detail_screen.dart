@@ -18,6 +18,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
+import '../../core/widgets/stamp.dart';
 import 'claim_detail_sections.dart';
 import 'claim_detail_view_model.dart';
 import 'claims_view_model.dart';

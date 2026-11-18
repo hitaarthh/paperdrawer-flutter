@@ -153,7 +153,16 @@ class CoverWindow {
 
 enum ItemStatus { due, covered, inClaim, expired, none }
 
-enum StampKind { due, covered, active, inClaim, expired, waiting, escalate, settled }
+enum StampKind {
+  due,
+  covered,
+  active,
+  inClaim,
+  expired,
+  waiting,
+  escalate,
+  settled,
+}
 
 extension StampWord on StampKind {
   String get word => switch (this) {
@@ -286,7 +295,9 @@ class ItemSummary {
       case ItemKind.policy:
         return d.reference.isNotEmpty
             ? 'Policy no. ${d.reference}'
-            : (d.subtype.isEmpty ? 'Insurance policy' : '${d.subtype} insurance');
+            : (d.subtype.isEmpty
+                  ? 'Insurance policy'
+                  : '${d.subtype} insurance');
       case ItemKind.vehicle:
         return d.source.isNotEmpty ? 'Issued by ${d.source}' : 'Vehicle papers';
       case ItemKind.agreement:
@@ -350,7 +361,8 @@ List<CoverWindow> windowsOf(Item item) {
       },
       start: docStart.isAfter(end) ? addMonths(end, -12) : docStart,
       end: end,
-      renews: d.kind == ItemKind.agreement &&
+      renews:
+          d.kind == ItemKind.agreement &&
           d.subtype != 'Other' &&
           d.subtype != 'AMC',
     ),

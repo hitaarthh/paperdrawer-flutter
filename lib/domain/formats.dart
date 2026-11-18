@@ -24,8 +24,7 @@ DateTime addMonths(DateTime date, int months) {
   );
 }
 
-String isoDate(DateTime date) =>
-    civil(date).toIso8601String().substring(0, 10);
+String isoDate(DateTime date) => civil(date).toIso8601String().substring(0, 10);
 
 DateTime? parseIsoDate(Object? value) {
   if (value is! String || value.length < 10) return null;
@@ -39,8 +38,7 @@ const _months = [
 ];
 
 /// 10.11.2026, the way a printed bill shows it.
-String monoDate(DateTime d) =>
-    '${_two(d.day)}.${_two(d.month)}.${d.year}';
+String monoDate(DateTime d) => '${_two(d.day)}.${_two(d.month)}.${d.year}';
 
 /// 10 Nov 2026, for sentences.
 String longDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
