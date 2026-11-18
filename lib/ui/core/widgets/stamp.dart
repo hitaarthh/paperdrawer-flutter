@@ -10,16 +10,20 @@ import '../theme/type.dart';
 class PdStamp extends StatefulWidget {
   const PdStamp(
     this.kind, {
+    this.label,
     this.angleDegrees = -12,
     this.land = false,
     this.onLanded,
+    this.compactLabel,
     super.key,
   });
 
   final StampKind kind;
+  final String? label;
   final double angleDegrees;
   final bool land;
   final VoidCallback? onLanded;
+  final String? compactLabel;
 
   @override
   State<PdStamp> createState() => _PdStampState();
@@ -75,7 +79,7 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
       StampKind.covered || StampKind.active => Pd.stampCovered,
       StampKind.inClaim => Pd.ink,
       StampKind.expired => Pd.stampExpired,
-      StampKind.waiting => Pd.text,
+      StampKind.waiting => widget.compactLabel == null ? Pd.text : Pd.textMuted,
       StampKind.escalate => Pd.signal,
       StampKind.settled => Pd.settled,
     };
@@ -105,9 +109,12 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
                 vertical: Pd.s1,
               ),
               child: Text(
-                widget.kind.word,
+                widget.compactLabel ?? widget.label ?? widget.kind.word,
                 textAlign: TextAlign.center,
-                style: PdType.stamp.copyWith(color: color),
+                style: (widget.compactLabel == null
+                        ? PdType.stamp
+                        : PdType.compactStamp)
+                    .copyWith(color: color),
               ),
             ),
           ),

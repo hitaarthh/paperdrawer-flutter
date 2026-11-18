@@ -18,7 +18,7 @@ class VaultTicket extends StatelessWidget {
     required this.body,
     required this.tone,
     required this.semanticLabel,
-    required this.onTap,
+    this.onTap,
     this.unit,
     this.onLongPress,
     this.onDismiss,
@@ -35,7 +35,7 @@ class VaultTicket extends StatelessWidget {
   final String body;
   final VaultTicketTone tone;
   final String semanticLabel;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
   /// VoiceOver's dismiss action.
@@ -52,7 +52,7 @@ class VaultTicket extends StatelessWidget {
     };
     final numeric = unit != null;
     return Semantics(
-      button: true,
+      button: onTap != null,
       label: semanticLabel,
       onTap: onTap,
       onLongPress: onLongPress,

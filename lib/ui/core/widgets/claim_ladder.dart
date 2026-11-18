@@ -2,9 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../domain/ladders.dart';
+import '../../../domain/formats.dart';
 import '../../../domain/models/claim.dart';
 import '../theme/tokens.dart';
 import '../theme/type.dart';
+import 'paper.dart';
 
 class ClaimLadder extends StatelessWidget {
   const ClaimLadder({required this.claim, required this.today, super.key});
@@ -15,73 +17,49 @@ class ClaimLadder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final steps = ladderFor(claim.type);
-    final headerStyle = PdType.label.copyWith(color: Pd.textMuted);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Pd.surface2,
-        borderRadius: BorderRadius.circular(Pd.rSm),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Pd.s5, Pd.s5, Pd.s5, Pd.s2),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              spacing: Pd.s2,
-              children: [
-                Flexible(
-                  child: Text(
-                    '${claim.type.caps} · ESCALATION',
-                    style: headerStyle,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    claim.itemLabel.toUpperCase(),
-                    textAlign: TextAlign.end,
-                    style: headerStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: Pd.s4),
-            for (final (index, step) in steps.indexed)
-              _LadderRung(
-                number: index + 1,
-                title: stepTitle(claim.type, index),
-                guidance:
-                    index == claim.step &&
-                        claim.status(today) == ClaimStatus.escalate &&
-                        index < steps.length - 1
-                    ? 'You can move to the next step.'
-                    : step.guidance,
-                result:
-                    index < claim.step || (index == claim.step && !claim.isOpen)
-                    ? _RungState.done
-                    : (index == claim.step
-                          ? _RungState.current
-                          : _RungState.upcoming),
-                day: claim.day(today),
-                last: index == steps.length - 1,
-              ),
-          ],
+    final recommended = recommendedStepFor(claim, today);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          header: true,
+          child: Text(
+            'THE STEPS · ${claim.type.caps}',
+            style: PdType.label.copyWith(color: Pd.textMuted),
+          ),
         ),
-      ),
+        const SizedBox(height: Pd.s2),
+        for (final (index, step) in steps.indexed)
+          _LadderRung(
+            number: index + 1,
+            title: stepTitle(claim.type, index),
+            guidance: index == claim.step && recommended != null
+                ? 'Waiting since ${shortDate(claim.waitingSince)}.'
+                : step.guidance,
+            state: switch (index) {
+              _ when index < claim.step || (index == claim.step && !claim.isOpen) => _RungState.done,
+              _ when index == claim.step => _RungState.current,
+              _ when index == recommended => _RungState.recommended,
+              _ => _RungState.upcoming,
+            },
+            noReplyDays: index == claim.step && recommended != null
+                ? claim.waitingDays(today)
+                : null,
+          ),
+      ],
     );
   }
 }
 
-enum _RungState { done, current, upcoming }
+enum _RungState { done, current, recommended, upcoming }
 
 class _LadderRung extends StatelessWidget {
   const _LadderRung({
     required this.number,
     required this.title,
     required this.guidance,
-    required this.result,
-    required this.day,
-    required this.last,
+    required this.state,
+    required this.noReplyDays,
   });
 
   static const _dot = Pd.s6 + Pd.s1;
@@ -89,94 +67,70 @@ class _LadderRung extends StatelessWidget {
   final int number;
   final String title;
   final String guidance;
-  final _RungState result;
-  final int day;
-  final bool last;
+  final _RungState state;
+  final int? noReplyDays;
 
   @override
   Widget build(BuildContext context) {
-    final color = switch (result) {
+    final color = switch (state) {
       _RungState.done => Pd.settled,
       _RungState.current => Pd.signal,
+      _RungState.recommended => Pd.lime,
       _RungState.upcoming => null,
     };
+    final status = switch (state) {
+      _RungState.current => noReplyDays == null ? 'YOU ARE HERE' : 'NO REPLY · ${daysCaps(noReplyDays!)}',
+      _RungState.recommended => 'RECOMMENDED NEXT',
+      _ => null,
+    };
     return Semantics(
-      label: 'Step $number${result == _RungState.done ? ', done' : ''}',
-      child: Stack(
+      label: 'Step $number${state == _RungState.done ? ', done' : ''}',
+      child: Column(
         children: [
-          if (!last)
-            const Positioned(
-              left: _dot / 2 - 1,
-              top: _dot + Pd.s1,
-              bottom: Pd.s1,
-              width: 2,
-              child: ColoredBox(color: Pd.line),
-            ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: Pd.s3,
-            children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: _dot,
-                  height: _dot,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: color == null
-                        ? Border.all(color: Pd.line, width: 2)
-                        : null,
-                  ),
-                  child: result == _RungState.done
-                      ? const Icon(
-                          LucideIcons.check,
-                          color: Pd.onLime,
-                          size: Pd.iconSm,
-                        )
-                      : Text(
-                          '$number',
-                          textScaler: MediaQuery.textScalerOf(context)
-                              .clamp(maxScaleFactor: 1.5),
-                          style: PdType.dataStrong.copyWith(
-                            color: result == _RungState.current
-                                ? Pd.onLime
-                                : Pd.textMuted,
+          const SolidRule(color: Pd.hairline),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Pd.s3),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: Pd.s3,
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    width: _dot,
+                    height: _dot,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: color == null ? Border.all(color: Pd.line, width: 2) : null,
+                    ),
+                    child: state == _RungState.done
+                        ? const Icon(LucideIcons.check, color: Pd.onLime, size: Pd.iconSm)
+                        : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              number.toString().padLeft(2, '0'),
+                              style: PdType.monoButton.copyWith(
+                                color: color == null ? Pd.textMuted : Pd.onLime,
+                              ),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2, bottom: Pd.s4),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 2,
+                    spacing: Pd.s1,
                     children: [
-                      if (result == _RungState.current)
-                        Text(
-                          'YOU ARE HERE · DAY $day',
-                          style: PdType.label.copyWith(color: Pd.signal),
-                        ),
-                      Text(
-                        title,
-                        style: PdType.bodyStrong.copyWith(
-                          color: switch (result) {
-                            _RungState.done => Pd.textMuted,
-                            _RungState.current => Pd.text,
-                            _RungState.upcoming => Pd.text2,
-                          },
-                        ),
-                      ),
-                      Text(
-                        guidance,
-                        style: PdType.footnote.copyWith(color: Pd.textMuted),
-                      ),
+                      if (status != null)
+                        Text(status, style: PdType.label.copyWith(color: color)),
+                      Text(title, style: PdType.bodyStrong),
+                      Text(guidance, style: PdType.footnote.copyWith(color: Pd.textMuted)),
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

@@ -121,9 +121,14 @@ class Claim {
 
   ClaimStatus status(DateTime today) {
     if (!isOpen) return ClaimStatus.settled;
-    return nudgeDays > 0 && daysBetween(waitingSince, today) >= nudgeDays
+    return nudgeDays > 0 && waitingDays(today) >= nudgeDays
         ? ClaimStatus.escalate
         : ClaimStatus.waiting;
+  }
+
+  int waitingDays(DateTime today) {
+    final days = daysBetween(waitingSince, today);
+    return days < 0 ? 0 : days;
   }
 
   /// "day 14": days since the claim was opened, or how long it took.

@@ -10,7 +10,7 @@ class ItemFormViewModel extends ChangeNotifier {
   ItemFormViewModel(this._items, {AddDetailsArgs? initial, this.original}) {
     final reading = initial?.reading;
     final saved = original?.draft;
-    _kind = saved?.kind ?? initial?.kind ?? ItemKind.bill;
+    _kind = saved?.kind ?? initial?.effectiveKind ?? ItemKind.bill;
     _startsOn = saved?.startsOn ?? reading?.startsOn;
     _details[_kind] = _KindDetails(
       subtype: saved?.subtype ?? '',

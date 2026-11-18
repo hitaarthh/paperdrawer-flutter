@@ -38,6 +38,8 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   Item? get item => _items.byId(id);
   Claim? get claim => _claims.openFor(id);
+  Iterable<Claim> get itemClaims =>
+      _claims.claims.where((claim) => claim.itemId == id);
   ItemSummary? get summary {
     final item = this.item;
     return item == null

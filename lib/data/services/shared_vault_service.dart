@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/models/shared_profile.dart';
 import '../../domain/models/shared_vault.dart';
 
 class SharedVaultService {
@@ -12,14 +14,11 @@ class SharedVaultService {
   final SupabaseClient _client;
 
   static const _files = 'attachments(file_name,storage_path,mime_type)';
+  static const _profileFields =
+      'display_name,reminder_lead_days,email_reminders,plan';
 
   Future<SharedVault> fetch(String userId) async {
-    final profile = _client
-        .from('profiles')
-        .select('plan')
-        .eq('id', userId)
-        .maybeSingle();
-    final rows = await Future.wait([
+    final (bills, documents, claims, profile) = await (
       _page(
         'bills',
         '*,bill_parts(name,years),$_files',
@@ -33,15 +32,42 @@ class SharedVaultService {
         userId,
         'opened_on',
       ),
-    ]);
+      _fetchProfile(userId),
+    ).wait;
     return SharedVault(
       items: [
-        ...rows[0].map(SharedItem.bill),
-        ...rows[1].map(SharedItem.document),
+        ...bills.map(SharedItem.bill),
+        ...documents.map(SharedItem.document),
       ],
-      claims: rows[2].map(SharedClaim.fromRow).toList(),
-      onBasePlan: (await profile)?['plan'] != 'pro',
+      claims: claims.map(SharedClaim.fromRow).toList(),
+      profile: profile,
     );
+  }
+
+  Future<SharedProfile?> _fetchProfile(String userId) async {
+    final row = await _client
+        .from('profiles')
+        .select(_profileFields)
+        .eq('id', userId)
+        .maybeSingle();
+    return row == null ? null : SharedProfile.fromRow(row);
+  }
+
+  Future<SharedProfile> updateReminders(
+    String userId, {
+    int? leadDays,
+    bool? emailReminders,
+  }) async {
+    final row = await _client
+        .from('profiles')
+        .update({
+          if (leadDays != null) 'reminder_lead_days': leadDays,
+          if (emailReminders != null) 'email_reminders': emailReminders,
+        })
+        .eq('id', userId)
+        .select(_profileFields)
+        .single();
+    return SharedProfile.fromRow(row);
   }
 
   Future<List<Map<String, dynamic>>> _page(
@@ -65,7 +91,10 @@ class SharedVaultService {
     }
   }
 
-  Future<File> download(String userId, SharedOriginal original) async {
+  Future<Uint8List> fetchOriginal(
+    String userId,
+    SharedOriginal original,
+  ) async {
     if (_client.auth.currentUser?.id != userId ||
         !original.path.startsWith('$userId/')) {
       throw const FormatException('Sign in to open this original.');
@@ -74,6 +103,11 @@ class SharedVaultService {
     if (_client.auth.currentUser?.id != userId) {
       throw const FormatException('Sign in to open this original.');
     }
+    return data;
+  }
+
+  Future<File> download(String userId, SharedOriginal original) async {
+    final data = await fetchOriginal(userId, original);
     final cache = await getTemporaryDirectory();
     final folder = Directory(p.join(cache.path, 'paperdrawer-shared', userId));
     await folder.create(recursive: true);

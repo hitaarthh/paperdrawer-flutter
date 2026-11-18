@@ -37,6 +37,7 @@ void main() {
 
     expect(items.active.single.name, 'Wireless earbuds');
     expect(_key('vault-item-item-1'), findsOneWidget);
+    expect(find.text('JUST ADDED'), findsOneWidget);
     expect(find.text('Saved to your drawer'), findsOneWidget);
     await _tap(tester, 'vault-item-item-1');
     expect(find.text('Wireless earbuds'), findsOneWidget);
@@ -107,7 +108,7 @@ void main() {
       expect(_key('vault-item-policy'), findsOneWidget);
       await _tap(tester, 'claims-tab');
       expect(_key('claim-row-claim-1'), findsOneWidget);
-      expect(find.widgetWithText(PdStamp, 'ESCALATE'), findsOneWidget);
+      expect(find.widgetWithText(PdStamp, 'NO REPLY'), findsOneWidget);
       await _tap(tester, 'claim-row-claim-1');
       expect(find.text('Family health policy insurance claim'), findsOneWidget);
       expect(find.textContaining('YOU ARE HERE'), findsOneWidget);

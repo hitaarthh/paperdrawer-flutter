@@ -8,6 +8,7 @@ import '../../../data/services/reminder_scheduler.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/bill_reader.dart';
 import '../../../domain/formats.dart';
+import '../../../domain/models/item.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';

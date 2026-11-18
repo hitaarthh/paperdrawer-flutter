@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../domain/item_status.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
+import '../../core/widgets/filter_tabs.dart';
 
 /// The mono kicker ("010 ITEMS · 4 DUE SOON") over the "The vault" headline.
 class VaultHeader extends StatelessWidget {
@@ -135,88 +136,16 @@ class VaultFilterTabs extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      border: Border(bottom: BorderSide(color: Pd.hairline)),
-    ),
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: Pd.margin),
-      child: Row(
-        spacing: Pd.s5,
-        children: [
-          for (final filter in VaultFilter.values)
-            _Tab(
-              key: ValueKey('vault-filter-${filter.name}'),
-              label: label(filter),
-              count: count(filter),
-              selected: filter == selected,
-              onTap: () => onSelect(filter),
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _Tab extends StatelessWidget {
-  const _Tab({
-    required this.label,
-    required this.count,
-    required this.selected,
-    required this.onTap,
-    super.key,
-  });
-
-  final String label;
-  final int count;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = PdType.monoButton.copyWith(
-      color: selected ? Pd.text : Pd.textSubtle,
-      fontWeight: FontWeight.w400,
-      fontVariations: const [FontVariation.weight(400)],
-    );
-    return Semantics(
-      selected: selected,
-      button: true,
-      label: '$label, $count',
-      excludeSemantics: true,
-      child: CupertinoButton(
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-        pressedOpacity: 0.7,
-        focusColor: Pd.lime,
-        minimumSize: const Size.square(Pd.tapMin),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: Pd.tapMin),
-          padding: const EdgeInsets.symmetric(vertical: Pd.s2),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: Pd.lime.withValues(alpha: selected ? 1 : 0),
-                width: 2,
-              ),
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text.rich(
-            TextSpan(
-              text: label,
-              children: [
-                TextSpan(
-                  text: ' $count',
-                  style: TextStyle(color: selected ? Pd.lime : Pd.textSubtle),
-                ),
-              ],
-            ),
-            style: style,
-          ),
+  Widget build(BuildContext context) => PdFilterTabs(
+    children: [
+      for (final filter in VaultFilter.values)
+        PdFilterTab(
+          key: ValueKey('vault-filter-${filter.name}'),
+          label: label(filter),
+          count: count(filter),
+          selected: filter == selected,
+          onTap: () => onSelect(filter),
         ),
-      ),
-    );
-  }
+    ],
+  );
 }

@@ -86,13 +86,14 @@ class DocumentPaper extends StatelessWidget {
 }
 
 class DashedRule extends StatelessWidget {
-  const DashedRule({this.color = Pd.paperDash, super.key});
+  const DashedRule({this.color = Pd.paperDash, this.thickness = 1, super.key});
 
   final Color color;
+  final double thickness;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: 1,
+    height: thickness,
     width: double.infinity,
     child: CustomPaint(painter: _Dashes(color)),
   );

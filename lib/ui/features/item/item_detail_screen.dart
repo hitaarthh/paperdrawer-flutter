@@ -14,15 +14,15 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
-import '../../core/widgets/item_card.dart';
-import '../../core/widgets/meter.dart';
+import '../../core/widgets/list_row.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import 'attachment_viewer.dart';
+import 'item_detail_sections.dart';
 import 'item_detail_view_model.dart';
 
-enum _ItemAction { edit, archive, restore, delete }
+enum _ItemAction { archive, restore, delete }
 
 class ItemDetailScreen extends StatelessWidget {
   const ItemDetailScreen({required this.id, super.key});
@@ -81,7 +81,6 @@ class _ItemDetailView extends StatelessWidget {
       context,
       title: item.name,
       actions: [
-        const PdAction(label: 'Edit details', value: _ItemAction.edit),
         if (item.isArchived)
           const PdAction(label: 'Restore to vault', value: _ItemAction.restore)
         else
@@ -95,8 +94,6 @@ class _ItemDetailView extends StatelessWidget {
     );
     if (!context.mounted) return;
     switch (action) {
-      case _ItemAction.edit:
-        context.push(Routes.edit(item.id));
       case _ItemAction.archive:
         await _perform(
           context,
@@ -159,23 +156,17 @@ class _ItemDetailView extends StatelessWidget {
     }
     final item = summary.item;
     final claim = model.claim;
+    final original = item.attachments.firstOrNull;
     return PdPushedScaffold(
       backLabel: 'Vault',
       onBack: () => _back(context),
+      kicker: itemDetailKicker(summary),
+      title: item.name,
       actions: [
-        if (item.attachments.isNotEmpty)
-          Builder(
-            builder: (anchor) => PdNavIcon(
-              key: const ValueKey('item-share'),
-              icon: const Icon(CupertinoIcons.share),
-              semanticLabel: 'Share originals',
-              onTap: () => _perform(
-                context,
-                model,
-                model.shareOriginals(item, _origin(anchor)),
-              ),
-            ),
-          ),
+        PdButton.text(
+          label: 'Edit',
+          onPressed: model.busy ? null : () => context.push(Routes.edit(item.id)),
+        ),
         PdNavIcon(
           key: const ValueKey('item-actions'),
           icon: const Icon(LucideIcons.ellipsis),
@@ -184,95 +175,104 @@ class _ItemDetailView extends StatelessWidget {
         ),
       ],
       children: [
-        if (item.isArchived)
-          Padding(
-            padding: const EdgeInsets.only(bottom: Pd.s3),
-            child: Text(
-              'ARCHIVED',
-              style: PdType.label.copyWith(color: Pd.textMuted),
-            ),
-          ),
-        ItemCard(summary: summary),
-        for (final window in summary.windows)
-          Padding(
-            padding: const EdgeInsets.only(top: Pd.s6),
-            child: PdMeter(window: window, today: summary.today),
-          ),
-        if (item.attachments.isNotEmpty) ...[
-          const SizedBox(height: Pd.s6),
-          Text(
-            'ORIGINAL DOCUMENTS',
-            style: PdType.label.copyWith(color: Pd.textMuted),
-          ),
+        ItemReturnTicket(summary),
+        if (original != null) ...[
+          Text('Original on file', style: PdType.title2),
           const SizedBox(height: Pd.s3),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: Pd.s3,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final attachment in item.attachments)
-                  AttachmentViewer(
-                    key: ValueKey('attachment-${attachment.id}'),
-                    attachment: attachment,
-                    thumbnail: model.thumbnail,
-                    onOpen: model.busy
-                        ? null
-                        : () =>
-                              _perform(context, model, model.open(attachment)),
-                  ),
-              ],
-            ),
+          AttachmentViewer(
+            key: ValueKey('attachment-${original.id}'),
+            attachment: original,
+            thumbnail: model.thumbnail,
+            featured: true,
+            onOpen: model.busy ? null : () => _perform(context, model, model.open(original)),
           ),
-        ],
-        if (item.draft.notes.isNotEmpty) ...[
+          Wrap(
+            spacing: Pd.s2,
+            runSpacing: Pd.s1,
+            children: [
+              PdButton.secondary(
+                label: 'Open full size',
+                onPressed: model.busy ? null : () => _perform(context, model, model.open(original)),
+              ),
+              Builder(
+                builder: (anchor) => PdButton.secondary(
+                  key: const ValueKey('item-share'),
+                  label: 'Share originals',
+                  onPressed: model.busy ? null : () => _perform(
+                    context, model, model.shareOriginals(item, _origin(anchor)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          for (final attachment in item.attachments.skip(1))
+            PdListRow(
+              key: ValueKey('attachment-${attachment.id}'),
+              title: attachment.name,
+              chevron: true,
+              onTap: model.busy ? null : () => _perform(context, model, model.open(attachment)),
+            ),
           const SizedBox(height: Pd.s6),
-          Text('NOTES', style: PdType.label.copyWith(color: Pd.textMuted)),
+        ],
+        ItemCoverage(summary),
+        ItemClaimKit(
+          description: original == null
+              ? 'Share your saved details and coverage dates.'
+              : 'Share your saved details, coverage dates, and original documents.',
+          actions: [
+            if (claim != null || !item.isArchived)
+              PdButton.primary(
+                key: const ValueKey('item-claim'),
+                label: claim == null ? 'Start a claim' : 'View claim',
+                onPressed: model.busy ? null : () {
+                  if (claim != null) {
+                    context.go(Routes.claim(claim.id));
+                  } else {
+                    context.push(Routes.startClaim(item.id));
+                  }
+                },
+              )
+            else
+              PdButton.primary(
+                key: const ValueKey('item-restore'),
+                label: 'Restore to vault',
+                onPressed: model.busy ? null : () => _perform(
+                  context, model, model.archive(false), success: 'Restored to vault',
+                ),
+              ),
+            Builder(
+              builder: (anchor) => PdButton.secondary(
+                key: const ValueKey('item-export-kit'),
+                label: 'Share kit',
+                onPressed: model.busy ? null : () => _perform(
+                  context, model, model.exportKit(item, _origin(anchor)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (model.itemClaims.isNotEmpty) ...[
+          PdListGroup(
+            header: 'Claims',
+            children: [
+              for (final entry in model.itemClaims)
+                PdListRow(
+                  title: entry.title,
+                  value: entry.isOpen ? 'Open' : 'Settled',
+                  chevron: true,
+                  onTap: () => context.push(Routes.claim(entry.id)),
+                ),
+            ],
+          ),
+          const SizedBox(height: Pd.s6),
+        ],
+        ItemRecord(itemRecord(summary)),
+        if (item.draft.notes.isNotEmpty) ...[
+          const SizedBox(height: Pd.s5),
+          Text('Notes', style: PdType.title2),
           const SizedBox(height: Pd.s2),
           Text(item.draft.notes, style: PdType.body),
         ],
-        const SizedBox(height: Pd.s8),
-        if (claim != null || !item.isArchived)
-          PdButton.primary(
-            key: const ValueKey('item-claim'),
-            label: claim == null ? 'Start a claim' : 'View claim',
-            onPressed: model.busy
-                ? null
-                : () {
-                    if (claim != null) {
-                      context.go(Routes.claim(claim.id));
-                    } else {
-                      context.push(Routes.startClaim(item.id));
-                    }
-                  },
-          )
-        else
-          PdButton.primary(
-            key: const ValueKey('item-restore'),
-            label: 'Restore to vault',
-            onPressed: model.busy
-                ? null
-                : () => _perform(
-                    context,
-                    model,
-                    model.archive(false),
-                    success: 'Restored to vault',
-                  ),
-          ),
-        const SizedBox(height: Pd.s2),
-        Builder(
-          builder: (anchor) => PdButton.secondary(
-            key: const ValueKey('item-export-kit'),
-            label: 'Export claim kit',
-            onPressed: model.busy
-                ? null
-                : () => _perform(
-                    context,
-                    model,
-                    model.exportKit(item, _origin(anchor)),
-                  ),
-          ),
-        ),
       ],
     );
   }

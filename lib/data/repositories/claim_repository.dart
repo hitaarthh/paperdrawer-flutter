@@ -106,16 +106,17 @@ class ClaimRepository extends ChangeNotifier {
     return id;
   }).then((id) => byId(id)!);
 
-  Future<void> logSent(String id, DateTime today) => _write((txn) async {
+  Future<void> logSent(String id, DateTime today, {int? step}) => _write((txn) async {
     final claim = _getOpen(id);
-    final recipient = ladderFor(claim.type)[claim.step].recipient;
-    await _event(
-      txn,
-      id,
-      today,
-      ClaimEventKind.sent,
-      'Sent the message to $recipient',
-    );
+    final target = step ?? claim.step;
+    if (target != claim.step) {
+      if (target != recommendedStepFor(claim, today)) {
+        throw const FormatException('The current step changed. Review your draft and try again.');
+      }
+      await _advance(txn, claim, today);
+    }
+    final recipient = ladderFor(claim.type)[target].recipient;
+    await _event(txn, id, today, ClaimEventKind.sent, 'Sent the message to $recipient');
   });
 
   Future<void> logReply(String id, DateTime today, {String note = ''}) =>
@@ -131,24 +132,26 @@ class ClaimRepository extends ChangeNotifier {
         );
       });
 
-  Future<void> advance(String id, DateTime today) => _write((txn) async {
-    final claim = _getOpen(id);
+  Future<void> advance(String id, DateTime today) =>
+      _write((txn) => _advance(txn, _getOpen(id), today));
+
+  Future<void> _advance(Transaction txn, Claim claim, DateTime today) async {
     final ladder = ladderFor(claim.type);
     final step = claim.step + 1;
     if (step >= ladder.length) return;
-    await _update(txn, id, {
+    await _update(txn, claim.id, {
       'step': step,
       'step_since': isoDate(today),
       'nudge_days': ladder[step].waitDays,
     });
     await _event(
       txn,
-      id,
+      claim.id,
       today,
       ClaimEventKind.step,
       stepTitle(claim.type, step),
     );
-  });
+  }
 
   Future<void> addNote(String id, DateTime today, String text) => _write((
     txn,

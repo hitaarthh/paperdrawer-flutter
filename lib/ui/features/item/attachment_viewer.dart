@@ -13,12 +13,14 @@ class AttachmentViewer extends StatefulWidget {
     required this.attachment,
     required this.thumbnail,
     required this.onOpen,
+    this.featured = false,
     super.key,
   });
 
   final Attachment attachment;
   final Future<Uint8List?> Function(Attachment) thumbnail;
   final VoidCallback? onOpen;
+  final bool featured;
 
   @override
   State<AttachmentViewer> createState() => _AttachmentViewerState();
@@ -46,7 +48,7 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
       ),
     );
     return SizedBox(
-      width: Pd.s12 + Pd.s6,
+      width: widget.featured ? double.infinity : Pd.s12 + Pd.s6,
       child: Semantics(
         button: true,
         label: 'Open ${document.name}',
@@ -59,8 +61,8 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AspectRatio(
-                aspectRatio: 1,
+              SizedBox(
+                height: widget.featured ? 200 : Pd.s12 + Pd.s6,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(Pd.rSm),
                   child: ColoredBox(
@@ -72,11 +74,8 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
                         if (data == null) return placeholder;
                         return Image.memory(
                           data,
-                          cacheWidth:
-                              (MediaQuery.devicePixelRatioOf(context) *
-                                      (Pd.s12 + Pd.s6))
-                                  .ceil(),
-                          fit: BoxFit.cover,
+                          cacheWidth: widget.featured ? 1000 : 300,
+                          fit: widget.featured ? BoxFit.contain : BoxFit.cover,
                           errorBuilder: (context, error, stack) => placeholder,
                         );
                       },

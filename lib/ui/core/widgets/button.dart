@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart' show CircularProgressIndicator;
 import '../theme/tokens.dart';
 import '../theme/type.dart';
 
-enum _Variant { primary, secondary, onPaper, text }
+enum _Variant { primary, secondary, destructive, onPaper, text }
 
 class PdButton extends StatelessWidget {
   const PdButton.primary({
@@ -24,6 +24,15 @@ class PdButton extends StatelessWidget {
     this.busy = false,
     super.key,
   }) : _variant = _Variant.secondary;
+
+  const PdButton.destructive({
+    required this.label,
+    this.onPressed,
+    this.icon,
+    this.expand = false,
+    this.busy = false,
+    super.key,
+  }) : _variant = _Variant.destructive;
 
   const PdButton.onPaper({
     required this.label,
@@ -53,16 +62,21 @@ class PdButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = _variant == _Variant.primary;
-    final mono = _variant == _Variant.secondary || _variant == _Variant.onPaper;
+    final mono = switch (_variant) {
+      _Variant.secondary || _Variant.destructive || _Variant.onPaper => true,
+      _ => false,
+    };
     final color = switch (_variant) {
       _ when onPressed == null => Pd.textSubtle,
       _Variant.primary => Pd.onLime,
       _Variant.secondary => Pd.text,
+      _Variant.destructive => Pd.signal,
       _Variant.onPaper => Pd.ink2,
       _Variant.text => Pd.lime,
     };
     final border = switch (_variant) {
       _Variant.secondary => Pd.line,
+      _Variant.destructive => onPressed == null ? Pd.line : Pd.signal,
       _Variant.onPaper => onPressed == null ? Pd.paperRule : Pd.ink2,
       _ => null,
     };

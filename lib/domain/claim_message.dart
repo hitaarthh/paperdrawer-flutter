@@ -15,14 +15,23 @@ class ClaimMessage {
   final String body;
 
   String get full => 'To: $to\nSubject: $subject\n\n$body';
+
+  // The ladder describes a role. The user fills in the actual email address.
+  Uri get mailto => Uri(
+    scheme: 'mailto',
+    query: 'subject=${Uri.encodeComponent(subject)}'
+        '&body=${Uri.encodeComponent(body)}',
+  );
 }
 
-/// Drafts a message for the current rung using the facts currently in the drawer.
+/// Drafts a message for the current rung or a recommended next rung.
 ClaimMessage draftMessage({
   required Claim claim,
   Item? item,
   required DateTime today,
+  int? forStep,
 }) {
+  final step = forStep ?? claim.step;
   final details = item?.draft;
   final name = item?.name ?? claim.itemLabel;
   final kind = item?.kind;
@@ -33,9 +42,11 @@ ClaimMessage draftMessage({
   final serialNumber = details?.serialNumber.trim();
   final noticed = claim.noticedOn;
   final reference = claim.reference.trim();
-  final previousContact = claim.events
-      .skipWhile((event) => event.kind != ClaimEventKind.step)
-      .skip(1)
+  final previousEvents = step > claim.step
+      ? claim.events
+      : claim.events.skipWhile((event) => event.kind != ClaimEventKind.step).skip(1);
+  final previousContact = previousEvents
+      .takeWhile((event) => event.kind != ClaimEventKind.step)
       .where((event) => event.kind == ClaimEventKind.sent)
       .firstOrNull;
 
@@ -56,7 +67,7 @@ ClaimMessage draftMessage({
   final paragraphs = [
     'Hello,',
     'I’m writing about my ${claim.type.noun} claim for $name.',
-    if (claim.step > 0) _followUp(claim, today, previousContact),
+    if (step > 0) _followUp(claim, step, today, previousContact),
     if (facts.isNotEmpty) facts.join('\n'),
     if (claim.problem.trim().isNotEmpty) claim.problem.trim(),
     if (noticed != null) 'I first noticed the issue on ${longDate(noticed)}.',
@@ -64,8 +75,8 @@ ClaimMessage draftMessage({
     'Thank you,',
   ];
   return ClaimMessage(
-    to: ladderFor(claim.type)[claim.step].recipient,
-    subject: claim.step == 0 ? claim.title : 'Follow-up on my ${claim.title}',
+    to: ladderFor(claim.type)[step].recipient,
+    subject: step == 0 ? claim.title : 'Follow-up on my ${claim.title}',
     body: paragraphs.join('\n\n'),
   );
 }
@@ -76,8 +87,8 @@ String _referenceLabel(ItemKind? kind) => switch (kind) {
   _ => 'Document reference',
 };
 
-String _followUp(Claim claim, DateTime today, ClaimEvent? previousContact) {
-  final previousStep = stepTitle(claim.type, claim.step - 1);
+String _followUp(Claim claim, int step, DateTime today, ClaimEvent? previousContact) {
+  final previousStep = stepTitle(claim.type, step - 1);
   final days = daysBetween(previousContact?.on ?? claim.openedOn, today);
   final timing = days > 0
       ? ' The issue has been unresolved for ${daysWord(days)}.'

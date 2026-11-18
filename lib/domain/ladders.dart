@@ -101,3 +101,11 @@ String firstRungTitle(ClaimType type) => switch (type) {
 
 String stepTitle(ClaimType type, int step) =>
     step == 0 ? firstRungTitle(type) : ladderFor(type)[step].title;
+
+int? recommendedStepFor(Claim claim, DateTime today) {
+  final next = claim.step + 1;
+  return next < ladderFor(claim.type).length &&
+          claim.status(today) == ClaimStatus.escalate
+      ? next
+      : null;
+}

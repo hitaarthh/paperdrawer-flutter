@@ -16,7 +16,7 @@ import '../../core/widgets/item_card.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../account/shared_session.dart';
-import '../add/add_sheet.dart';
+import '../add/shared_add_flow.dart';
 import 'vault_due_next.dart';
 import 'vault_empty.dart';
 import 'vault_header.dart';
@@ -38,40 +38,6 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
   void dispose() {
     _search.dispose();
     super.dispose();
-  }
-
-  Future<void> _add(SharedSession session, SharedVault vault) async {
-    final choice = await showAddSheet(
-      context,
-      used: vault.items.length,
-      shared: true,
-      onBasePlan: vault.onBasePlan,
-    );
-    if (!mounted || choice == null) return;
-    await _openAdd(
-      session,
-      choice.kind,
-      manual: choice.action == AddSheetAction.manual,
-    );
-  }
-
-  Future<void> _openAdd(
-    SharedSession session,
-    ItemKind kind, {
-    bool manual = false,
-  }) async {
-    final type = kind == ItemKind.agreement ? 'other' : kind.name;
-    final path = switch ((manual, kind)) {
-      (false, _) => '/add?type=$type',
-      (true, ItemKind.bill) => '/bills/new',
-      (true, _) => '/documents/new?type=$type',
-    };
-    try {
-      await session.openWeb(path);
-    } catch (_) {
-      if (!mounted) return;
-      showPdSnackbar(context, 'Couldn’t open Paper Drawer web.');
-    }
   }
 
   void _openTicket(VaultTicketData ticket) {
@@ -131,7 +97,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         key: const ValueKey('shared-vault-add'),
                         label: 'Scan or add',
                         icon: LucideIcons.scanLine,
-                        onPressed: () => _add(session, vault),
+                        onPressed: () => showSharedAdd(context, session, vault),
                       ),
               ),
               Expanded(
@@ -167,9 +133,9 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         _inset(
                           VaultEmpty(
                             shared: true,
-                            onScan: () => _openAdd(session, ItemKind.bill),
+                            onScan: () => openSharedAdd(context, session, ItemKind.bill),
                             onStart: (kind) =>
-                                _openAdd(session, kind, manual: true),
+                                openSharedAdd(context, session, kind, manual: true),
                           ),
                         ),
                       if (vault != null && summaries.isNotEmpty)

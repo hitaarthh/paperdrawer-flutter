@@ -36,16 +36,15 @@ class ClaimDetailViewModel extends ChangeNotifier {
   bool get busy => _busy;
   String? get error => _error;
 
-  ClaimMessage messageFor(Claim claim) {
+  ClaimMessage messageFor(Claim claim, int step) {
     final itemId = claim.itemId;
     return draftMessage(
       claim: claim,
       item: itemId == null ? null : _items.byId(itemId),
       today: today,
+      forStep: step,
     );
   }
-
-  LadderStep currentStep(Claim claim) => ladderFor(claim.type)[claim.step];
 
   String? nextStepTitle(Claim claim) {
     final next = claim.step + 1;
@@ -71,7 +70,8 @@ class ClaimDetailViewModel extends ChangeNotifier {
       )
       .any((event) => event.kind == kind);
 
-  Future<bool> logSent() => _perform(() => _claims.logSent(id, today));
+  Future<bool> logSent(int step) =>
+      _perform(() => _claims.logSent(id, today, step: step));
 
   Future<bool> logReply(String note) =>
       _perform(() => _claims.logReply(id, today, note: note));
@@ -100,6 +100,11 @@ class ClaimDetailViewModel extends ChangeNotifier {
   Future<bool> share(ClaimMessage message, {Rect? origin}) => _perform(
     () => _actions.shareText(message.full, origin: origin),
     failure: 'The share sheet couldn’t open. Try again.',
+  );
+
+  Future<bool> openMail(ClaimMessage message) => _perform(
+    () => _actions.openLink(message.mailto),
+    failure: 'Your mail app couldn’t open. You can copy the email instead.',
   );
 
   Future<bool> openLink(Uri uri) => _perform(

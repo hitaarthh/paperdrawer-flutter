@@ -87,6 +87,8 @@ class PdPushedScaffold extends StatefulWidget {
     required this.backLabel,
     this.kicker,
     this.title,
+    this.titleStyle,
+    this.backStyle,
     this.actions = const [],
     required this.children,
     this.bottom,
@@ -97,6 +99,8 @@ class PdPushedScaffold extends StatefulWidget {
   final String backLabel;
   final String? kicker;
   final String? title;
+  final TextStyle? titleStyle;
+  final TextStyle? backStyle;
   final List<Widget> actions;
   final List<Widget> children;
   final Widget? bottom;
@@ -148,18 +152,17 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 CupertinoIcons.back,
-                                color: Pd.lime,
+                                color: widget.backStyle?.color ?? Pd.lime,
                                 size: Pd.iconMd,
                               ),
                               const SizedBox(width: Pd.s1),
                               Flexible(
                                 child: Text(
                                   widget.backLabel,
-                                  style: PdType.navBack.copyWith(
-                                    color: Pd.lime,
-                                  ),
+                                  style: widget.backStyle ??
+                                      PdType.navBack.copyWith(color: Pd.lime),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -204,7 +207,10 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                       if (widget.title case final title?) ...[
                         Semantics(
                           header: true,
-                          child: Text(title, style: PdType.title1),
+                          child: Text(
+                            title,
+                            style: widget.titleStyle ?? PdType.title1,
+                          ),
                         ),
                         const SizedBox(height: Pd.s5),
                       ],
