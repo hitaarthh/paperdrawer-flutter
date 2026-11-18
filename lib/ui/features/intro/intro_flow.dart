@@ -96,57 +96,61 @@ class _IntroFlowState extends State<IntroFlow> {
     child: CustomPaint(
       painter: const _Grain(),
       // Page swipes repaint above the grain, never the grain itself.
-      child: RepaintBoundary(child: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Pd.maxContent),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Header(onSkip: _last ? null : widget.onStart),
-                Expanded(
-                  child: PageView(
-                    controller: _pages,
-                    onPageChanged: (step) => setState(() => _step = step),
-                    children: [for (final phase in _phases) _Page(phase)],
+      child: RepaintBoundary(
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: Pd.maxContent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(onSkip: _last ? null : widget.onStart),
+                  Expanded(
+                    child: PageView(
+                      controller: _pages,
+                      onPageChanged: (step) => setState(() => _step = step),
+                      children: [for (final phase in _phases) _Page(phase)],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Pd.margin,
-                    Pd.s2,
-                    Pd.margin,
-                    Pd.s2,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 10,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: Pd.s2),
-                        child: _Dots(step: _step, count: _phases.length),
-                      ),
-                      PdButton.primary(
-                        key: const ValueKey('intro-next'),
-                        label: _last ? 'Start your vault' : 'Next',
-                        icon: _last ? null : const Icon(LucideIcons.arrowRight),
-                        expand: true,
-                        onPressed: _next,
-                      ),
-                      if (widget.onSignIn case final onSignIn?)
-                        _QuietLink(
-                          key: const ValueKey('intro-sign-in'),
-                          label: 'I already have an account',
-                          onPressed: onSignIn,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      Pd.margin,
+                      Pd.s2,
+                      Pd.margin,
+                      Pd.s2,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 10,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: Pd.s2),
+                          child: _Dots(step: _step, count: _phases.length),
                         ),
-                    ],
+                        PdButton.primary(
+                          key: const ValueKey('intro-next'),
+                          label: _last ? 'Start your vault' : 'Next',
+                          icon: _last
+                              ? null
+                              : const Icon(LucideIcons.arrowRight),
+                          expand: true,
+                          onPressed: _next,
+                        ),
+                        if (widget.onSignIn case final onSignIn?)
+                          _QuietLink(
+                            key: const ValueKey('intro-sign-in'),
+                            label: 'I already have an account',
+                            onPressed: onSignIn,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      )),
+      ),
     ),
   );
 }

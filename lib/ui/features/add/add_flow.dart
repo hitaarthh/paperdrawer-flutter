@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -7,60 +6,35 @@ import '../../../data/repositories/item_repository.dart';
 import '../../../data/services/capture_service.dart';
 import '../../../domain/models/item.dart';
 import '../../../routing/router.dart';
-import '../../core/widgets/icons.dart';
 import '../../core/widgets/limit_notice.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import 'add_details_args.dart';
-
-enum _AddOption { camera, upload, manual }
+import 'add_sheet.dart';
 
 enum _UploadSource { photos, files }
 
 enum _LimitAction { review, waitlist }
 
 abstract final class AddFlow {
+  /// Opens the Add sheet ("Scan or add"), or the limit notice when the Base
+  /// drawer is full, then routes to the camera, the pickers or the form.
   static Future<void> start(BuildContext context) async {
     if (await _showLimitIfNeeded(context) || !context.mounted) return;
-    final option = await showPdSheet<_AddOption>(
+    final choice = await showAddSheet(
       context,
-      title: 'Add to your drawer',
-      subtitle: 'Keep the original and the dates together.',
-      options: const [
-        PdSheetOption(
-          icon: null,
-          glyph: PdGlyph.scan,
-          title: 'Scan with camera',
-          description: 'Take a photo and read the details.',
-          value: _AddOption.camera,
-          recommended: true,
-        ),
-        PdSheetOption(
-          icon: LucideIcons.fileUp,
-          title: 'Upload a photo or PDF',
-          description: 'Choose an original you already have.',
-          value: _AddOption.upload,
-        ),
-        PdSheetOption(
-          icon: LucideIcons.pencil,
-          title: 'Type it in',
-          description: 'Add the details by hand.',
-          value: _AddOption.manual,
-        ),
-      ],
+      used: context.read<ItemRepository>().activeCount,
     );
-    if (!context.mounted) return;
-    switch (option) {
-      case _AddOption.camera:
+    if (!context.mounted || choice == null) return;
+    switch (choice.action) {
+      case AddSheetAction.camera:
         context.push(Routes.camera);
-      case _AddOption.upload:
+      case AddSheetAction.upload:
         final files = await chooseOriginals(context);
         if (!context.mounted || files.isEmpty) return;
         context.push(Routes.reading, extra: files);
-      case _AddOption.manual:
-        context.push(Routes.details, extra: const AddDetailsArgs());
-      case null:
-        return;
+      case AddSheetAction.manual:
+        context.push(Routes.details, extra: AddDetailsArgs(kind: choice.kind));
     }
   }
 
