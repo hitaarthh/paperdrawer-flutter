@@ -43,10 +43,16 @@ void main() {
     expect(tester.widget<CupertinoTextField>(password).obscureText, isTrue);
     expect(find.text('Sign in'), findsOneWidget);
 
-    await tester.tap(find.text('Create an account'));
+    final create = find.text('Create an account');
+    await tester.ensureVisible(create);
+    await tester.pumpAndSettle();
+    await tester.tap(create);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('account-name')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('account-submit')));
+    final submit = find.byKey(const ValueKey('account-submit'));
+    await tester.ensureVisible(submit);
+    await tester.pumpAndSettle();
+    await tester.tap(submit);
     await tester.pumpAndSettle();
     expect(
       find.textContaining('at least 8 characters for your password'),
