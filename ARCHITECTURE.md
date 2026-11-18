@@ -37,11 +37,11 @@ build uses the on-device repositories and routes below.
 
 Both entry points use `ui/features/intro/app_opening.dart` to play the opening
 artwork while their startup future runs. On iOS, the first Flutter frame aligns
-with the centered mark in the system launch storyboard. The reveal plays once
-per cold launch, holds its final frame during slow startup, and fades into
-the resolved route. Reduced Motion shows the static artwork while loading and
-opens the route as soon as it is ready. Startup errors take precedence over the
-animation, and retrying does not replay it.
+with the centered mark in the system launch storyboard. On each cold launch,
+the reveal plays for 1.5 seconds and holds the final frame for at least 350 ms
+before fading into the resolved route. Reduced Motion shows the static artwork
+while loading and opens the route as soon as it is ready. Startup errors take
+precedence over the animation, and retrying does not replay it.
 
 ```
 lib/

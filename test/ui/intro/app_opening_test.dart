@@ -20,7 +20,7 @@ void main() {
     await _loadFont(PdType.mono, 'assets/fonts/JetBrainsMono.ttf');
   });
 
-  testWidgets('plays the reveal in order even when startup is already ready', (
+  testWidgets('finishes the reveal and holds the artwork before opening', (
     tester,
   ) async {
     _useIPhone16(tester);
@@ -34,22 +34,29 @@ void main() {
     expect(_opacity(tester, _tagline), 0);
     expect(find.text('Vault'), findsNothing);
 
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 480));
     expect(tester.getCenter(mark).dy, lessThan(start.dy));
     expect(_opacity(tester, _wordmark), greaterThan(0));
     expect(_ticketFraction(tester), 0);
 
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(_ticketFraction(tester), allOf(greaterThan(0), lessThan(1)));
     expect(_opacity(tester, 'FILED'), 0);
 
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 420));
     expect(_ticketFraction(tester), 1);
     expect(_opacity(tester, 'FILED'), greaterThan(0));
     expect(_opacity(tester, _tagline), 0);
 
-    await tester.pump(const Duration(milliseconds: 270));
+    await tester.pump(const Duration(milliseconds: 340));
     expect(_opacity(tester, _tagline), 1);
+    expect(find.text('Vault'), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 260));
+    expect(_opacity(tester, _tagline), 1);
+    expect(find.text('Vault'), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 80));
     expect(find.text('Vault'), findsOneWidget);
     expect(find.byKey(_artwork), findsOneWidget);
 

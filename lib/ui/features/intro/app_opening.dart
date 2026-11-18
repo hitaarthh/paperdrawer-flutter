@@ -28,16 +28,28 @@ class AppOpening<T extends Object> extends StatefulWidget {
 class _AppOpeningState<T extends Object> extends State<AppOpening<T>>
     with SingleTickerProviderStateMixin {
   static const _artworkKey = ValueKey('opening-artwork');
-  late final _reveal = AnimationController(
+  static const _revealDuration = Duration(milliseconds: 1500);
+  static const _holdDuration = Duration(milliseconds: 350);
+  static final _sequenceDuration = _revealDuration + _holdDuration;
+
+  late final _sequence = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1250),
-  )..addStatusListener(_onRevealStatus);
-  bool _revealComplete = false;
+    duration: _sequenceDuration,
+  )..addStatusListener(_onSequenceStatus);
+  late final _reveal = _sequence.drive(
+    CurveTween(
+      curve: Interval(
+        0,
+        _revealDuration.inMilliseconds / _sequenceDuration.inMilliseconds,
+      ),
+    ),
+  );
+  bool _sequenceComplete = false;
   bool _reduceMotion = false;
 
-  void _onRevealStatus(AnimationStatus status) {
+  void _onSequenceStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      setState(() => _revealComplete = true);
+      setState(() => _sequenceComplete = true);
     }
   }
 
@@ -46,10 +58,10 @@ class _AppOpeningState<T extends Object> extends State<AppOpening<T>>
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.disableAnimationsOf(context);
     if (_reduceMotion) {
-      _reveal.stop();
-      _revealComplete = true;
-    } else if (!_revealComplete && !_reveal.isAnimating) {
-      _reveal.forward();
+      _sequence.stop();
+      _sequenceComplete = true;
+    } else if (!_sequenceComplete && !_sequence.isAnimating) {
+      _sequence.forward();
     }
   }
 
@@ -57,14 +69,14 @@ class _AppOpeningState<T extends Object> extends State<AppOpening<T>>
   void didUpdateWidget(AppOpening<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.opening != widget.opening) {
-      _reveal.stop();
-      _revealComplete = true;
+      _sequence.stop();
+      _sequenceComplete = true;
     }
   }
 
   @override
   void dispose() {
-    _reveal.dispose();
+    _sequence.dispose();
     super.dispose();
   }
 
@@ -99,14 +111,14 @@ class _AppOpeningState<T extends Object> extends State<AppOpening<T>>
         switchOutCurve: Curves.easeInOut,
         transitionBuilder: _transition,
         layoutBuilder: _stack,
-        child: opened != null && _revealComplete
+        child: opened != null && _sequenceComplete
             ? KeyedSubtree(
                 key: const ValueKey('opening-content'),
                 child: widget.appBuilder(opened),
               )
             : _OpeningArtwork(
                 key: _artworkKey,
-                progress: _revealComplete
+                progress: _sequenceComplete
                     ? const AlwaysStoppedAnimation(1.0)
                     : _reveal,
               ),
