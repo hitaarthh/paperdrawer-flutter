@@ -179,6 +179,30 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
           backLabel: 'Cancel',
           onBack: _close,
           title: widget.id == null ? 'Check the details' : 'Edit details',
+          bottom: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (form.error case final error?)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Pd.s2),
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      error,
+                      style: PdType.footnote.copyWith(color: Pd.signal),
+                    ),
+                  ),
+                ),
+              PdButton.primary(
+                key: const ValueKey('save-to-drawer'),
+                label: widget.id == null ? 'Save to drawer' : 'Save changes',
+                expand: true,
+                busy: form.busy,
+                onPressed: form.busy ? null : () => _save(form),
+              ),
+            ],
+          ),
           children: [
             if (form.readFields.isNotEmpty)
               Padding(
@@ -268,30 +292,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               enabled: !form.busy,
             ),
           ],
-          bottom: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (form.error case final error?)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Pd.s2),
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      error,
-                      style: PdType.footnote.copyWith(color: Pd.signal),
-                    ),
-                  ),
-                ),
-              PdButton.primary(
-                key: const ValueKey('save-to-drawer'),
-                label: widget.id == null ? 'Save to drawer' : 'Save changes',
-                expand: true,
-                busy: form.busy,
-                onPressed: form.busy ? null : () => _save(form),
-              ),
-            ],
-          ),
+
         ),
       ),
     );
