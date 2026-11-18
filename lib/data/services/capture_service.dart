@@ -32,32 +32,44 @@ class CaptureService {
 
   Future<List<PendingFile>> pickFiles() async {
     final files = await openFiles(acceptedTypeGroups: const [_acceptedFiles]);
-    return files.map((file) => PendingFile(path: file.path, name: file.name)).toList();
+    return files
+        .map((file) => PendingFile(path: file.path, name: file.name))
+        .toList();
   }
 
   Future<List<PendingFile>> pickPhotos() async {
-    final files = await ImagePicker().pickMultiImage(requestFullMetadata: false);
-    return files.map((file) => PendingFile(path: file.path, name: file.name)).toList();
+    final files = await ImagePicker().pickMultiImage(
+      requestFullMetadata: false,
+    );
+    return files
+        .map((file) => PendingFile(path: file.path, name: file.name))
+        .toList();
   }
 
   Future<CaptureSession> openCamera() async {
     final cameras = await availableCameras();
     if (cameras.isEmpty) {
-      throw const FormatException('There’s no camera available on this device.');
+      throw const FormatException(
+        'There’s no camera available on this device.',
+      );
     }
     final camera = cameras.firstWhere(
       (camera) => camera.lensDirection == CameraLensDirection.back,
       orElse: () => cameras.first,
     );
-    final controller = CameraController(camera, ResolutionPreset.high, enableAudio: false);
+    final controller = CameraController(
+      camera,
+      ResolutionPreset.high,
+      enableAudio: false,
+    );
     try {
       await controller.initialize();
     } on CameraException catch (error) {
       await controller.dispose();
       throw FormatException(switch (error.code) {
-        'CameraAccessDenied' || 'CameraAccessDeniedWithoutPrompt' =>
-          'To scan a document, allow camera access for PaperDrawer in Settings.',
-        'CameraAccessRestricted' => 'Camera access is restricted on this device.',
+        'CameraAccessDenied' || 'CameraAccessDeniedWithoutPrompt' => 'To scan a document, allow camera access for PaperDrawer in Settings.',
+        'CameraAccessRestricted' =>
+          'Camera access is restricted on this device.',
         _ => 'The camera couldn’t open. Try again or choose a photo or PDF.',
       });
     } catch (_) {

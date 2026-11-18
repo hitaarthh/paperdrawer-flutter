@@ -1,7 +1,16 @@
 import 'formats.dart';
 import 'models/item.dart';
 
-enum ReadField { kind, name, source, reference, amount, startsOn, coverUntil, warranty }
+enum ReadField {
+  kind,
+  name,
+  source,
+  reference,
+  amount,
+  startsOn,
+  coverUntil,
+  warranty,
+}
 
 class ScanReading {
   const ScanReading({
@@ -54,27 +63,61 @@ final _totalLabel = RegExp(
   r'^\s*(?:grand total|net amount|amount payable|total(?: amount)?)\b',
   caseSensitive: false,
 );
-final _rupees = RegExp(r'(?:₹|\bRs\.?|\bINR)\s*([\d,]+(?:\.\d{1,2})?)', caseSensitive: false);
-final _warranty = RegExp(r'\b(\d{1,2})\s*[- ]?\s*(years?|months?)\s+warranty\b', caseSensitive: false);
+final _rupees = RegExp(
+  r'(?:₹|\bRs\.?|\bINR)\s*([\d,]+(?:\.\d{1,2})?)',
+  caseSensitive: false,
+);
+final _warranty = RegExp(
+  r'\b(\d{1,2})\s*[- ]?\s*(years?|months?)\s+warranty\b',
+  caseSensitive: false,
+);
 final _ref = RegExp(
   r'\b(?:invoice|bill|policy|certificate)\s*(?:no\.?|number|#)\s*[:#-]?\s*([\w/-]+)|\border\s+id\s*[:#-]?\s*([\w/-]+)',
   caseSensitive: false,
 );
-final _vehicle = RegExp(r'\b(?:PUC|pollution under control|registration certificate)\b', caseSensitive: false);
-final _policy = RegExp(r'\b(?:policy schedule|sum insured|premium|insurance)\b', caseSensitive: false);
+final _vehicle = RegExp(
+  r'\b(?:PUC|pollution under control|registration certificate)\b',
+  caseSensitive: false,
+);
+final _policy = RegExp(
+  r'\b(?:policy schedule|sum insured|premium|insurance)\b',
+  caseSensitive: false,
+);
 final _bill = RegExp(r'\b(?:invoice|receipt|bill)\b', caseSensitive: false);
-final _sourceLabel = RegExp(r'^(?:seller|sold by|store|insurer|issued by)\s*:\s*(.+)$', caseSensitive: false);
-final _nameLabel = RegExp(r'^(?:product|item name)\s*:\s*(.+)$', caseSensitive: false);
+final _sourceLabel = RegExp(
+  r'^(?:seller|sold by|store|insurer|issued by)\s*:\s*(.+)$',
+  caseSensitive: false,
+);
+final _nameLabel = RegExp(
+  r'^(?:product|item name)\s*:\s*(.+)$',
+  caseSensitive: false,
+);
 final _nonSource = RegExp(
   r'\b(?:invoice|receipt|bill|certificate|policy|gstin|phone|date|road|street|floor|pin code)\b|[@#]|\d{4,}',
   caseSensitive: false,
 );
-const _months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const _months = [
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
+];
 
 /// Suggests facts from clearly labelled receipt lines. The form keeps every
 /// suggestion editable and leaves ambiguous values blank.
 ScanReading readBill(List<String> lines, {required DateTime today}) {
-  final clean = lines.map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
+  final clean = lines
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList();
   final document = clean.join('\n');
   final kind = switch (document) {
     _ when _vehicle.hasMatch(document) => ItemKind.vehicle,
@@ -117,7 +160,9 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
     if (warranty != null && warrantyMonths == null) {
       final count = int.parse(warranty.group(1)!);
       if (count > 0) {
-        warrantyMonths = warranty.group(2)!.toLowerCase().startsWith('year') ? count * 12 : count;
+        warrantyMonths = warranty.group(2)!.toLowerCase().startsWith('year')
+            ? count * 12
+            : count;
       }
     }
     final ref = _ref.firstMatch(line);
@@ -147,7 +192,11 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
   }
 
   // A detected field is enough to proceed as a bill even without an invoice heading.
-  final foundFacts = startsOn != null || amount != null || reference != null || warrantyMonths != null;
+  final foundFacts =
+      startsOn != null ||
+      amount != null ||
+      reference != null ||
+      warrantyMonths != null;
   return ScanReading(
     kind: kind ?? (foundFacts ? ItemKind.bill : null),
     name: productNames.length == 1 ? productNames.single : null,
@@ -156,7 +205,9 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
     amountMinor: amount,
     startsOn: startsOn,
     coverUntil: kind == ItemKind.bill ? null : coverUntil,
-    warrantyMonths: kind == null || kind == ItemKind.bill ? warrantyMonths : null,
+    warrantyMonths: kind == null || kind == ItemKind.bill
+        ? warrantyMonths
+        : null,
   );
 }
 
@@ -164,7 +215,8 @@ Iterable<DateTime> _datesIn(String line) sync* {
   for (final match in _date.allMatches(line)) {
     final day = int.parse(match.group(1)!);
     final monthText = match.group(2)!.toLowerCase();
-    final month = int.tryParse(monthText) ??
+    final month =
+        int.tryParse(monthText) ??
         (_months.indexOf(monthText.substring(0, 3)) + 1);
     final yearText = match.group(3)!;
     final year = int.parse(yearText) + (yearText.length == 2 ? 2000 : 0);

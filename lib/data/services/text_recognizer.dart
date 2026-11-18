@@ -12,7 +12,9 @@ class PlatformTextRecognizer implements TextRecognizer {
   @override
   Future<List<String>> recognize(String path) async {
     try {
-      return await _channel.invokeListMethod<String>('recognize', {'path': path}) ??
+      return await _channel.invokeListMethod<String>('recognize', {
+            'path': path,
+          }) ??
           const [];
     } catch (_) {
       return const [];
