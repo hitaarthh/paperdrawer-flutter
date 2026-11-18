@@ -156,7 +156,7 @@ void main() {
     await _tap(tester, _submit);
     expect(
       find.text(
-        'Couldn’t reach PaperDrawer. Check your connection and try again.',
+        'Couldn’t reach Paper Drawer. Check your connection and try again.',
       ),
       findsOneWidget,
     );

@@ -42,7 +42,7 @@ void main() {
         scale,
       );
       expect(tester.takeException(), isNull);
-      expect(find.text('PaperDrawer'), findsOneWidget);
+      expect(find.text('Paper Drawer'), findsOneWidget);
 
       // Sits below the status bar inset (177 / 3 = 59).
       final barTop = tester.getTopLeft(find.byType(PdBrandBar)).dy;
@@ -67,8 +67,8 @@ void main() {
     await pump(tester, const PdBrandBar(), 1);
     expect(find.byKey(const ValueKey('brand-mark')), findsNothing);
     expect(
-      tester.getSemantics(find.bySemanticsLabel('PaperDrawer')),
-      matchesSemantics(label: 'PaperDrawer', isHeader: true),
+      tester.getSemantics(find.bySemanticsLabel('Paper Drawer')),
+      matchesSemantics(label: 'Paper Drawer', isHeader: true),
     );
   });
 
