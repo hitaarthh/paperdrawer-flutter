@@ -328,4 +328,3 @@ class _QuietLink extends StatelessWidget {
     ),
   );
 }
-

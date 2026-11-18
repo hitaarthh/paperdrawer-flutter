@@ -65,12 +65,20 @@ class _NotchedTicketPainter extends CustomPainter {
     final ticket = Path.combine(
       PathOperation.difference,
       Path()..addRRect(
-        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(Pd.rSm)),
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          const Radius.circular(Pd.rSm),
+        ),
       ),
       Path()
-        ..addOval(Rect.fromCircle(center: Offset(0, middle), radius: _notchRadius))
         ..addOval(
-          Rect.fromCircle(center: Offset(size.width, middle), radius: _notchRadius),
+          Rect.fromCircle(center: Offset(0, middle), radius: _notchRadius),
+        )
+        ..addOval(
+          Rect.fromCircle(
+            center: Offset(size.width, middle),
+            radius: _notchRadius,
+          ),
         ),
     );
     canvas.drawPath(ticket, Paint()..color = fill);

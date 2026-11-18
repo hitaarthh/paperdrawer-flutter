@@ -133,14 +133,22 @@ class _OpeningArtwork extends StatelessWidget {
   static const _wordmark = Interval(0.12, 0.22, curve: _easeOut);
   static const _ticket = Interval(0.22, 0.36, curve: Cubic(0.3, 0.7, 0.2, 1));
   static const _stamp = Interval(0.37, 0.42, curve: Cubic(0.3, 1.4, 0.5, 1));
-  static const _stampSettle = Interval(0.42, 0.45, curve: Cubic(0.3, 1.4, 0.5, 1));
+  static const _stampSettle = Interval(
+    0.42,
+    0.45,
+    curve: Cubic(0.3, 1.4, 0.5, 1),
+  );
   static const _tagline = Interval(0.44, _revealEnd, curve: _easeOut);
 
   @override
   Widget build(BuildContext context) {
-    final textScaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
+    final textScaler = MediaQuery.textScalerOf(context)
+        .clamp(maxScaleFactor: 2);
     final wordmarkSize = PdType.openingWordmark.fontSize!;
-    final ticketShift = math.max(0.0, textScaler.scale(wordmarkSize) - wordmarkSize);
+    final ticketShift = math.max(
+      0.0,
+      textScaler.scale(wordmarkSize) - wordmarkSize,
+    );
     return Semantics(
       label: 'PaperDrawer is opening',
       excludeSemantics: true,
@@ -163,10 +171,8 @@ class _OpeningArtwork extends StatelessWidget {
                       maxScaleFactor: 2,
                       child: AnimatedBuilder(
                         animation: progress,
-                        builder: (context, _) => _frame(
-                          progress.value * _revealEnd,
-                          ticketShift,
-                        ),
+                        builder: (context, _) =>
+                            _frame(progress.value * _revealEnd, ticketShift),
                       ),
                     ),
                   ),
@@ -258,7 +264,8 @@ class _TicketReveal extends CustomClipper<Rect> {
       Rect.fromLTWH(0, 0, size.width, size.height * fraction);
 
   @override
-  bool shouldReclip(_TicketReveal oldClipper) => oldClipper.fraction != fraction;
+  bool shouldReclip(_TicketReveal oldClipper) =>
+      oldClipper.fraction != fraction;
 }
 
 class _OpeningTicket extends StatelessWidget {
@@ -304,7 +311,9 @@ class _OpeningTicket extends StatelessWidget {
                 children: [
                   Text(
                     'NO. 000001',
-                    style: PdType.openingTicketNumber.copyWith(color: Pd.inkMuted),
+                    style: PdType.openingTicketNumber.copyWith(
+                      color: Pd.inkMuted,
+                    ),
                   ),
                   Text(
                     'Never lose a claim to a missing bill.',
