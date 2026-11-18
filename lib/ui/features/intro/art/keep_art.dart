@@ -10,7 +10,8 @@ import '../../../core/widgets/paper.dart';
 /// FILED stamp. Drawn on the 390×360 intro art canvas; coordinates come
 /// straight from the mockup (art top 140 on the artboard, so +22 here).
 ///
-/// It is a picture, so its text ignores Dynamic Type.
+/// It is a picture, so its text ignores Dynamic Type. The ₹ glyph is not in
+/// the bundled JetBrains Mono and falls back to the system font, as elsewhere.
 class KeepArt extends StatelessWidget {
   const KeepArt({super.key});
 
@@ -19,28 +20,32 @@ class KeepArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MediaQuery.withNoTextScaling(
-    child: const Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Content-box widths: mockup width plus 16 + 16 horizontal padding.
-        Positioned(
-          left: 150,
-          top: 30 + _dy,
-          width: 200 + 32,
-          child: _Tilted(degrees: 6, child: _PolicySchedule()),
-        ),
-        Positioned(
-          left: 40,
-          top: 56 + _dy,
-          width: 210 + 32,
-          child: _Tilted(degrees: -4, child: _Receipt()),
-        ),
-        Positioned(
-          left: 168,
-          top: 214 + _dy,
-          child: _Tilted(degrees: -12, child: _FiledStamp()),
-        ),
-      ],
+    // Own base style, so the art never picks up a host's text decoration.
+    child: DefaultTextStyle(
+      style: _line,
+      child: const Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Content-box widths: mockup width plus 16 + 16 horizontal padding.
+          Positioned(
+            left: 150,
+            top: 30 + _dy,
+            width: 200 + 32,
+            child: _Tilted(degrees: 6, child: _PolicySchedule()),
+          ),
+          Positioned(
+            left: 40,
+            top: 56 + _dy,
+            width: 210 + 32,
+            child: _Tilted(degrees: -4, child: _Receipt()),
+          ),
+          Positioned(
+            left: 168,
+            top: 214 + _dy,
+            child: _Tilted(degrees: -12, child: _FiledStamp()),
+          ),
+        ],
+      ),
     ),
   );
 }
