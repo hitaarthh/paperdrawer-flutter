@@ -139,7 +139,9 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
           ),
         ],
         SliverToBoxAdapter(
-          child: SizedBox(height: Pd.s12 + MediaQuery.paddingOf(context).bottom),
+          child: SizedBox(
+            height: Pd.s12 + MediaQuery.paddingOf(context).bottom,
+          ),
         ),
       ],
     );

@@ -22,7 +22,10 @@ class PdTabBar extends StatelessWidget {
   final VoidCallback? onScanLongPress;
   final int claimsBadge;
 
-  static final _blur = ImageFilter.blur(sigmaX: Pd.dockBlur, sigmaY: Pd.dockBlur);
+  static final _blur = ImageFilter.blur(
+    sigmaX: Pd.dockBlur,
+    sigmaY: Pd.dockBlur,
+  );
   static const _radius = BorderRadius.all(Radius.circular(Pd.rPill));
   static const _tabs = [
     ('Vault', PdGlyph.vault),
@@ -231,9 +234,10 @@ class _DockRim extends CustomPainter {
       ).createShader(rect);
     }
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(Pd.rPill))
-          .scaleRadii()
-          .deflate(paint.strokeWidth / 2),
+      RRect.fromRectAndRadius(
+        rect,
+        const Radius.circular(Pd.rPill),
+      ).scaleRadii().deflate(paint.strokeWidth / 2),
       paint,
     );
   }

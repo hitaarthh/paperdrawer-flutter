@@ -86,7 +86,9 @@ void main() {
 
     tester.view.physicalSize = const Size(2400, 1920);
     await tester.pumpAndSettle();
-    final controls = tester.getRect(vault).expandToInclude(tester.getRect(scan));
+    final controls = tester
+        .getRect(vault)
+        .expandToInclude(tester.getRect(scan));
     expect(controls.width, lessThanOrEqualTo(440));
     expect(controls.center.dx, 400);
 
