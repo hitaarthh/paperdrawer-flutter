@@ -292,7 +292,6 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               enabled: !form.busy,
             ),
           ],
-
         ),
       ),
     );
