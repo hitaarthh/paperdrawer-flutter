@@ -41,51 +41,57 @@ class _ItemCardState extends State<ItemCard> {
       landStamp: widget.landStamp,
       onLanded: widget.onLanded,
     );
-    final child = receipt ? ReceiptPaper(child: body) : DocumentPaper(child: body);
+    final child = receipt
+        ? ReceiptPaper(child: body)
+        : DocumentPaper(child: body);
     final tap = widget.onTap;
     return Semantics(
       label: summary.semanticLabel,
       button: tap != null,
       onTap: tap,
       excludeSemantics: true,
-      child: tap == null ? child : FocusableActionDetector(
-        onShowFocusHighlight: (focus) => setState(() => _focus = focus),
-        actions: {
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) {
-              tap();
-              return null;
-            },
-          ),
-        },
-        mouseCursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          excludeFromSemantics: true,
-          onTap: tap,
-          onTapDown: (_) => setState(() => _pressed = true),
-          onTapUp: (_) => setState(() => _pressed = false),
-          onTapCancel: () => setState(() => _pressed = false),
-          child: TweenAnimationBuilder<double>(
-              duration: MediaQuery.disableAnimationsOf(context)
-                  ? Duration.zero
-                  : const Duration(milliseconds: 150),
-              curve: Curves.easeOutCubic,
-              tween: Tween(end: _pressed ? -2 : 0),
-              builder: (context, lift, child) => Transform.translate(
-                offset: Offset(0, lift),
-                child: child,
-              ),
-              child: DecoratedBox(
-                position: DecorationPosition.foreground,
-                decoration: BoxDecoration(
-                  border: _focus ? Border.all(color: Pd.lime, width: 2) : null,
-                  borderRadius: BorderRadius.circular(Pd.rXs),
+      child: tap == null
+          ? child
+          : FocusableActionDetector(
+              onShowFocusHighlight: (focus) => setState(() => _focus = focus),
+              actions: {
+                ActivateIntent: CallbackAction<ActivateIntent>(
+                  onInvoke: (_) {
+                    tap();
+                    return null;
+                  },
                 ),
-                child: child,
+              },
+              mouseCursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                excludeFromSemantics: true,
+                onTap: tap,
+                onTapDown: (_) => setState(() => _pressed = true),
+                onTapUp: (_) => setState(() => _pressed = false),
+                onTapCancel: () => setState(() => _pressed = false),
+                child: TweenAnimationBuilder<double>(
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : const Duration(milliseconds: 150),
+                  curve: Curves.easeOutCubic,
+                  tween: Tween(end: _pressed ? -2 : 0),
+                  builder: (context, lift, child) => Transform.translate(
+                    offset: Offset(0, lift),
+                    child: child,
+                  ),
+                  child: DecoratedBox(
+                    position: DecorationPosition.foreground,
+                    decoration: BoxDecoration(
+                      border: _focus
+                          ? Border.all(color: Pd.lime, width: 2)
+                          : null,
+                      borderRadius: BorderRadius.circular(Pd.rXs),
+                    ),
+                    child: child,
+                  ),
+                ),
               ),
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
@@ -107,13 +113,14 @@ class _PrintedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final stack = isLargeText(context);
     final stampKind = summary.stamp;
-    final stamp = stampKind == null ? null : PdStamp(
-      stampKind,
-      land: landStamp,
-      onLanded: onLanded,
-    );
+    final stamp = stampKind == null
+        ? null
+        : PdStamp(stampKind, land: landStamp, onLanded: onLanded);
     final rule = receipt ? const DashedRule() : const SolidRule();
-    final name = Text(summary.item.name, style: PdType.cardTitle.copyWith(color: Pd.ink));
+    final name = Text(
+      summary.item.name,
+      style: PdType.cardTitle.copyWith(color: Pd.ink),
+    );
     final window = summary.shown;
     final caption = PdType.label.copyWith(color: Pd.inkMuted);
 
@@ -150,7 +157,10 @@ class _PrintedCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: Pd.s3,
-            children: [Expanded(child: name), stamp],
+            children: [
+              Expanded(child: name),
+              stamp,
+            ],
           ),
         const SizedBox(height: Pd.s3),
         for (final (label, value, strong) in summary.dataRows)
@@ -175,7 +185,10 @@ class _PrintedCard extends StatelessWidget {
           ),
           const SizedBox(height: Pd.s1),
         ],
-        Text(summary.footer, style: PdType.footnote.copyWith(color: Pd.inkMuted)),
+        Text(
+          summary.footer,
+          style: PdType.footnote.copyWith(color: Pd.inkMuted),
+        ),
       ],
     );
   }
@@ -197,11 +210,16 @@ class _PrintedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stacked = isLargeText(context);
-    final keyText = Text(label, style: PdType.label.copyWith(color: Pd.inkMuted));
+    final keyText = Text(
+      label,
+      style: PdType.label.copyWith(color: Pd.inkMuted),
+    );
     final valueText = Text(
       value,
       textAlign: stacked ? TextAlign.start : TextAlign.end,
-      style: (strong ? PdType.dataStrong : PdType.data).copyWith(color: due ? Pd.dueInk : Pd.ink2),
+      style: (strong ? PdType.dataStrong : PdType.data).copyWith(
+        color: due ? Pd.dueInk : Pd.ink2,
+      ),
     );
     return stacked
         ? Padding(
@@ -215,7 +233,10 @@ class _PrintedRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: Pd.s2,
-            children: [Flexible(child: keyText), Flexible(child: valueText)],
+            children: [
+              Flexible(child: keyText),
+              Flexible(child: valueText),
+            ],
           );
   }
 }

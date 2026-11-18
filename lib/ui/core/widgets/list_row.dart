@@ -78,13 +78,17 @@ class PdListRow extends StatelessWidget {
     final stackValue = detail != null && isLargeText(context);
     final text = Text(
       title,
-      style: PdType.bodyStrong.copyWith(color: destructive ? Pd.signal : Pd.text),
+      style: PdType.bodyStrong.copyWith(
+        color: destructive ? Pd.signal : Pd.text,
+      ),
     );
-    final valueLabel = detail == null ? null : Text(
-      detail,
-      style: PdType.callout.copyWith(color: Pd.textMuted),
-      textAlign: stackValue ? TextAlign.start : TextAlign.end,
-    );
+    final valueLabel = detail == null
+        ? null
+        : Text(
+            detail,
+            style: PdType.callout.copyWith(color: Pd.textMuted),
+            textAlign: stackValue ? TextAlign.start : TextAlign.end,
+          );
     final row = Container(
       constraints: const BoxConstraints(minHeight: Pd.s12 + Pd.s2),
       padding: const EdgeInsets.symmetric(horizontal: Pd.s4, vertical: Pd.s2),
@@ -118,8 +122,14 @@ class PdListRow extends StatelessWidget {
           ),
           if (valueLabel != null && !stackValue) Flexible(child: valueLabel),
           ?trailing,
-          if (actionIcon case final icon?) Icon(icon, size: Pd.iconSm, color: Pd.textSubtle),
-          if (chevron) const Icon(LucideIcons.chevronRight, size: Pd.iconSm, color: Pd.textSubtle),
+          if (actionIcon case final icon?)
+            Icon(icon, size: Pd.iconSm, color: Pd.textSubtle),
+          if (chevron)
+            const Icon(
+              LucideIcons.chevronRight,
+              size: Pd.iconSm,
+              color: Pd.textSubtle,
+            ),
         ],
       ),
     );

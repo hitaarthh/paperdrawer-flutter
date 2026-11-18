@@ -4,7 +4,12 @@ import '../theme/tokens.dart';
 import '../theme/type.dart';
 
 class DashedTile extends StatelessWidget {
-  const DashedTile({required this.title, required this.body, this.action, super.key});
+  const DashedTile({
+    required this.title,
+    required this.body,
+    this.action,
+    super.key,
+  });
 
   final String title;
   final String body;
@@ -20,7 +25,11 @@ class DashedTile extends StatelessWidget {
         children: [
           Semantics(
             header: true,
-            child: Text(title, textAlign: TextAlign.center, style: PdType.title2),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: PdType.title2,
+            ),
           ),
           const SizedBox(height: Pd.s2),
           Text(
@@ -43,10 +52,16 @@ class _DashedBorder extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final shape = Path()..addRRect(
-      RRect.fromRectAndRadius((Offset.zero & size).deflate(0.5), const Radius.circular(Pd.rSm)),
-    );
-    final stroke = Paint()..color = Pd.line..style = PaintingStyle.stroke;
+    final shape = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          (Offset.zero & size).deflate(0.5),
+          const Radius.circular(Pd.rSm),
+        ),
+      );
+    final stroke = Paint()
+      ..color = Pd.line
+      ..style = PaintingStyle.stroke;
     for (final contour in shape.computeMetrics()) {
       for (double start = 0; start < contour.length; start += Pd.s2) {
         canvas.drawPath(

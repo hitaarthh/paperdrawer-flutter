@@ -100,7 +100,8 @@ class _Tab extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
                         child: Text(
                           '$badge',
-                          textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3),
+                          textScaler: MediaQuery.textScalerOf(context)
+                              .clamp(maxScaleFactor: 1.3),
                           style: PdType.tabLabel.copyWith(color: Pd.onLime),
                         ),
                       ),

@@ -5,7 +5,12 @@ import '../theme/tokens.dart';
 enum PdGlyph { vault, claims, settings, scan }
 
 class PdIcon extends StatelessWidget {
-  const PdIcon(this.glyph, {this.size = Pd.iconMd, this.color = Pd.text, super.key});
+  const PdIcon(
+    this.glyph, {
+    this.size = Pd.iconMd,
+    this.color = Pd.text,
+    super.key,
+  });
 
   final PdGlyph glyph;
   final double size;
@@ -51,17 +56,29 @@ class _GlyphPainter extends CustomPainter {
           ..lineTo(19, 5)
           ..quadraticBezierTo(21, 5, 21, 7)
           ..lineTo(21, 10)
-          ..arcToPoint(const Offset(21, 14), radius: const Radius.circular(2), clockwise: false)
+          ..arcToPoint(
+            const Offset(21, 14),
+            radius: const Radius.circular(2),
+            clockwise: false,
+          )
           ..lineTo(21, 17)
           ..quadraticBezierTo(21, 19, 19, 19)
           ..lineTo(5, 19)
           ..quadraticBezierTo(3, 19, 3, 17)
           ..lineTo(3, 14)
-          ..arcToPoint(const Offset(3, 10), radius: const Radius.circular(2), clockwise: false)
+          ..arcToPoint(
+            const Offset(3, 10),
+            radius: const Radius.circular(2),
+            clockwise: false,
+          )
           ..close();
         canvas.drawPath(shape, stroke);
         for (double y = 5; y < 19; y += 4.5) {
-          canvas.drawLine(Offset(14, y), Offset(14, (y + 2).clamp(5, 19)), stroke);
+          canvas.drawLine(
+            Offset(14, y),
+            Offset(14, (y + 2).clamp(5, 19)),
+            stroke,
+          );
         }
       case PdGlyph.settings:
         canvas.drawLine(const Offset(4, 7), const Offset(13, 7), stroke);
@@ -129,7 +146,10 @@ class _MarkPainter extends CustomPainter {
     paper.close();
     canvas.drawPath(paper, Paint()..color = Pd.lime);
     canvas.drawPath(
-      Path()..moveTo(9.5, 15.5)..lineTo(13.5, 19.5)..lineTo(20.5, 11.5),
+      Path()
+        ..moveTo(9.5, 15.5)
+        ..lineTo(13.5, 19.5)
+        ..lineTo(20.5, 11.5),
       Paint()
         ..color = Pd.bg
         ..style = PaintingStyle.stroke

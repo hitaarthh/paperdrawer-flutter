@@ -47,23 +47,26 @@ Future<T?> showPdSheet<T>(
     padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
     child: _SheetSurface(
       child: SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, Pd.s4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _Grabber(),
-          const SizedBox(height: Pd.s4),
-          Semantics(header: true, child: Text(title, style: PdType.title2)),
-          if (subtitle != null) ...[
-            const SizedBox(height: Pd.s1),
-            Text(subtitle, style: PdType.callout.copyWith(color: Pd.textMuted)),
+        padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, Pd.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _Grabber(),
+            const SizedBox(height: Pd.s4),
+            Semantics(header: true, child: Text(title, style: PdType.title2)),
+            if (subtitle != null) ...[
+              const SizedBox(height: Pd.s1),
+              Text(
+                subtitle,
+                style: PdType.callout.copyWith(color: Pd.textMuted),
+              ),
+            ],
+            const SizedBox(height: Pd.s3),
+            for (final option in options) _OptionRow(option: option),
+            ?body,
           ],
-          const SizedBox(height: Pd.s3),
-          for (final option in options) _OptionRow(option: option),
-          ?body,
-        ],
-      ),
+        ),
       ),
     ),
   ),
@@ -140,11 +143,18 @@ class _OptionRow<T> extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(option.title, style: PdType.bodyStrong),
-                  Text(option.description, style: PdType.footnote.copyWith(color: Pd.textMuted)),
+                  Text(
+                    option.description,
+                    style: PdType.footnote.copyWith(color: Pd.textMuted),
+                  ),
                 ],
               ),
             ),
-            const Icon(LucideIcons.chevronRight, size: Pd.iconSm, color: Pd.textSubtle),
+            const Icon(
+              LucideIcons.chevronRight,
+              size: Pd.iconSm,
+              color: Pd.textSubtle,
+            ),
           ],
         ),
       ),
@@ -153,7 +163,11 @@ class _OptionRow<T> extends StatelessWidget {
 }
 
 class PdAction<T> {
-  const PdAction({required this.label, required this.value, this.destructive = false});
+  const PdAction({
+    required this.label,
+    required this.value,
+    this.destructive = false,
+  });
 
   final String label;
   final T value;
@@ -193,14 +207,16 @@ Future<bool> showPdConfirm(
   required String message,
   required String confirmLabel,
   bool destructive = false,
-}) async => await showPdActions<bool>(
-  context,
-  title: title,
-  message: message,
-  actions: [
-    PdAction(label: confirmLabel, value: true, destructive: destructive),
-  ],
-) ?? false;
+}) async =>
+    await showPdActions<bool>(
+      context,
+      title: title,
+      message: message,
+      actions: [
+        PdAction(label: confirmLabel, value: true, destructive: destructive),
+      ],
+    ) ??
+    false;
 
 Future<DateTime?> showPdDatePicker(
   BuildContext context, {
@@ -211,8 +227,12 @@ Future<DateTime?> showPdDatePicker(
 }) {
   final earliest = min == null ? null : civil(min);
   final latest = max == null ? null : civil(max);
-  final fallbackClock = initial == null && context.read<Today?>() == null ? Today() : null;
-  var selected = civil(initial ?? context.read<Today?>()?.value ?? fallbackClock!.value);
+  final fallbackClock = initial == null && context.read<Today?>() == null
+      ? Today()
+      : null;
+  var selected = civil(
+    initial ?? context.read<Today?>()?.value ?? fallbackClock!.value,
+  );
   fallbackClock?.dispose();
   if (earliest != null && selected.isBefore(earliest)) selected = earliest;
   if (latest != null && selected.isAfter(latest)) selected = latest;
@@ -235,7 +255,10 @@ Future<DateTime?> showPdDatePicker(
                   children: [
                     const _Grabber(),
                     const SizedBox(height: Pd.s3),
-                    Semantics(header: true, child: Text(title, style: PdType.title2)),
+                    Semantics(
+                      header: true,
+                      child: Text(title, style: PdType.title2),
+                    ),
                   ],
                 ),
               ),
@@ -254,7 +277,10 @@ Future<DateTime?> showPdDatePicker(
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Pd.margin, vertical: Pd.s2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Pd.margin,
+                  vertical: Pd.s2,
+                ),
                 child: PdButton.primary(
                   label: 'Done',
                   onPressed: () => Navigator.pop(context, selected),

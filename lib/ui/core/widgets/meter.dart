@@ -50,7 +50,10 @@ class PdMeter extends StatelessWidget {
     final fill = _fill;
     final labelColor = onPaper ? Pd.inkMuted : Pd.text2;
     final valueColor = onPaper && window.isDue(today) ? Pd.dueInk : fill;
-    final title = Text(window.label, style: PdType.label.copyWith(color: labelColor));
+    final title = Text(
+      window.label,
+      style: PdType.label.copyWith(color: labelColor),
+    );
     final value = Text(
       window.meterValue(today),
       textAlign: isLargeText(context) ? TextAlign.start : TextAlign.end,
@@ -83,7 +86,9 @@ class PdMeter extends StatelessWidget {
           const SizedBox(height: Pd.s1),
           Text(
             window.meterFooter(today),
-            style: PdType.footnote.copyWith(color: onPaper ? Pd.inkMuted : Pd.textMuted),
+            style: PdType.footnote.copyWith(
+              color: onPaper ? Pd.inkMuted : Pd.textMuted,
+            ),
           ),
         ],
       ),

@@ -119,9 +119,6 @@ class PdChipRow extends StatelessWidget {
   Widget build(BuildContext context) => SingleChildScrollView(
     scrollDirection: Axis.horizontal,
     padding: const EdgeInsets.symmetric(horizontal: Pd.margin),
-    child: Row(
-      spacing: Pd.s2,
-      children: children,
-    ),
+    child: Row(spacing: Pd.s2, children: children),
   );
 }

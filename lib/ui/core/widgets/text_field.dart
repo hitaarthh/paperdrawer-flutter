@@ -86,10 +86,18 @@ class _PdTextFieldState extends State<PdTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final error = _blurred ? widget.validator?.call(widget.controller.text) : null;
-    final help = error ?? widget.help ??
-        (widget.readFromBill ? 'Check it against your bill before saving.' : null);
-    final borderColor = error != null ? Pd.signal : (_focus.hasFocus ? Pd.lime : Pd.line);
+    final error = _blurred
+        ? widget.validator?.call(widget.controller.text)
+        : null;
+    final help =
+        error ??
+        widget.help ??
+        (widget.readFromBill
+            ? 'Check it against your bill before saving.'
+            : null);
+    final borderColor = error != null
+        ? Pd.signal
+        : (_focus.hasFocus ? Pd.lime : Pd.line);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -107,14 +115,24 @@ class _PdTextFieldState extends State<PdTextField> {
               enabled: widget.enabled,
               placeholder: widget.hint,
               placeholderStyle: PdType.body.copyWith(color: Pd.placeholder),
-              style: PdType.body.copyWith(color: widget.enabled ? Pd.text : Pd.textSubtle),
-              cursorColor: Pd.lime,
-              padding: const EdgeInsets.symmetric(horizontal: Pd.s4, vertical: Pd.s3),
-              prefix: widget.prefixText == null ? null : Padding(
-                padding: const EdgeInsets.only(left: Pd.s4),
-                child: Text(widget.prefixText!, style: PdType.body),
+              style: PdType.body.copyWith(
+                color: widget.enabled ? Pd.text : Pd.textSubtle,
               ),
-              decoration: _fieldDecoration(borderColor, focused: _focus.hasFocus),
+              cursorColor: Pd.lime,
+              padding: const EdgeInsets.symmetric(
+                horizontal: Pd.s4,
+                vertical: Pd.s3,
+              ),
+              prefix: widget.prefixText == null
+                  ? null
+                  : Padding(
+                      padding: const EdgeInsets.only(left: Pd.s4),
+                      child: Text(widget.prefixText!, style: PdType.body),
+                    ),
+              decoration: _fieldDecoration(
+                borderColor,
+                focused: _focus.hasFocus,
+              ),
               clearButtonMode: OverlayVisibilityMode.editing,
               keyboardType: widget.keyboardType,
               textInputAction: widget.textInputAction,
@@ -130,7 +148,9 @@ class _PdTextFieldState extends State<PdTextField> {
             liveRegion: error != null,
             child: Text(
               help,
-              style: PdType.footnote.copyWith(color: error == null ? Pd.textMuted : Pd.signal),
+              style: PdType.footnote.copyWith(
+                color: error == null ? Pd.textMuted : Pd.signal,
+              ),
             ),
           ),
         ],
@@ -172,17 +192,26 @@ class PdFieldButton extends StatelessWidget {
           child: Container(
             decoration: _fieldDecoration(Pd.line),
             constraints: const BoxConstraints(minHeight: Pd.controlH),
-            padding: const EdgeInsets.symmetric(horizontal: Pd.s4, vertical: Pd.s3),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Pd.s4,
+              vertical: Pd.s3,
+            ),
             child: Row(
               spacing: Pd.s2,
               children: [
                 Expanded(
                   child: Text(
                     value.isEmpty ? hint ?? 'Choose a date' : value,
-                    style: PdType.body.copyWith(color: value.isEmpty ? Pd.placeholder : Pd.text),
+                    style: PdType.body.copyWith(
+                      color: value.isEmpty ? Pd.placeholder : Pd.text,
+                    ),
                   ),
                 ),
-                const Icon(LucideIcons.chevronRight, size: Pd.iconSm, color: Pd.textSubtle),
+                const Icon(
+                  LucideIcons.chevronRight,
+                  size: Pd.iconSm,
+                  color: Pd.textSubtle,
+                ),
               ],
             ),
           ),
@@ -218,8 +247,12 @@ class _FieldLabel extends StatelessWidget {
     spacing: Pd.s2,
     runSpacing: Pd.s1,
     children: [
-      Text(label.toUpperCase(), style: PdType.label.copyWith(color: Pd.textMuted)),
-      if (readFromBill) Text('READ FROM BILL', style: PdType.label.copyWith(color: Pd.lime)),
+      Text(
+        label.toUpperCase(),
+        style: PdType.label.copyWith(color: Pd.textMuted),
+      ),
+      if (readFromBill)
+        Text('READ FROM BILL', style: PdType.label.copyWith(color: Pd.lime)),
     ],
   );
 }

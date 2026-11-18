@@ -40,7 +40,8 @@ class _PdLargeTitleScaffoldState extends State<PdLargeTitleScaffold> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: NotificationListener<ScrollNotification>(
             onNotification: (notification) {
-              if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+              if (notification.depth != 0 ||
+                  notification.metrics.axis != Axis.vertical) {
                 return false;
               }
               final scrolled = notification.metrics.extentBefore > 0;
@@ -51,7 +52,10 @@ class _PdLargeTitleScaffoldState extends State<PdLargeTitleScaffold> {
               controller: widget.controller,
               slivers: [
                 CupertinoSliverNavigationBar(
-                  padding: const EdgeInsetsDirectional.only(start: Pd.margin, end: Pd.margin),
+                  padding: const EdgeInsetsDirectional.only(
+                    start: Pd.margin,
+                    end: Pd.margin,
+                  ),
                   largeTitle: Text(widget.title),
                   middle: Text(widget.title),
                   trailing: widget.trailing,
@@ -131,22 +135,31 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                           minimumSize: const Size.square(Pd.tapMin),
                           pressedOpacity: 0.7,
                           focusColor: Pd.lime,
-                          onPressed: widget.onBack ?? () {
-                            if (GoRouter.maybeOf(context) case final router?) {
-                              if (router.canPop()) router.pop();
-                            } else {
-                              Navigator.maybePop(context);
-                            }
-                          },
+                          onPressed:
+                              widget.onBack ??
+                              () {
+                                if (GoRouter.maybeOf(context)
+                                    case final router?) {
+                                  if (router.canPop()) router.pop();
+                                } else {
+                                  Navigator.maybePop(context);
+                                }
+                              },
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(CupertinoIcons.back, color: Pd.lime, size: Pd.iconMd),
+                              const Icon(
+                                CupertinoIcons.back,
+                                color: Pd.lime,
+                                size: Pd.iconMd,
+                              ),
                               const SizedBox(width: Pd.s1),
                               Flexible(
                                 child: Text(
                                   widget.backLabel,
-                                  style: PdType.navBack.copyWith(color: Pd.lime),
+                                  style: PdType.navBack.copyWith(
+                                    color: Pd.lime,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -163,24 +176,35 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (notification) {
-                    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+                    if (notification.depth != 0 ||
+                        notification.metrics.axis != Axis.vertical) {
                       return false;
                     }
                     final scrolled = notification.metrics.extentBefore > 0;
-                    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+                    if (scrolled != _scrolled)
+                      setState(() => _scrolled = scrolled);
                     return false;
                   },
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(
-                      Pd.margin, Pd.s3, Pd.margin, Pd.s6,
+                      Pd.margin,
+                      Pd.s3,
+                      Pd.margin,
+                      Pd.s6,
                     ),
                     children: [
                       if (widget.kicker case final kicker?) ...[
-                        Text(kicker, style: PdType.label.copyWith(color: Pd.textMuted)),
+                        Text(
+                          kicker,
+                          style: PdType.label.copyWith(color: Pd.textMuted),
+                        ),
                         const SizedBox(height: Pd.s2),
                       ],
                       if (widget.title case final title?) ...[
-                        Semantics(header: true, child: Text(title, style: PdType.title1)),
+                        Semantics(
+                          header: true,
+                          child: Text(title, style: PdType.title1),
+                        ),
                         const SizedBox(height: Pd.s5),
                       ],
                       ...widget.children,
@@ -191,7 +215,10 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
               if (widget.bottom case final bottom?)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    Pd.margin, Pd.s2, Pd.margin, Pd.s3,
+                    Pd.margin,
+                    Pd.s2,
+                    Pd.margin,
+                    Pd.s3,
                   ),
                   child: bottom,
                 ),
@@ -237,7 +264,8 @@ class ScanButton extends StatelessWidget {
             const SizedBox(width: Pd.s2),
             Text(
               'Scan',
-              textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.4),
+              textScaler: MediaQuery.textScalerOf(context)
+                  .clamp(maxScaleFactor: 1.4),
               style: PdType.bodyStrong.copyWith(color: Pd.onLime),
             ),
           ],

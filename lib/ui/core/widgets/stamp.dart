@@ -89,7 +89,9 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) => Transform.scale(
-            scale: 1 + 0.15 * (1 - Curves.easeOutCubic.transform(_controller.value)),
+            scale:
+                1 +
+                0.15 * (1 - Curves.easeOutCubic.transform(_controller.value)),
             child: child,
           ),
           child: DecoratedBox(
@@ -98,7 +100,10 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
               borderRadius: BorderRadius.circular(Pd.rXs),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Pd.s2, vertical: Pd.s1),
+              padding: const EdgeInsets.symmetric(
+                horizontal: Pd.s2,
+                vertical: Pd.s1,
+              ),
               child: Text(
                 widget.kind.word,
                 textAlign: TextAlign.center,

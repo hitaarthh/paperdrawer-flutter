@@ -79,7 +79,10 @@ class PdButton extends StatelessWidget {
           minHeight: primary ? Pd.controlH : Pd.tapMin,
           minWidth: Pd.tapMin,
         ),
-        padding: EdgeInsets.symmetric(horizontal: mono ? Pd.s3 : Pd.s4, vertical: Pd.s2),
+        padding: EdgeInsets.symmetric(
+          horizontal: mono ? Pd.s3 : Pd.s4,
+          vertical: Pd.s2,
+        ),
         decoration: BoxDecoration(
           color: primary ? (onPressed == null ? Pd.surface3 : Pd.lime) : null,
           borderRadius: BorderRadius.circular(Pd.rSm),
@@ -106,8 +109,9 @@ class PdButton extends StatelessWidget {
               child: Text(
                 mono ? label.toUpperCase() : label,
                 textAlign: TextAlign.center,
-                style: (mono ? PdType.monoButton : PdType.bodyStrong)
-                    .copyWith(color: color),
+                style: (mono ? PdType.monoButton : PdType.bodyStrong).copyWith(
+                  color: color,
+                ),
               ),
             ),
           ],
