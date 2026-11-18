@@ -5,6 +5,10 @@ metadata:
   model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 21:08:03 GMT
 ---
+
+> **PaperDrawer note:** this is a generic Flutter reference. In this repo, import
+> `package:material_ui/material_ui.dart` (not `flutter/material.dart`), style with
+> `Pd`/`PdType`, and follow `AGENTS.md` where it differs.
 # Implementing Routing and Deep Linking
 
 ## Contents
