@@ -36,15 +36,13 @@ class NotchedTicketPaper extends StatelessWidget {
   final double perforationAlpha;
 
   @override
-  Widget build(BuildContext context) => RepaintBoundary(
-    child: CustomPaint(
-      painter: _NotchedTicketPainter(
-        fill: fill,
-        perforation: Pd.ink.withValues(alpha: perforationAlpha),
-        stubWidth: stubWidth,
-      ),
-      child: child,
+  Widget build(BuildContext context) => CustomPaint(
+    painter: _NotchedTicketPainter(
+      fill: fill,
+      perforation: Pd.ink.withValues(alpha: perforationAlpha),
+      stubWidth: stubWidth,
     ),
+    child: child,
   );
 }
 

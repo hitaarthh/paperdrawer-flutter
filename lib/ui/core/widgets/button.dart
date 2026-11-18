@@ -14,7 +14,8 @@ class PdButton extends StatelessWidget {
     this.expand = false,
     this.busy = false,
     super.key,
-  }) : _variant = _Variant.primary;
+  }) : _variant = _Variant.primary,
+       _monospaced = false;
 
   const PdButton.secondary({
     required this.label,
@@ -23,7 +24,8 @@ class PdButton extends StatelessWidget {
     this.expand = false,
     this.busy = false,
     super.key,
-  }) : _variant = _Variant.secondary;
+  }) : _variant = _Variant.secondary,
+       _monospaced = false;
 
   const PdButton.destructive({
     required this.label,
@@ -32,7 +34,8 @@ class PdButton extends StatelessWidget {
     this.expand = false,
     this.busy = false,
     super.key,
-  }) : _variant = _Variant.destructive;
+  }) : _variant = _Variant.destructive,
+       _monospaced = false;
 
   const PdButton.onPaper({
     required this.label,
@@ -41,7 +44,8 @@ class PdButton extends StatelessWidget {
     this.expand = false,
     this.busy = false,
     super.key,
-  }) : _variant = _Variant.onPaper;
+  }) : _variant = _Variant.onPaper,
+       _monospaced = false;
 
   const PdButton.text({
     required this.label,
@@ -49,8 +53,10 @@ class PdButton extends StatelessWidget {
     this.icon,
     this.expand = false,
     this.busy = false,
+    bool monospaced = false,
     super.key,
-  }) : _variant = _Variant.text;
+  }) : _variant = _Variant.text,
+       _monospaced = monospaced;
 
   final String label;
   final VoidCallback? onPressed;
@@ -58,12 +64,14 @@ class PdButton extends StatelessWidget {
   final bool expand;
   final bool busy;
   final _Variant _variant;
+  final bool _monospaced;
 
   @override
   Widget build(BuildContext context) {
     final primary = _variant == _Variant.primary;
     final mono = switch (_variant) {
       _Variant.secondary || _Variant.destructive || _Variant.onPaper => true,
+      _Variant.text => _monospaced,
       _ => false,
     };
     final color = switch (_variant) {

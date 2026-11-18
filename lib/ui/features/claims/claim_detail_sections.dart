@@ -123,6 +123,7 @@ class ClaimActivityLog extends StatelessWidget {
             child: PdButton.text(
               key: const ValueKey('claim-log-update'),
               label: 'Log an update',
+              monospaced: true,
               onPressed: onUpdate,
             ),
           ),

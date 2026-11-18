@@ -6,7 +6,7 @@ import '../../../routing/shared_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/button.dart';
-import '../../core/widgets/icons.dart';
+import '../intro/app_opening.dart';
 import 'shared_session.dart';
 
 class SharedBootstrap extends StatefulWidget {
@@ -23,39 +23,35 @@ class _SharedBootstrapState extends State<SharedBootstrap> {
       SharedAccount.open(SharedAccountConfig.fromEnvironment());
 
   @override
-  Widget build(BuildContext context) => FutureBuilder(
-    future: _opening,
-    builder: (context, snapshot) {
-      if (snapshot.data case final account?) return _SharedApp(account);
-      return MaterialApp(
-        theme: pdTheme(),
-        home: Scaffold(
-          body: Center(
-            child: snapshot.hasError
-                ? Padding(
-                    padding: const EdgeInsets.all(Pd.margin),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: Pd.s4,
-                      children: [
-                        Text(
-                          snapshot.error is FormatException
-                              ? (snapshot.error! as FormatException).message
-                              : 'Paper Drawer couldn’t open the account service.',
-                          textAlign: TextAlign.center,
-                        ),
-                        PdButton.text(
-                          label: 'Try again',
-                          onPressed: () => setState(() => _opening = _open()),
-                        ),
-                      ],
-                    ),
-                  )
-                : const PaperDrawerMark(size: Pd.s10),
+  Widget build(BuildContext context) => AppOpening(
+    opening: _opening,
+    appBuilder: _SharedApp.new,
+    errorBuilder: (error) => MaterialApp(
+      theme: pdTheme(),
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(Pd.margin),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: Pd.s4,
+              children: [
+                Text(
+                  error is FormatException
+                      ? error.message
+                      : 'Paper Drawer couldn’t open the account service.',
+                  textAlign: TextAlign.center,
+                ),
+                PdButton.text(
+                  label: 'Try again',
+                  onPressed: () => setState(() => _opening = _open()),
+                ),
+              ],
+            ),
           ),
         ),
-      );
-    },
+      ),
+    ),
   );
 }
 

@@ -5,6 +5,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/icons.dart';
+import '../../core/widgets/paper.dart';
 import 'art/claim_art.dart';
 import 'art/keep_art.dart';
 import 'art/remember_art.dart';
@@ -94,7 +95,7 @@ class _IntroFlowState extends State<IntroFlow> {
   Widget build(BuildContext context) => ColoredBox(
     color: Pd.bg,
     child: CustomPaint(
-      painter: const _Grain(),
+      painter: const PaperGrain(),
       // Page swipes repaint above the grain, never the grain itself.
       child: RepaintBoundary(
         child: SafeArea(
@@ -328,20 +329,3 @@ class _QuietLink extends StatelessWidget {
   );
 }
 
-/// The mockups' `.grain`: a 1px dot every 4px at 3.5% white.
-class _Grain extends CustomPainter {
-  const _Grain();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final dot = Paint()..color = const Color(0x09FFFFFF);
-    for (double y = 2; y < size.height; y += 4) {
-      for (double x = 2; x < size.width; x += 4) {
-        canvas.drawCircle(Offset(x, y), 0.5, dot);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_Grain oldDelegate) => false;
-}

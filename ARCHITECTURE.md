@@ -32,6 +32,14 @@ build uses the on-device repositories and routes below.
 
 ## Folder layout
 
+Both entry points use `ui/features/intro/app_opening.dart` to play the opening
+artwork while their startup future runs. On iOS, the first Flutter frame aligns
+with the centered mark in the system launch storyboard. The reveal plays once
+per cold launch, holds its final frame during slow startup, and fades into
+the resolved route. Reduced Motion shows the static artwork while loading and
+opens the route as soon as it is ready. Startup errors take precedence over the
+animation, and retrying does not replay it.
+
 ```
 lib/
   main.dart                     bootstrap: open db, repositories, services → runApp
@@ -146,12 +154,12 @@ Entry point for adding: `AddFlow.start(context)` (opens the Add sheet or the lim
 
 - `icons.dart`: `enum PdGlyph { vault, claims, settings, scan }`; `PdIcon(PdGlyph, {double size = 24, Color color = Pd.text})`; `PaperDrawerMark({double size = 28})`.
 - `brand_bar.dart`: `PdBrandBar({Widget? trailing, VoidCallback? onMarkTap})`: the iOS top bar with `PaperDrawerMark(size: 21)` + "PaperDrawer" wordmark (`PdType.wordmark`), adds the top safe-area inset, 44 tall, screen-margin sides; with `onMarkTap` it is a button (`ValueKey('brand-mark')`), otherwise a header. `PdBrandAction({required String label, required VoidCallback? onPressed, IconData? icon})`: compact lime trailing action (44 tall, radius-sm, 18pt icon, 15/600 label, lime-pressed on press).
-- `button.dart` provides `PdButton.primary`, `.secondary`, `.destructive`, `.onPaper` and `.text`. Each takes `label`, `onPressed`, `icon`, `expand`, `busy` and `key`. Primary uses lime, body-strong type and a 52-point minimum height. Secondary, destructive and on-paper buttons use uppercase mono labels. Destructive uses a signal outline and label. Text uses lime body-strong type. All have a 48-point minimum tap target.
+- `button.dart` provides `PdButton.primary`, `.secondary`, `.destructive`, `.onPaper` and `.text`. Each takes `label`, `onPressed`, `icon`, `expand`, `busy` and `key`. Primary uses lime, body-strong type and a 52-point minimum height. Secondary, destructive and on-paper buttons use uppercase mono labels. Destructive uses a signal outline and label. Text uses lime body-strong type and supports `monospaced: true` for uppercase mono labels. All have a 48-point minimum tap target.
 - `chips.dart`: `PdFilterChip({label, int? count, selected, onTap})`, `PdChoiceChip({label, selected, onTap, bool onPaper = true})`, `PdChipRow({children})` (horizontal scroll, screen-margin edge padding).
 - `filter_tabs.dart`: `PdFilterTabs({required List<PdFilterTab> children})` is a horizontally scrolling row of underlined filters used in Vault and Claims. Each filter supplies its label, count, selected state and tap action.
 - `stamp.dart`: `PdStamp(StampKind kind, {double angleDegrees = -12, bool land = false, VoidCallback? onLanded, String? compactLabel})` — excluded from semantics; land = 120ms 1.15→1 scale + `HapticFeedback.lightImpact()`; on-dark kinds (waiting/escalate/settled) are drawn upright with dark colours. `compactLabel` supplies the shorter wording and sizing used in claim rows.
 - `meter.dart`: `PdMeter({required CoverWindow window, required DateTime today, bool onPaper = false})` (header row, 8pt bar, footer) and `MeterBar({double fraction, Color fill, Color track, double height = 8})`.
-- `paper.dart`: `ReceiptPaper({child, padding})` (paper, zigzag 12pt torn bottom, shadow-paper), `DocumentPaper({child, padding})` (paper-2, radius-xs, 6pt double rule top), `DashedRule({color, thickness = 1})`, `SolidRule({color})`.
+- `paper.dart`: `ReceiptPaper({child, padding})` (paper, zigzag 12pt torn bottom, shadow-paper), `DocumentPaper({child, padding})` (paper-2, radius-xs, 6pt double rule top), `NotchedTicketPaper` (side notches and dashed stub perforation), `PaperGrain` (dot-grid painter), `DashedRule({color, thickness = 1})`, `SolidRule({color})`.
 - `item_card.dart`: `ItemCard({required ItemSummary summary, VoidCallback? onTap, bool landStamp = false, VoidCallback? onLanded})` → ReceiptCard for bills, DocumentCard otherwise; one Semantics button with `summary.semanticLabel`; lifts 2pt on press; large-text layout.
 - `countdown_ticket.dart`: `CountdownTicket({required ItemSummary summary, required CoverWindow window, required VoidCallback onTap, VoidCallback? onDismissed})` (Dismissible when onDismissed set).
 - `vault_ticket.dart`: `VaultTicket` displays a countdown and its associated action. A ticket without an `onTap` serves as a read-only deadline callout in Bill Detail.

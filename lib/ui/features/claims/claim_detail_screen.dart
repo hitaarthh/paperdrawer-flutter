@@ -206,9 +206,11 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
         actions: [
           if (claim.isOpen)
             Flexible(
+              flex: 2,
               child: PdButton.text(
                 key: const ValueKey('mark-claim-settled'),
                 label: 'Mark settled',
+                monospaced: true,
                 onPressed: _model.busy ? null : _markSettled,
               ),
             ),
@@ -243,7 +245,7 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
     final index = recommended ?? claim.step;
     final step = ladderFor(claim.type)[index];
     final message = _model.messageFor(claim, index);
-    final recipient = stepTitle(claim.type, index).toLowerCase();
+    final recipient = stepTitle(claim.type, index);
     final portal = step.url;
     final phone = step.phone;
     final next = _model.nextStepTitle(claim);
@@ -251,9 +253,7 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
       Semantics(
         header: true,
         child: Text(
-          recommended == null
-              ? 'Write to $recipient'
-              : 'Next step\nWrite to $recipient',
+          recommended == null ? 'Write to $recipient' : 'Next step\n$recipient',
           style: PdType.title2,
         ),
       ),

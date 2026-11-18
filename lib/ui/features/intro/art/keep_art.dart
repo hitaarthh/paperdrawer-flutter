@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/type.dart';
 import '../../../core/widgets/paper.dart';
+import '../../../core/widgets/stamp.dart';
 
 /// Intro 1 · Keep: a shop receipt filed on top of a policy schedule, with a
 /// FILED stamp. Drawn on the 390×360 intro art canvas; coordinates come
@@ -42,7 +43,7 @@ class KeepArt extends StatelessWidget {
           Positioned(
             left: 168,
             top: 214 + _dy,
-            child: _Tilted(degrees: -12, child: _FiledStamp()),
+            child: _Tilted(degrees: -12, child: PdFiledStamp()),
           ),
         ],
       ),
@@ -185,25 +186,3 @@ class _Receipt extends StatelessWidget {
   }
 }
 
-/// The FILED stamp. Not a `StampKind` status, so it is drawn here in the
-/// covered-green stamp ink over a translucent paper wash.
-class _FiledStamp extends StatelessWidget {
-  const _FiledStamp();
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: Pd.paper.withValues(alpha: 0.55),
-      border: Border.all(color: Pd.stampCovered, width: 2),
-      borderRadius: BorderRadius.circular(Pd.rXs),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Pd.s2, vertical: 3),
-      child: Text(
-        'FILED',
-        softWrap: false,
-        style: PdType.stamp.copyWith(color: Pd.stampCovered),
-      ),
-    ),
-  );
-}

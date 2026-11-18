@@ -10,6 +10,11 @@ from urllib.parse import urlsplit, urlunsplit
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--lan-host", help="Mac's private IPv4 address for a physical iPhone")
+parser.add_argument(
+    "--build-only",
+    action="store_true",
+    help="Build the iOS app instead of running it; extra flags go to flutter build ios",
+)
 options, flutter_args = parser.parse_known_args()
 
 root = Path(__file__).resolve().parents[1]
@@ -49,4 +54,5 @@ if options.lan_host:
 
 os.chdir(root)
 defines = [f"--dart-define={key}={value}" for key, value in settings.items()]
-os.execvp("flutter", ["flutter", "run", *defines, *flutter_args])
+command = ["build", "ios"] if options.build_only else ["run"]
+os.execvp("flutter", ["flutter", *command, *defines, *flutter_args])

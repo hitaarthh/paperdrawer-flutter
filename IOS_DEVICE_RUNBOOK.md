@@ -234,6 +234,8 @@ xcrun devicectl device info processes --device "$PAPERDRAWER_IPHONE_ID" | rg 'Ru
 
 The `--no-pub` commands use the dependencies already installed in the build
 copy. Run `flutter pub get` before them if you are starting from a fresh copy.
+Xcode built the tested snapshot in profile mode. The device commands confirmed
+that the updated app installed and its process was running on the iPhone.
 On-device Camera, Reading, Review, and Just Added belong to the device-only
 build. In the shared-vault build, **Scan or add** opens the web flow for adding
 records to the same Supabase vault.

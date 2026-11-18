@@ -21,6 +21,7 @@ import 'data/services/today.dart';
 import 'ui/core/theme/tokens.dart';
 import 'ui/core/widgets/icons.dart';
 import 'ui/features/account/shared_app.dart';
+import 'ui/features/intro/app_opening.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,28 +107,21 @@ class _BootstrapState extends State<_Bootstrap> {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder(
-    future: _opening,
-    builder: (context, snapshot) {
-      final opened = snapshot.data;
-      if (opened != null) {
-        return PaperDrawerApp(
-          deps: opened.deps,
-          initialLocation: opened.launchLocation,
-        );
-      }
-      return Directionality(
-        textDirection: TextDirection.ltr,
-        child: ColoredBox(
-          color: Pd.bg,
-          child: Center(
-            child: snapshot.hasError
-                ? _OpenError(onRetry: () => setState(() => _opening = _open()))
-                : const PaperDrawerMark(size: 40),
-          ),
+  Widget build(BuildContext context) => AppOpening(
+    opening: _opening,
+    appBuilder: (opened) => PaperDrawerApp(
+      deps: opened.deps,
+      initialLocation: opened.launchLocation,
+    ),
+    errorBuilder: (_) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: ColoredBox(
+        color: Pd.bg,
+        child: Center(
+          child: _OpenError(onRetry: () => setState(() => _opening = _open())),
         ),
-      );
-    },
+      ),
+    ),
   );
 }
 
