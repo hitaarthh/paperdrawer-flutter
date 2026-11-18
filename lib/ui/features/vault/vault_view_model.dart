@@ -53,8 +53,7 @@ class VaultViewModel extends ChangeNotifier {
   }
 
   /// Tab counts follow the search, so they always match the list.
-  int count(VaultFilter filter) =>
-      _searched.where(filter.matches).length;
+  int count(VaultFilter filter) => _searched.where(filter.matches).length;
 
   List<ItemSummary> get visible {
     final items = _searched.where(_filter.matches).toList();

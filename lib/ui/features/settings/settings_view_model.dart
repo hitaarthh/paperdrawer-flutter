@@ -9,6 +9,7 @@ import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/drawer_actions.dart';
 import '../../../data/services/exporter.dart';
 import '../../../data/services/reminder_scheduler.dart';
+import '../reminders/reminder_permission.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   SettingsViewModel(
@@ -41,13 +42,12 @@ class SettingsViewModel extends ChangeNotifier {
   int get archived => _items.archived.length;
 
   Future<bool> setReminders(bool value) => _run(() async {
-    if (value &&
-        !await (_reminders?.requestPermission() ?? Future.value(false))) {
+    if (!value) return _settings.setRemindersOn(false);
+    if (!await turnOnReminders(_reminders, _settings)) {
       throw const FormatException(
         'Allow notifications for PaperDrawer in your device settings to turn on reminders.',
       );
     }
-    await _settings.setRemindersOn(value);
   }, 'Reminders couldn’t be updated. Try again.');
 
   Future<bool> setLeadDays(int days) => _run(

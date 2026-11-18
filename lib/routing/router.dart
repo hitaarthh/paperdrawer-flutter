@@ -10,6 +10,7 @@ import '../ui/features/claims/claim_detail_screen.dart';
 import '../ui/features/claims/claims_screen.dart';
 import '../ui/features/claims/start_claim_screen.dart';
 import '../ui/features/item/item_detail_screen.dart';
+import '../ui/features/reminders/reminders_screen.dart';
 import '../ui/features/settings/archive_screen.dart';
 import '../ui/features/settings/settings_screen.dart';
 import '../ui/features/shell/app_shell.dart';
@@ -24,6 +25,7 @@ abstract final class Routes {
   static const camera = '/add/camera';
   static const reading = '/add/reading';
   static const details = '/add/details';
+  static const reminders = '/reminders';
 
   static String item(String id) => '/vault/item/$id';
   static String startClaim(String itemId) => '/vault/item/$itemId/claim';
@@ -129,6 +131,16 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
               ? state.extra! as AddDetailsArgs
               : const AddDetailsArgs(),
         ),
+      ),
+    ),
+    // The one-time "Turn on reminders" offer, pushed after a first save.
+    GoRoute(
+      path: Routes.reminders,
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => CupertinoPage(
+        key: state.pageKey,
+        fullscreenDialog: true,
+        child: const RemindersScreen(),
       ),
     ),
     GoRoute(

@@ -3,6 +3,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/repositories/item_repository.dart';
+import '../../../data/repositories/settings_repository.dart';
+import '../../../data/services/reminder_scheduler.dart';
+import '../../../data/services/today.dart';
 import '../../../domain/bill_reader.dart';
 import '../../../domain/formats.dart';
 import '../../../routing/router.dart';
@@ -14,6 +17,7 @@ import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/text_field.dart';
+import '../reminders/reminder_permission.dart';
 import 'add_details_args.dart';
 import 'item_form_sections.dart';
 import 'item_form_view_model.dart';
@@ -95,6 +99,18 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     );
     if (!mounted || saved == null) return;
     final creating = widget.id == null;
+    if (creating &&
+        shouldOfferReminders(
+          scheduler: context.read<ReminderScheduler?>(),
+          settings: context.read<SettingsRepository>(),
+          saved: saved,
+          today: context.read<Today>().value,
+        )) {
+      // Offer reminders once, over this form; closing it closes both, and
+      // the "Saved" snackbar (with Undo) follows on the vault.
+      await context.push<void>(Routes.reminders);
+      if (!mounted) return;
+    }
     final appContext = rootNavigatorKey.currentContext;
     showPdSnackbar(
       context,
