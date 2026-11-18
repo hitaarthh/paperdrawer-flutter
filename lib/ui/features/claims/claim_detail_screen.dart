@@ -198,7 +198,8 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
       return PdPushedScaffold(
         backLabel: 'CLAIMS',
         backStyle: PdType.monoButton.copyWith(color: Pd.text),
-        kicker: '${claim.type.caps} · ${claim.itemLabel.toUpperCase()} · '
+        kicker:
+            '${claim.type.caps} · ${claim.itemLabel.toUpperCase()} · '
             'OPENED ${longDate(claim.openedOn).toUpperCase()}',
         title: claim.title,
         titleStyle: PdType.trackerTitle,
@@ -250,7 +251,9 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
       Semantics(
         header: true,
         child: Text(
-          recommended == null ? 'Write to $recipient' : 'Next step\nWrite to $recipient',
+          recommended == null
+              ? 'Write to $recipient'
+              : 'Next step\nWrite to $recipient',
           style: PdType.title2,
         ),
       ),
@@ -261,7 +264,9 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
         key: const ValueKey('open-claim-mail'),
         label: 'Open in mail app',
         expand: true,
-        onPressed: _model.busy ? null : () => _run(() => _model.openMail(message)),
+        onPressed: _model.busy
+            ? null
+            : () => _run(() => _model.openMail(message)),
       ),
       const SizedBox(height: Pd.s2),
       Row(
@@ -271,19 +276,26 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
             child: PdButton.secondary(
               key: const ValueKey('copy-claim-message'),
               label: 'Copy email',
-              onPressed: _model.busy ? null : () => _run(
-                () => _model.copy(message), success: 'Email copied',
-              ),
+              onPressed: _model.busy
+                  ? null
+                  : () => _run(
+                      () => _model.copy(message),
+                      success: 'Email copied',
+                    ),
             ),
           ),
           Expanded(
             child: PdButton.secondary(
               key: const ValueKey('claim-log-sent'),
               label: recommended == null && _model.hasLoggedSent(claim)
-                  ? 'Log another send' : 'I’ve sent it',
-              onPressed: _model.busy ? null : () => _run(
-                () => _model.logSent(index), success: 'Sent message logged',
-              ),
+                  ? 'Log another send'
+                  : 'I’ve sent it',
+              onPressed: _model.busy
+                  ? null
+                  : () => _run(
+                      () => _model.logSent(index),
+                      success: 'Sent message logged',
+                    ),
             ),
           ),
         ],
@@ -296,12 +308,14 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
       Wrap(
         spacing: Pd.s2,
         children: [
-          Builder(builder: (anchor) => PdButton.text(
-            key: const ValueKey('share-claim-message'),
-            label: 'Share draft',
-            icon: const Icon(CupertinoIcons.share, size: Pd.iconSm),
-            onPressed: _model.busy ? null : () => _share(anchor, message),
-          )),
+          Builder(
+            builder: (anchor) => PdButton.text(
+              key: const ValueKey('share-claim-message'),
+              label: 'Share draft',
+              icon: const Icon(CupertinoIcons.share, size: Pd.iconSm),
+              onPressed: _model.busy ? null : () => _share(anchor, message),
+            ),
+          ),
           if (next != null && _model.canAdvance(claim))
             PdButton.text(
               key: const ValueKey('advance-claim'),

@@ -19,7 +19,8 @@ class ClaimMessage {
   // The ladder describes a role. The user fills in the actual email address.
   Uri get mailto => Uri(
     scheme: 'mailto',
-    query: 'subject=${Uri.encodeComponent(subject)}'
+    query:
+        'subject=${Uri.encodeComponent(subject)}'
         '&body=${Uri.encodeComponent(body)}',
   );
 }
@@ -44,7 +45,9 @@ ClaimMessage draftMessage({
   final reference = claim.reference.trim();
   final previousEvents = step > claim.step
       ? claim.events
-      : claim.events.skipWhile((event) => event.kind != ClaimEventKind.step).skip(1);
+      : claim.events
+            .skipWhile((event) => event.kind != ClaimEventKind.step)
+            .skip(1);
   final previousContact = previousEvents
       .takeWhile((event) => event.kind != ClaimEventKind.step)
       .where((event) => event.kind == ClaimEventKind.sent)
@@ -87,7 +90,12 @@ String _referenceLabel(ItemKind? kind) => switch (kind) {
   _ => 'Document reference',
 };
 
-String _followUp(Claim claim, int step, DateTime today, ClaimEvent? previousContact) {
+String _followUp(
+  Claim claim,
+  int step,
+  DateTime today,
+  ClaimEvent? previousContact,
+) {
   final previousStep = stepTitle(claim.type, step - 1);
   final days = daysBetween(previousContact?.on ?? claim.openedOn, today);
   final timing = days > 0

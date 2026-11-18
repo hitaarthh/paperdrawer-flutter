@@ -171,7 +171,7 @@ void main() {
       _setPhoneSize(tester, 1.3);
       addTearDown(session.dispose);
       await tester.pumpWidget(
-        ChangeNotifierProvider.value(
+        ChangeNotifierProvider<SharedSession>.value(
           value: session,
           child: MaterialApp(
             theme: pdTheme(),
@@ -183,7 +183,7 @@ void main() {
 
       expect(find.text('1 OPEN · 0 SETTLED · 1 NEEDS YOU'), findsOneWidget);
       expect(find.text('NEEDS YOU · DOCUMENTS ASKED'), findsOneWidget);
-      expect(find.text('STEP 1 OF 4 · INSURER OR TPA'), findsOneWidget);
+      expect(find.text('STEP 1 OF 4 · INSURER CLAIMS TEAM'), findsOneWidget);
       expect(find.text('DOCS ASKED'), findsOneWidget);
       expect(find.text('Next: Upload the discharge summary'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('claim-settled-filter')));

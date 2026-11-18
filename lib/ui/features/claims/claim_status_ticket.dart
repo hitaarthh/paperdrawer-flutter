@@ -6,7 +6,11 @@ import '../../../domain/models/claim.dart';
 import '../../core/widgets/vault_ticket.dart';
 
 class ClaimStatusTicket extends StatelessWidget {
-  const ClaimStatusTicket({required this.claim, required this.today, super.key});
+  const ClaimStatusTicket({
+    required this.claim,
+    required this.today,
+    super.key,
+  });
 
   final Claim claim;
   final DateTime today;
@@ -24,13 +28,17 @@ class ClaimStatusTicket extends StatelessWidget {
       _ => 'Waiting for a response',
     };
     final detail = switch ((shouldEscalate, isFinal)) {
-      (true, _) => 'Waiting since ${shortDate(claim.waitingSince)}. '
-          'Your draft for the next step is ready below.',
-      (_, true) => 'Use the draft below or log an update as your claim progresses.',
-      _ => 'If you’re still waiting on ${shortDate(claim.nudgeOn)}, '
-          'your next step is ${stepTitle(claim.type, claim.step + 1)}.',
+      (true, _) =>
+        'Waiting since ${shortDate(claim.waitingSince)}. '
+            'Your draft for the next step is ready below.',
+      (_, true) =>
+        'Use the draft below or log an update as your claim progresses.',
+      _ =>
+        'If you’re still waiting on ${shortDate(claim.nudgeOn)}, '
+            'your next step is ${stepTitle(claim.type, claim.step + 1)}.',
     };
-    final step = 'Step ${claim.step + 1} of ${steps.length}. '
+    final step =
+        'Step ${claim.step + 1} of ${steps.length}. '
         '${shouldEscalate ? 'No reply from ' : ''}$current';
 
     return VaultTicket(

@@ -232,7 +232,7 @@ Future<void> _launch(
       providers: [
         ChangeNotifierProvider<ItemRepository>.value(value: items),
         Provider<CaptureService>.value(value: capture ?? _Capture()),
-        Provider<Today>.value(value: today),
+        ChangeNotifierProvider<Today>.value(value: today),
         Provider<TextRecognizer>.value(
           value: FakeTextRecognizer(const ['INV 142-A']),
         ),

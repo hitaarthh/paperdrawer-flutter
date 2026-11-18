@@ -93,9 +93,7 @@ class ClaimListEntry {
     };
     final steps = ladderFor(claim.type);
     final current = stepTitle(claim.type, claim.step);
-    final nextStep = claim.step + 1 < steps.length
-        ? stepTitle(claim.type, claim.step + 1)
-        : null;
+    final recommended = recommendedStepFor(claim, today);
     return ClaimListEntry._(
       id: claim.id,
       title: claim.title,
@@ -103,15 +101,15 @@ class ClaimListEntry {
       step: _stepLabel(claim.step, steps.length, current),
       next: switch (status) {
         ClaimListStatus.settled => 'Settled on ${shortDate(claim.settledOn!)}',
-        ClaimListStatus.noReply when nextStep != null =>
-          'Next: ${steps[claim.step + 1].guidance}',
+        ClaimListStatus.noReply when recommended != null =>
+          'Next: ${steps[recommended].guidance}',
         _ when claim.nudgeDays <= 0 || status.needsAction =>
           'Next: Follow up with ${current.toLowerCase()}',
         _ => 'Follow up on ${shortDate(claim.nudgeOn)}',
       },
       status: status,
       day: claim.day(today),
-      waitDays: daysBetween(claim.waitingSince, today).clamp(0, 1 << 30),
+      waitDays: claim.waitingDays(today),
       orderDate: claim.settledOn ?? claim.waitingSince,
       otherSide: claim.step == 0 ? claim.type.otherSide : current.toUpperCase(),
     );
@@ -128,6 +126,8 @@ class ClaimListEntry {
     final type = ClaimType.values.asNameMap()[claim.type];
     final steps = claim.ladderTitles;
     final step = claim.step.clamp(0, steps.length - 1);
+    final current = steps[step];
+    final following = step + 1 < steps.length ? steps[step + 1] : null;
     final next = claim.nextStep?.$1;
     return ClaimListEntry._(
       id: claim.id,
@@ -136,21 +136,25 @@ class ClaimListEntry {
         type?.caps ?? 'OTHER CLAIM',
         if (claim.itemLabel.isNotEmpty) claim.itemLabel,
       ].join(' · '),
-      step: _stepLabel(step, steps.length, steps[step]),
+      step: _stepLabel(step, steps.length, current),
       next: switch (status) {
         ClaimListStatus.settled when claim.settled != null =>
           'Settled on ${shortDate(claim.settled!)}',
         ClaimListStatus.settled => 'Settled',
         _ when next != null => 'Next: $next',
         ClaimListStatus.documents => 'Next: Send the requested documents',
-        ClaimListStatus.noReply => 'Next: Review your follow-up options',
+        ClaimListStatus.noReply when following != null => 'Next: $following',
+        ClaimListStatus.noReply =>
+          'Next: Follow up with ${current.toLowerCase()}',
         ClaimListStatus.waiting => 'Waiting for a reply',
       },
       status: status,
       day: claim.day(today),
       waitDays: daysBetween(lastReply, today).clamp(0, 1 << 30),
       orderDate: claim.settled ?? lastReply,
-      otherSide: claim.step == 0 ? (type?.otherSide ?? '') : '',
+      otherSide: step == 0 && type != null
+          ? type.otherSide
+          : current.toUpperCase(),
       hasDraft: claim.draft != null,
     );
   }

@@ -37,7 +37,10 @@ class ClaimLadder extends StatelessWidget {
                 ? 'Waiting since ${shortDate(claim.waitingSince)}.'
                 : step.guidance,
             state: switch (index) {
-              _ when index < claim.step || (index == claim.step && !claim.isOpen) => _RungState.done,
+              _
+                  when index < claim.step ||
+                      (index == claim.step && !claim.isOpen) =>
+                _RungState.done,
               _ when index == claim.step => _RungState.current,
               _ when index == recommended => _RungState.recommended,
               _ => _RungState.upcoming,
@@ -79,7 +82,10 @@ class _LadderRung extends StatelessWidget {
       _RungState.upcoming => null,
     };
     final status = switch (state) {
-      _RungState.current => noReplyDays == null ? 'YOU ARE HERE' : 'NO REPLY · ${daysCaps(noReplyDays!)}',
+      _RungState.current =>
+        noReplyDays == null
+            ? 'YOU ARE HERE'
+            : 'NO REPLY · ${daysCaps(noReplyDays!)}',
       _RungState.recommended => 'RECOMMENDED NEXT',
       _ => null,
     };
@@ -102,10 +108,16 @@ class _LadderRung extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: color,
                       shape: BoxShape.circle,
-                      border: color == null ? Border.all(color: Pd.line, width: 2) : null,
+                      border: color == null
+                          ? Border.all(color: Pd.line, width: 2)
+                          : null,
                     ),
                     child: state == _RungState.done
-                        ? const Icon(LucideIcons.check, color: Pd.onLime, size: Pd.iconSm)
+                        ? const Icon(
+                            LucideIcons.check,
+                            color: Pd.onLime,
+                            size: Pd.iconSm,
+                          )
                         : FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
@@ -123,9 +135,15 @@ class _LadderRung extends StatelessWidget {
                     spacing: Pd.s1,
                     children: [
                       if (status != null)
-                        Text(status, style: PdType.label.copyWith(color: color)),
+                        Text(
+                          status,
+                          style: PdType.label.copyWith(color: color),
+                        ),
                       Text(title, style: PdType.bodyStrong),
-                      Text(guidance, style: PdType.footnote.copyWith(color: Pd.textMuted)),
+                      Text(
+                        guidance,
+                        style: PdType.footnote.copyWith(color: Pd.textMuted),
+                      ),
                     ],
                   ),
                 ),

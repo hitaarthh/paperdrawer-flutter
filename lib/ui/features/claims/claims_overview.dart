@@ -47,6 +47,7 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
     final visible = data?.visible(_filter);
     final featured = data?.featured;
     final scroll = CustomScrollView(
+      key: const ValueKey('claims-scroll'),
       controller: widget.controller,
       physics: widget.onRefresh == null
           ? null
@@ -172,9 +173,17 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
                 Expanded(
                   child: refresh == null
                       ? scroll
-                      : RefreshIndicator.adaptive(
-                          onRefresh: refresh,
-                          child: scroll,
+                      : Semantics(
+                          container: true,
+                          customSemanticsActions: {
+                            const CustomSemanticsAction(
+                              label: 'Refresh from Paper Drawer web',
+                            ): refresh,
+                          },
+                          child: RefreshIndicator.adaptive(
+                            onRefresh: refresh,
+                            child: scroll,
+                          ),
                         ),
                 ),
               ],

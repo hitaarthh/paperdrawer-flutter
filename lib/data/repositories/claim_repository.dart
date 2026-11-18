@@ -106,18 +106,27 @@ class ClaimRepository extends ChangeNotifier {
     return id;
   }).then((id) => byId(id)!);
 
-  Future<void> logSent(String id, DateTime today, {int? step}) => _write((txn) async {
-    final claim = _getOpen(id);
-    final target = step ?? claim.step;
-    if (target != claim.step) {
-      if (target != recommendedStepFor(claim, today)) {
-        throw const FormatException('The current step changed. Review your draft and try again.');
-      }
-      await _advance(txn, claim, today);
-    }
-    final recipient = ladderFor(claim.type)[target].recipient;
-    await _event(txn, id, today, ClaimEventKind.sent, 'Sent the message to $recipient');
-  });
+  Future<void> logSent(String id, DateTime today, {int? step}) =>
+      _write((txn) async {
+        final claim = _getOpen(id);
+        final target = step ?? claim.step;
+        if (target != claim.step) {
+          if (target != recommendedStepFor(claim, today)) {
+            throw const FormatException(
+              'The current step changed. Review your draft and try again.',
+            );
+          }
+          await _advance(txn, claim, today);
+        }
+        final recipient = ladderFor(claim.type)[target].recipient;
+        await _event(
+          txn,
+          id,
+          today,
+          ClaimEventKind.sent,
+          'Sent the message to $recipient',
+        );
+      });
 
   Future<void> logReply(String id, DateTime today, {String note = ''}) =>
       _write((txn) async {

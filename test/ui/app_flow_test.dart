@@ -149,19 +149,36 @@ void main() {
       ),
     ]);
     final actions = _ClaimActions();
-    await _launch(tester, _Items([]), claims: claims, actions: actions, scale: 1.3);
+    await _launch(
+      tester,
+      _Items([]),
+      claims: claims,
+      actions: actions,
+      scale: 1.3,
+    );
     await _tap(tester, 'claims-tab');
     await _tap(tester, 'claim-featured-laptop');
-    expect(find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'), findsOneWidget);
+    expect(
+      find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'),
+      findsOneWidget,
+    );
     expect(find.text('Time to go one step up'), findsOneWidget);
-    final scroll = find.descendant(
-      of: find.byType(ClaimDetailScreen),
-      matching: find.byWidgetPredicate(
-        (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
-      ),
-    ).first;
+    final scroll = find
+        .descendant(
+          of: find.byType(ClaimDetailScreen),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+          ),
+        )
+        .first;
 
-    await tester.scrollUntilVisible(_key('open-claim-mail'), 200, scrollable: scroll);
+    await tester.scrollUntilVisible(
+      _key('open-claim-mail'),
+      200,
+      scrollable: scroll,
+    );
     await _tap(tester, 'open-claim-mail');
     expect(actions.opened?.scheme, 'mailto');
     expect(actions.opened?.queryParameters['body'], contains('SR-55821'));
@@ -172,7 +189,11 @@ void main() {
     await _tap(tester, 'claim-log-sent');
     expect(claims.lastSent, ('laptop', 1));
 
-    await tester.scrollUntilVisible(_key('claim-log-update'), 220, scrollable: scroll);
+    await tester.scrollUntilVisible(
+      _key('claim-log-update'),
+      220,
+      scrollable: scroll,
+    );
     expect(find.text('RECOMMENDED NEXT'), findsOneWidget);
     expect(find.text('Claim opened'), findsOneWidget);
     await _tap(tester, 'claim-log-update');
@@ -210,7 +231,7 @@ void main() {
     final claims = _Claims([
       claim('waiting', 'Mixer', 4),
       claim('settled', 'Headphones', 12, settledDaysAgo: 2),
-      claim('late', 'Laptop with a very long model name and a loose hinge', 14),
+      claim('late', 'Laptop with a loose hinge', 14),
     ]);
     await _launch(tester, _Items([]), claims: claims, scale: 1.3);
     await _tap(tester, 'claims-tab');

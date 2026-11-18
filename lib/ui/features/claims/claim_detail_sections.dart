@@ -19,7 +19,10 @@ class ClaimDraftCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('DRAFTED FOR YOU', style: PdType.label.copyWith(color: Pd.inkMuted)),
+        Text(
+          'DRAFTED FOR YOU',
+          style: PdType.label.copyWith(color: Pd.inkMuted),
+        ),
         const SizedBox(height: Pd.s3),
         _MessageProperty(label: 'TO', value: message.to),
         _MessageProperty(label: 'SUBJECT', value: message.subject),
@@ -43,15 +46,20 @@ class _MessageProperty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text.rich(
-    TextSpan(children: [
-      TextSpan(text: '$label  ', style: PdType.label.copyWith(color: Pd.inkMuted)),
-      TextSpan(
-        text: value,
-        style: label == 'TO'
-            ? TextStyle(color: Pd.dueInk, backgroundColor: Pd.signalTint)
-            : null,
-      ),
-    ]),
+    TextSpan(
+      children: [
+        TextSpan(
+          text: '$label  ',
+          style: PdType.label.copyWith(color: Pd.inkMuted),
+        ),
+        TextSpan(
+          text: value,
+          style: label == 'TO'
+              ? TextStyle(color: Pd.dueInk, backgroundColor: Pd.signalTint)
+              : null,
+        ),
+      ],
+    ),
     style: PdType.data.copyWith(color: Pd.ink2),
   );
 }
@@ -87,7 +95,11 @@ class ClaimOutcome extends StatelessWidget {
 }
 
 class ClaimActivityLog extends StatelessWidget {
-  const ClaimActivityLog({required this.events, required this.onUpdate, super.key});
+  const ClaimActivityLog({
+    required this.events,
+    required this.onUpdate,
+    super.key,
+  });
 
   final List<ClaimEvent> events;
   final VoidCallback? onUpdate;
@@ -101,7 +113,10 @@ class ClaimActivityLog extends StatelessWidget {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text('CLAIM LOG', style: PdType.label.copyWith(color: Pd.textMuted)),
+              child: Text(
+                'CLAIM LOG',
+                style: PdType.label.copyWith(color: Pd.textMuted),
+              ),
             ),
           ),
           Flexible(
@@ -140,8 +155,9 @@ class _ClaimLogEntry extends StatelessWidget {
       ClaimEventKind.reopened => ('CLAIM', 'Claim reopened'),
     };
     final detail = switch (event.kind) {
-      ClaimEventKind.reply || ClaimEventKind.note || ClaimEventKind.settled
-          when event.text != title => event.text,
+      ClaimEventKind.reply ||
+      ClaimEventKind.note ||
+      ClaimEventKind.settled when event.text != title => event.text,
       _ => null,
     };
     return Column(
@@ -164,12 +180,20 @@ class _ClaimLogEntry extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: PdType.label.copyWith(
-                      color: event.kind == ClaimEventKind.step ? Pd.lime : Pd.textMuted,
-                    )),
+                    Text(
+                      label,
+                      style: PdType.label.copyWith(
+                        color: event.kind == ClaimEventKind.step
+                            ? Pd.lime
+                            : Pd.textMuted,
+                      ),
+                    ),
                     Text(title, style: PdType.bodyStrong),
                     if (detail != null)
-                      Text(detail, style: PdType.footnote.copyWith(color: Pd.textMuted)),
+                      Text(
+                        detail,
+                        style: PdType.footnote.copyWith(color: Pd.textMuted),
+                      ),
                   ],
                 ),
               ),

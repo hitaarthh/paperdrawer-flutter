@@ -161,7 +161,8 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                               Flexible(
                                 child: Text(
                                   widget.backLabel,
-                                  style: widget.backStyle ??
+                                  style:
+                                      widget.backStyle ??
                                       PdType.navBack.copyWith(color: Pd.lime),
                                   overflow: TextOverflow.ellipsis,
                                 ),

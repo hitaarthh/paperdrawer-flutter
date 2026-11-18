@@ -41,10 +41,12 @@ How the components build the app's main screens. The web designs on paperdrawer.
 2. **Needs You:** when a claim needs attention, link to the oldest such claim with a lime ticket and the reason it needs attention.
 3. **Filters:** underlined Open, Settled and All tabs with live counts. List claims that need attention first, then other open claims by oldest reply. List settled claims newest first.
 4. **Claim rows on `surface-2`:** display the claim day beside a dashed rule, the claim type and item, title, current step, next action and a status stamp. Shared claims can also show DOCS ASKED.
-5. **Claim detail:**
-   - A ClaimLadder with the current step marked.
-   - The drafted message in a `paper-2` document, with Copy and Share buttons (the user sends it themselves).
-   - A log of what happened, with dates in mono.
+5. **On-device claim tracker**
+   - Show the claim type, item, and opening date above the title, with Mark settled in the top bar.
+   - Show the wait in a notched ticket. When the reply window has passed, highlight the ticket in lime and preview the next step’s draft.
+   - Place the draft on `paper-2` above the mail, copy, and sent actions. The user supplies the recipient address and any supporting documents in their mail app.
+   - Follow the draft with the escalation ladder and the dated claim log. Log an update lets the user record a reply or note.
+   - For settled claims, show the outcome before the ladder and log.
 
 ## Settings (tab 3)
 

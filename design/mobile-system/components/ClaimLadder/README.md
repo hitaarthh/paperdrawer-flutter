@@ -3,14 +3,14 @@
 The escalation route for a claim, step by step, with where the user is now and what comes next.
 
 **Anatomy**
-- **Card:** `surface-2`, `radius-sm`, `space-5` padding.
-- **Header:** claim type and item, in `label`.
-- **Steps:** one per rung, joined by a 2pt `line` rail.
+- **Header** uses the claim type in `label`.
+- **Steps** are full-width rows separated by a `hairline` rule.
 - **Dots (28pt):**
   - Done: `settled` with a check.
   - Current: `signal` with the step number.
+  - Recommended next: `lime` with the step number.
   - Upcoming: `line` outline.
-- **Current step:** a "YOU ARE HERE · DAY 14" tag in `signal` `label`.
+- **Current step** uses a `signal` label with "YOU ARE HERE" or the number of days without a reply.
 - **Each step:** a title in `body-strong` and one line of guidance in `footnote`.
 
 **Ladders (India)**
