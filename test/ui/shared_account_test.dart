@@ -135,7 +135,10 @@ void main() {
       ..vault = const SharedVault(items: [], claims: []);
     await _launchVault(tester, session);
     expect(find.text('Add the last thing you bought.'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('scan-first-bill')));
+    final add = find.byKey(const ValueKey('scan-first-bill'));
+    await tester.ensureVisible(add);
+    await tester.pumpAndSettle();
+    await tester.tap(add);
     await tester.pumpAndSettle();
     expect(session.opened, '/add?type=bill');
     expect(tester.takeException(), isNull);
