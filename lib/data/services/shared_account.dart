@@ -7,11 +7,17 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SharedAccountConfig {
-  const SharedAccountConfig(this.api, this.publishableKey, this.web);
+  const SharedAccountConfig(
+    this.api,
+    this.publishableKey,
+    this.web, {
+    this.confirmationOrigin,
+  });
 
   final Uri api;
   final String publishableKey;
   final Uri web;
+  final Uri? confirmationOrigin;
 
   static const _url = String.fromEnvironment('SUPABASE_URL');
   static const _key = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
@@ -19,18 +25,28 @@ class SharedAccountConfig {
     'PAPERDRAWER_WEB_URL',
     defaultValue: 'https://paperdrawer.app',
   );
+  static const _confirm = String.fromEnvironment('PAPERDRAWER_CONFIRM_ORIGIN');
 
   static bool get requested => _url.isNotEmpty || _key.isNotEmpty;
 
   factory SharedAccountConfig.fromEnvironment() {
     final api = Uri.tryParse(_url);
     final web = Uri.tryParse(_web);
-    if (!_validOrigin(api) || !_validOrigin(web) || !_isPublicKey(_key)) {
+    final confirmation = _confirm.isEmpty ? web : Uri.tryParse(_confirm);
+    if (!_validOrigin(api) ||
+        !_validOrigin(web) ||
+        !_validOrigin(confirmation) ||
+        !_isPublicKey(_key)) {
       throw const FormatException(
         'Set the Supabase URL, publishable key and PaperDrawer web URL.',
       );
     }
-    return SharedAccountConfig(api!, _key, web!);
+    return SharedAccountConfig(
+      api!,
+      _key,
+      web!,
+      confirmationOrigin: confirmation,
+    );
   }
 
   static bool _validOrigin(Uri? uri) =>
@@ -38,9 +54,19 @@ class SharedAccountConfig {
       uri.host.isNotEmpty &&
       uri.userInfo.isEmpty &&
       (uri.scheme == 'https' ||
-          (!kReleaseMode &&
-              uri.scheme == 'http' &&
-              const {'localhost', '127.0.0.1', '::1'}.contains(uri.host)));
+          (kDebugMode && uri.scheme == 'http' && _localHost(uri.host)));
+
+  static bool _localHost(String host) {
+    if (host == 'localhost') return true;
+    final address = InternetAddress.tryParse(host);
+    if (address == null) return false;
+    if (address.isLoopback) return true;
+    final bytes = address.rawAddress;
+    return bytes.length == 4 &&
+        (bytes[0] == 10 ||
+            (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
+            (bytes[0] == 192 && bytes[1] == 168));
+  }
 
   static bool _isPublicKey(String key) {
     if (key.startsWith('sb_publishable_')) return true;
@@ -94,7 +120,9 @@ class SharedAccount {
     final response = await client.auth.signUp(
       email: email,
       password: password,
-      emailRedirectTo: config.web.resolve('/auth/confirm').toString(),
+      emailRedirectTo: (config.confirmationOrigin ?? config.web)
+          .resolve('/auth/confirm')
+          .toString(),
       data: {'name': name, 'timezone': ?timezone},
     );
     return response.session != null;

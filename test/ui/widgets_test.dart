@@ -128,7 +128,9 @@ void main() {
         card,
         120,
         scrollable: find.byWidgetPredicate(
-          (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+          (widget) =>
+              widget is Scrollable &&
+              widget.axisDirection == AxisDirection.down,
         ),
       );
       await tester.pumpAndSettle();

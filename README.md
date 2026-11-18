@@ -36,6 +36,18 @@ publishable configuration. Choose the iOS simulator when prompted:
 python3 tool/run_shared_local.py
 ```
 
+For a physical iPhone, pair it over USB, enable Developer Mode, and put the Mac
+and iPhone on the same Wi-Fi network. Pass the Mac’s Wi-Fi address so the iPhone
+can reach the Docker services:
+
+```sh
+flutter devices
+python3 tool/run_shared_local.py --lan-host "$(ipconfig getifaddr en0)" -d <iphone-id>
+```
+
+Allow local network access if the iPhone asks. Use the local demo account with
+the development server. Open local confirmation emails on the Mac.
+
 Sign in with your local web account or create one in the app. Local confirmation
 emails appear at `http://localhost:54324`. Confirm in the browser, then sign in
 on the phone. Create or edit bills and claims on the web, then refresh the
