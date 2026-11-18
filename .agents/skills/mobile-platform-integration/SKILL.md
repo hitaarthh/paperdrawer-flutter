@@ -12,11 +12,13 @@ description: How to wire Flutter plugins and native platform features into Paper
 - Android `applicationId`: `app.paperdrawer.mobile` (namespace
   `app.paperdrawer.paperdrawer`), with `minSdk = flutter.minSdkVersion`.
   Android is the next platform pass, so keep it compiling but put iOS first.
-- Existing native channel: `app.paperdrawer.mobile/storage` with the method
-  `excludeFromBackup`. New channels follow `app.paperdrawer.mobile/<area>`.
+- Native channels are named `app.paperdrawer.mobile/<area>`. The first
+  version used `app.paperdrawer.mobile/storage` with an `excludeFromBackup`
+  method. Check `ios/Runner/AppDelegate.swift` for what exists now.
   Native errors return a `FlutterError` with a snake_case `code` and a
   user-safe `message`.
-- Existing iOS usage strings cover `NSCameraUsageDescription` and
+- Check `ios/Runner/Info.plist` for the usage strings that already exist. The
+  first version had `NSCameraUsageDescription` and
   `NSPhotoLibraryUsageDescription`.
 
 ## Rules
@@ -42,29 +44,31 @@ description: How to wire Flutter plugins and native platform features into Paper
 
 ## Feature notes
 
-- **Camera and photos** (`image_picker`, `camera`): `image_picker` is already
-  used in `EditRecordPage`. Treat a `null` result as a cancel. Camera capture
+- **Camera and photos** (`image_picker`, `camera`): Prefer `image_picker` for
+  simple capture. Treat a `null` result as a cancel. Camera capture
   needs a physical device, so say so when you report your verification. Reach
   for `camera` only when you need a custom capture UI, such as document edge
   guides.
-- **Files** (`file_selector`): restrict the picker to the
-  `attachmentExtensions` types. Re-validate the size and extension in the
-  repository anyway.
+- **Files** (`file_selector`): restrict the picker to photos and PDFs.
+  Re-validate the size and extension in the repository anyway.
 - **Reminders** (`flutter_local_notifications`, `timezone`,
   `flutter_timezone`): call `tz.initializeTimeZones()`, set the local location
   from `FlutterTimezone.getLocalTimezone()`, and schedule with
-  `zonedSchedule`. A deadline is a civil date, so schedule it at a fixed local
+  `zonedSchedule`. Cover-window ends and renewals are civil dates, so schedule it at a fixed local
   time, such as 9:00 on the day or N days before. Derive notification IDs
-  deterministically from the record ID, so that editing or archiving a record
-  can cancel or replace its reminder. Request notification permission when the
+  deterministically from the item or claim ID, so that editing, archiving, or
+  settling it can cancel or replace its reminder. Claim follow-ups use
+  `LadderStep.waitDays`. Request notification permission when the
   user first turns a reminder on. On Android, declare `POST_NOTIFICATIONS`
   (API 33+) and decide whether exact alarms are needed. The default answer is
   no, and inexact delivery is fine.
 - **Share and export** (`share_plus`, `archive`): on iPad, pass
   `sharePositionOrigin` from the button's render box, or the share sheet
   crashes. Delete the temporary export after sharing.
-- **Opening originals** (`open_filex`, `url_launcher`): check the result type
-  and show a SnackBar on failure.
+- **Opening originals and ladder links** (`open_filex`, `url_launcher`):
+  `LadderStep.phone` and `url` open with `tel:` or `https:` only after the user
+  taps. Check the result and show a message on failure. The app never sends
+  anything for the user.
 - **Version display** (`package_info_plus`): show it in Settings, read once.
 
 ## Verification

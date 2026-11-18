@@ -1,6 +1,6 @@
 ---
 name: mobile-verify
-description: Verification routine for the PaperDrawer Flutter app, covering format, analyze, and test runs, iOS and Android builds, launching on the iOS simulator, light and dark screenshots, and an honest final report. Use before saying any PaperDrawer change is done, when asked to run or check the app, or after resolving merge conflicts or upgrading dependencies.
+description: Verification routine for the PaperDrawer Flutter app, covering format, analyze, and test runs, iOS and Android builds, launching on the iOS simulator, screenshots, and an honest final report. Use before saying any PaperDrawer change is done, when asked to run or check the app, or after resolving merge conflicts or upgrading dependencies.
 ---
 
 # Verifying a PaperDrawer change
@@ -39,9 +39,9 @@ xcrun simctl boot "iPhone 16" 2>/dev/null; open -a Simulator
 flutter run -d "iPhone 16"
 ```
 
-- Switch the appearance with
-  `xcrun simctl ui booted appearance dark` (or `light`), then capture with
-  `xcrun simctl io booted screenshot <scratch>/screen-dark.png`.
+- Capture with `xcrun simctl io booted screenshot <scratch>/screen.png`. The
+  app is dark-only at launch. If a light theme exists later, switch with
+  `xcrun simctl ui booted appearance light` and check both.
 - Check the result against `design/` and against the
   `paperdrawer-design-system` skill. Look for overflow stripes, clipped text,
   and contrast problems.
@@ -59,7 +59,7 @@ End with a short report in this shape:
 
 ```
 Changed: <layers/files, one line each>
-Verified: format ✓  analyze ✓  test ✓ (N passed)  ios build ✓  simulator light/dark ✓
+Verified: format ✓  analyze ✓  test ✓ (N passed)  ios build ✓  simulator ✓
 Not verified: <e.g. camera capture — needs physical iPhone>
 Follow-ups: <only real ones>
 ```

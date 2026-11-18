@@ -15,35 +15,39 @@ style nits that the analyzer or formatter already catches.
 1. **Data loss or corruption.** Watch for a schema change without a working
    `onUpgrade` and a test. Watch for a dropped or recreated table, an absolute
    path persisted to the database, an attachment deleted before the database
-   commit, files orphaned when a write fails, and writes that skip
-   `VaultController._enqueue`.
+   commit, files orphaned when a write fails, and concurrent writes that are
+   not serialized or wrapped in a transaction.
 2. **Privacy.** Look for any network call, analytics or crash SDK, logging of
    user content, files written outside `paperdrawer/` (and so outside the
-   backup exclusion), or exports that leave plaintext behind.
+   backup exclusion), exports that leave plaintext behind, or any flow where
+   PaperDrawer contacts someone on the user's behalf.
 3. **Crashes and correctness.** Look for `context` or `setState` used after an
    `await` without checking `mounted`, `!` on a value that can be null from the
    database or a picker, a missing iPad `sharePositionOrigin`, a missing
    Info.plist usage string (which crashes iOS immediately), unhandled
-   permission denial, and time zone mistakes, such as treating a civil date as
-   an instant or scheduling reminders in UTC.
+   permission denial, and date mistakes: treating a civil date as an instant,
+   scheduling reminders in UTC, being off by one on whether a window's `end`
+   is inclusive, and month-end or leap-day maths. Also check for money handled
+   as `double`.
 4. **Lifecycle and leaks.** Check for undisposed controllers, focus nodes,
    streams, and listeners, `ChangeNotifier`s created inside `build`, and work
    started in `build`.
-5. **Performance.** Check for whole-tree rebuilds from a broad `context.watch`
-   where a `Selector` would do, large lists without `ListView.builder`,
+5. **Performance.** Check for whole-tree rebuilds from broad listeners where
+   a narrower one would do, large lists without `ListView.builder`,
    synchronous file or image work on the UI isolate, and a `CustomPainter`
    whose `shouldRepaint` always returns true.
-6. **UX and accessibility.** Check for hard-coded colours instead of
-   `context.palette`, text overflow at a 1.3× scale, a missing `Semantics` on
-   custom controls, tap targets under 48pt, colour used as the only signal,
-   dark mode left unchecked, and copy that is vague or blames the user.
+6. **UX and accessibility.** Check for hard-coded colours, sizes, or spacing
+   instead of `Pd` and `PdType`, text overflow at a 1.3× scale, a missing `Semantics` on
+   custom papers and stamps, tap targets under `Pd.tapMin`, colour used as the
+   only status signal, plan-limit UI that reads like a dark pattern, and copy
+   that is vague or blames the user.
 7. **Tests.** Check that new behaviour is covered at the right level (domain
    unit, repository with reopen, widget flow), that tests assert on what the
    user sees, and that fakes are updated for any interface change.
-8. **Maintainability.** Check for logic in widgets that belongs in the
-   controller or domain, duplication of existing primitives in `design.dart`,
-   files growing past roughly 400 lines, and a mix of `Navigator` and
-   `go_router` styles.
+8. **Maintainability.** Check for business rules in widgets or view models
+   that belong in `lib/domain`, duplication of primitives in `lib/ui/core`,
+   files growing past roughly 400 lines, a mix of `Navigator` and `go_router`
+   styles, and an architecture snapshot in `AGENTS.md` left out of date.
 
 ## Before you hand off
 
