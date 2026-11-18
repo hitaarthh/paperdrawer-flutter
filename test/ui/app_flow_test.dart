@@ -16,6 +16,7 @@ import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/ui/core/widgets/stamp.dart';
+import 'package:paperdrawer/ui/features/claims/claim_detail_screen.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
 
@@ -111,7 +112,7 @@ void main() {
       expect(find.widgetWithText(PdStamp, 'NO REPLY'), findsOneWidget);
       await _tap(tester, 'claim-featured-claim-1');
       expect(find.text('Family health policy insurance claim'), findsOneWidget);
-      expect(find.textContaining('YOU ARE HERE'), findsOneWidget);
+      expect(find.text('Time to go one step up'), findsOneWidget);
       await _tap(tester, 'settings-tab');
       await _tap(tester, 'settings-archive');
       expect(find.text('Activa PUC'), findsOneWidget);
@@ -121,6 +122,70 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('the claim tracker opens a draft and logs the sent step on tap', (
+    tester,
+  ) async {
+    final opened = addDays(_today, -14);
+    final claims = _Claims([
+      Claim(
+        id: 'laptop',
+        itemLabel: 'Laptop',
+        type: ClaimType.repair,
+        want: ClaimWant.repair,
+        problem: 'The hinge is loose.',
+        reference: 'SR-55821',
+        openedOn: opened,
+        stepSince: opened,
+        step: 0,
+        events: [
+          ClaimEvent(
+            id: 'opened',
+            on: opened,
+            kind: ClaimEventKind.opened,
+            text: 'Claim opened',
+          ),
+        ],
+      ),
+    ]);
+    final actions = _ClaimActions();
+    await _launch(tester, _Items([]), claims: claims, actions: actions, scale: 1.3);
+    await _tap(tester, 'claims-tab');
+    await _tap(tester, 'claim-featured-laptop');
+    expect(find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'), findsOneWidget);
+    expect(find.text('Time to go one step up'), findsOneWidget);
+    final scroll = find.descendant(
+      of: find.byType(ClaimDetailScreen),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
+
+    await tester.scrollUntilVisible(_key('open-claim-mail'), 200, scrollable: scroll);
+    await _tap(tester, 'open-claim-mail');
+    expect(actions.opened?.scheme, 'mailto');
+    expect(actions.opened?.queryParameters['body'], contains('SR-55821'));
+    expect(claims.lastSent, isNull);
+
+    await _tap(tester, 'copy-claim-message');
+    expect(actions.copied, startsWith('To: Grievance officer'));
+    await _tap(tester, 'claim-log-sent');
+    expect(claims.lastSent, ('laptop', 1));
+
+    await tester.scrollUntilVisible(_key('claim-log-update'), 220, scrollable: scroll);
+    expect(find.text('RECOMMENDED NEXT'), findsOneWidget);
+    expect(find.text('Claim opened'), findsOneWidget);
+    await _tap(tester, 'claim-log-update');
+    await tester.tap(find.text('Add a note'));
+    await tester.pumpAndSettle();
+    await tester.enterText(_key('claim-log-text'), 'Asked for a repair date.');
+    await _tap(tester, 'save-claim-log');
+    expect(claims.lastNote, ('laptop', 'Asked for a repair date.'));
+
+    await _tap(tester, 'mark-claim-settled');
+    expect(find.text('HOW WAS IT RESOLVED?'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('Claims filters and scan work at 130% text scale', (
     tester,
@@ -190,6 +255,7 @@ Future<void> _launch(
   WidgetTester tester,
   _Items items, {
   _Claims? claims,
+  DrawerActions actions = const _Actions(),
   double scale = 1,
 }) async {
   final actualClaims = claims ?? _Claims([]);
@@ -219,7 +285,7 @@ Future<void> _launch(
         exporter: Exporter(files, today: today),
         recognizer: FakeTextRecognizer(const []),
         today: today,
-        actions: const _Actions(),
+        actions: actions,
       ),
     ),
   );
@@ -277,6 +343,19 @@ class _Items extends ChangeNotifier implements ItemRepository {
 class _Claims extends ChangeNotifier implements ClaimRepository {
   _Claims(this.claims);
 
+  (String, int?)? lastSent;
+  (String, String)? lastNote;
+
+  @override
+  Future<void> logSent(String id, DateTime today, {int? step}) async {
+    lastSent = (id, step);
+  }
+
+  @override
+  Future<void> addNote(String id, DateTime today, String text) async {
+    lastNote = (id, text);
+  }
+
   @override
   final List<Claim> claims;
   @override
@@ -311,4 +390,19 @@ class _Actions extends DrawerActions {
 
   @override
   Future<String?> appVersion() async => '0.1.0';
+}
+
+class _ClaimActions extends _Actions {
+  Uri? opened;
+  String? copied;
+
+  @override
+  Future<void> openLink(Uri url) async {
+    opened = url;
+  }
+
+  @override
+  Future<void> copyText(String text) async {
+    copied = text;
+  }
 }

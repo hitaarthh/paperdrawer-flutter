@@ -127,8 +127,7 @@ Future<(_Session, _VaultService)> _openSettings(
 }
 
 class _Session extends SharedSession {
-  _Session(_Account account, _VaultService service)
-    : super(account, service: service);
+  _Session(super.account, _VaultService service) : super(service: service);
 
   final webPaths = <String>[];
 

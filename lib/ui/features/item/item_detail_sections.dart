@@ -41,8 +41,9 @@ class ItemReturnTicket extends StatelessWidget {
     final window = summary.windows
         .where((window) => window.type == WindowType.returnWindow)
         .firstOrNull;
-    if (window == null || summary.item.isArchived)
+    if (window == null || summary.item.isArchived) {
       return const SizedBox.shrink();
+    }
     final left = window.daysLeft(summary.today);
     if (left < 0 || left > ticketWithinDays) return const SizedBox.shrink();
     return Padding(

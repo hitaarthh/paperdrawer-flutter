@@ -161,6 +161,17 @@ void main() {
       expect(find.text('Nothing has ended'), findsOneWidget);
       await _tap(tester, 'vault-filter-all');
 
+      await tester.scrollUntilVisible(
+        _key('vault-search'),
+        -150,
+        scrollable: find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
       await tester.enterText(_key('vault-search'), 'gupta');
       await tester.pumpAndSettle();
       expect(_key('vault-item-washer'), findsOneWidget);

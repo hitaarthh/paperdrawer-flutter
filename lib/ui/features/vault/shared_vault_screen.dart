@@ -14,7 +14,6 @@ import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/item_card.dart';
 import '../../core/widgets/sheets.dart';
-import '../../core/widgets/snackbar.dart';
 import '../account/shared_session.dart';
 import '../add/shared_add_flow.dart';
 import 'vault_due_next.dart';

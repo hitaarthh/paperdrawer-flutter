@@ -3,12 +3,16 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/repositories/item_repository.dart';
 import 'package:paperdrawer/data/services/capture_service.dart';
+import 'package:paperdrawer/data/services/text_recognizer.dart';
+import 'package:paperdrawer/data/services/today.dart';
 import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/features/add/add_details_args.dart';
 import 'package:paperdrawer/ui/features/add/add_flow.dart';
+import 'package:paperdrawer/ui/features/add/camera_screen.dart';
+import 'package:paperdrawer/ui/features/add/reading_screen.dart';
 import 'package:provider/provider.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
@@ -46,6 +50,41 @@ void main() {
     expect(find.text('camera stub'), findsOneWidget);
     expect(_key('add-sheet'), findsNothing);
   });
+
+  testWidgets(
+    'camera and reading pass the photo and recognized fields to review at 130%',
+    (tester) async {
+      final capture = _Capture();
+      AddDetailsArgs? review;
+      await _launch(
+        tester,
+        _Items.withCount(0),
+        capture: capture,
+        scale: 1.3,
+        onReview: (details) => review = details,
+      );
+      await _tap(tester, 'open-add');
+      await _tap(tester, 'add-kind-policy');
+      await _tap(tester, 'add-sheet-camera');
+      expect(find.text('FILL THE FRAME'), findsOneWidget);
+
+      await _tap(tester, 'capture-flash');
+      expect(capture.session.torch, isTrue);
+      await _tap(tester, 'capture-shutter');
+      await tester.tap(_key('capture-done'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.text('Reading it line by line…'), findsOneWidget);
+      expect(find.textContaining('READING YOUR DOCUMENT'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(capture.session.closed, isTrue);
+      expect(review?.effectiveKind, ItemKind.policy);
+      expect(review?.files.single.name, 'capture.jpg');
+      expect(review?.reading?.reference, '142-A');
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Upload a file goes through Photos to reading', (tester) async {
     await _launch(tester, _Items.withCount(0));
@@ -133,6 +172,7 @@ Future<void> _launch(
   _Items items, {
   _Capture? capture,
   double scale = 1,
+  ValueChanged<AddDetailsArgs>? onReview,
 }) async {
   tester.view.devicePixelRatio = 3;
   tester.view.physicalSize = const Size(1179, 2556);
@@ -142,6 +182,8 @@ Future<void> _launch(
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   addTearDown(items.dispose);
 
+  final today = Today(() => _today);
+  addTearDown(today.dispose);
   final router = GoRouter(
     initialLocation: Routes.vault,
     routes: [
@@ -160,19 +202,26 @@ Future<void> _launch(
       ),
       GoRoute(
         path: Routes.camera,
-        builder: (context, state) => const _Stub('camera stub'),
+        builder: (context, state) => onReview == null
+            ? const _Stub('camera stub')
+            : CameraScreen(kind: state.extra as ItemKind?),
       ),
       GoRoute(
         path: Routes.reading,
-        builder: (context, state) => _Stub(
-          'reading ${(state.extra! as CaptureReadingArgs).files.length}',
-        ),
+        builder: (context, state) {
+          final args = state.extra! as CaptureReadingArgs;
+          return onReview == null
+              ? _Stub('reading ${args.files.length}')
+              : ReadingScreen(files: args.files, kind: args.kind);
+        },
       ),
       GoRoute(
         path: Routes.details,
-        builder: (context, state) => _Stub(
-          'details ${(state.extra! as AddDetailsArgs).effectiveKind.name}',
-        ),
+        builder: (context, state) {
+          final details = state.extra! as AddDetailsArgs;
+          onReview?.call(details);
+          return _Stub('details ${details.effectiveKind.name}');
+        },
       ),
     ],
   );
@@ -183,6 +232,10 @@ Future<void> _launch(
       providers: [
         ChangeNotifierProvider<ItemRepository>.value(value: items),
         Provider<CaptureService>.value(value: capture ?? _Capture()),
+        Provider<Today>.value(value: today),
+        Provider<TextRecognizer>.value(
+          value: FakeTextRecognizer(const ['INV 142-A']),
+        ),
       ],
       child: MaterialApp.router(
         theme: pdTheme(),
@@ -240,6 +293,14 @@ class _Capture implements CaptureService {
 
   final List<PendingFile> files;
   var filesOpened = false;
+  final session = _Session();
+
+  @override
+  Future<CaptureSession> openCamera() async => session;
+
+  @override
+  Future<CaptureOriginal> inspect(PendingFile original) async =>
+      const CaptureOriginal(size: 1024);
 
   @override
   Future<List<PendingFile>> pickPhotos() async => files;
@@ -252,4 +313,22 @@ class _Capture implements CaptureService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _Session implements CaptureSession {
+  bool torch = false;
+  bool closed = false;
+
+  @override
+  Widget buildPreview() => const ColoredBox(color: Colors.black);
+
+  @override
+  Future<void> setTorch(bool enabled) async => torch = enabled;
+
+  @override
+  Future<PendingFile> takePicture() async =>
+      const PendingFile(path: '/tmp/capture.jpg', name: 'capture.jpg');
+
+  @override
+  Future<void> close() async => closed = true;
 }
