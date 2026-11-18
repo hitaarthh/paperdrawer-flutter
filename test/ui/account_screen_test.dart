@@ -158,8 +158,10 @@ void main() {
 
   testWidgets('reset, Terms and Privacy open the web pages', (tester) async {
     final session = await _launch(tester, create: true);
-    await _tap(tester, const ValueKey('account-terms'));
-    await _tap(tester, const ValueKey('account-privacy'));
+    await tester.ensureVisible(find.byKey(const ValueKey('account-legal')));
+    await tester.pumpAndSettle();
+    await tester.tapOnText(find.textRange.ofSubstring('Terms'));
+    await tester.tapOnText(find.textRange.ofSubstring('Privacy policy'));
     await _tap(tester, const ValueKey('account-tab-sign-in'));
     await _tap(tester, const ValueKey('account-reset'));
     expect(session.opened, ['/terms', '/privacy', '/signin']);
@@ -171,7 +173,7 @@ void main() {
       tester,
     ) async {
       await _launch(tester, create: create, scale: 1.3);
-      final last = find.byKey(const ValueKey('account-privacy'));
+      final last = find.byKey(const ValueKey('account-legal'));
       await tester.ensureVisible(last);
       await tester.pumpAndSettle();
       expect(last, findsOneWidget);
@@ -229,7 +231,7 @@ class _FakeSession extends SharedSession {
 }
 
 class _FakeAccount extends SharedAccount {
-  _FakeAccount({this.signInResult, this.signUpResult})
+  _FakeAccount({this.signInResult})
     : super(
         _UnusedClient(),
         SharedAccountConfig(
