@@ -197,7 +197,7 @@ class _Tab extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: selected ? Pd.lime : const Color(0x00000000),
+                color: Pd.lime.withValues(alpha: selected ? 1 : 0),
                 width: 2,
               ),
             ),
