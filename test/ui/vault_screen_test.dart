@@ -94,6 +94,60 @@ void main() {
       });
     }
 
+    testWidgets(
+      'bill detail shows the original, coverage, and saved facts at 130%',
+      (tester) async {
+        final bill = Item(
+          id: 'fan',
+          createdAt: _today,
+          draft: ItemDraft(
+            kind: ItemKind.bill,
+            name: 'Ceiling fan',
+            source: 'Hardware store',
+            reference: 'INV 216',
+            serialNumber: 'FAN-230',
+            startsOn: addDays(_today, -5),
+            returnUntil: addDays(_today, 2),
+            coverUntil: addMonths(_today, 10),
+          ),
+          attachments: const [
+            Attachment(
+              id: 'receipt',
+              path: '/tmp/receipt.pdf',
+              name: 'Receipt.pdf',
+              bytes: 120,
+            ),
+          ],
+        );
+        await _launch(tester, _Items([bill]), scale: 1.3);
+        await _tap(tester, 'vault-ticket-fan');
+
+        expect(find.text('Ceiling fan'), findsOneWidget);
+        expect(find.text('Return by 20 Nov'), findsOneWidget);
+        final verticalScroll = find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first;
+        for (final section in [
+          'Original on file',
+          'Coverage',
+          'Claim kit',
+          'FAN-230',
+        ]) {
+          await tester.scrollUntilVisible(
+            find.text(section),
+            170,
+            scrollable: verticalScroll,
+          );
+          expect(find.text(section), findsOneWidget);
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('the due-next strip counts tickets as it scrolls', (
       tester,
     ) async {

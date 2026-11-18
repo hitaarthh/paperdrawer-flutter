@@ -91,7 +91,7 @@ class SharedReminderSettings extends StatelessWidget {
           child: SharedSettingsLink(
             key: const ValueKey('shared-settings-web-reminders'),
             label: 'More reminder options on web',
-            color: Pd.lime,
+            accent: true,
             onPressed: onOpenWeb,
           ),
         ),

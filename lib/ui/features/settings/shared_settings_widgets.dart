@@ -80,13 +80,13 @@ class SharedSettingsLink extends StatelessWidget {
   const SharedSettingsLink({
     required this.label,
     required this.onPressed,
-    this.color = Pd.textMuted,
+    this.accent = false,
     super.key,
   });
 
   final String label;
   final VoidCallback onPressed;
-  final Color color;
+  final bool accent;
 
   @override
   Widget build(BuildContext context) => CupertinoButton(
@@ -97,7 +97,9 @@ class SharedSettingsLink extends StatelessWidget {
     child: Text(
       label.toUpperCase(),
       semanticsLabel: label,
-      style: PdType.meta.copyWith(color: color),
+      style: accent
+          ? PdType.monoButton.copyWith(color: Pd.lime)
+          : PdType.meta.copyWith(color: Pd.textMuted),
     ),
   );
 }
@@ -266,7 +268,7 @@ class SharedSettingsPlan extends StatelessWidget {
               SharedSettingsLink(
                 key: const ValueKey('shared-settings-plans'),
                 label: 'See plans',
-                color: Pd.lime,
+                accent: true,
                 onPressed: onSeePlans,
               ),
             ],
@@ -329,8 +331,9 @@ class SharedSettingsFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     spacing: Pd.s2,
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Expanded(
+      Flexible(
         child: Wrap(
           spacing: Pd.s2,
           crossAxisAlignment: WrapCrossAlignment.center,
