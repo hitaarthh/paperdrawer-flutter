@@ -316,8 +316,10 @@ class _PasswordToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
+    container: true,
     button: true,
     label: shown ? 'Hide password' : 'Show password',
+    onTap: onTap,
     excludeSemantics: true,
     child: GestureDetector(
       key: const ValueKey('account-password-toggle'),
