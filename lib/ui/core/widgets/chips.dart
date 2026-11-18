@@ -98,14 +98,13 @@ class _Chip extends StatelessWidget {
       onPressed: onTap,
       child: Container(
         constraints: const BoxConstraints(minHeight: Pd.s8 + Pd.s1),
-        alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: Pd.s3, vertical: Pd.s1),
         decoration: BoxDecoration(
           color: selected ? color : null,
           border: Border.all(color: color),
           borderRadius: BorderRadius.circular(Pd.rSm),
         ),
-        child: child,
+        child: Center(widthFactor: 1, heightFactor: 1, child: child),
       ),
     ),
   );

@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'data/repositories/claim_repository.dart';
 import 'data/repositories/item_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'data/services/capture_service.dart';
+import 'data/services/drawer_actions.dart';
 import 'data/services/exporter.dart';
 import 'data/services/file_store.dart';
 import 'data/services/reminder_scheduler.dart';
@@ -27,6 +29,8 @@ class AppDependencies {
     required this.exporter,
     required this.recognizer,
     required this.today,
+    this.capture = const CaptureService(),
+    this.actions = const DrawerActions(),
     this.reminders,
   });
 
@@ -37,6 +41,8 @@ class AppDependencies {
   final Exporter exporter;
   final TextRecognizer recognizer;
   final Today today;
+  final CaptureService capture;
+  final DrawerActions actions;
 
   /// Null in widget tests, where no notification plugin is available.
   final ReminderScheduler? reminders;
@@ -91,6 +97,8 @@ class _PaperDrawerAppState extends State<PaperDrawerApp> {
         Provider.value(value: deps.files),
         Provider.value(value: deps.exporter),
         Provider.value(value: deps.recognizer),
+        Provider.value(value: deps.capture),
+        Provider.value(value: deps.actions),
         Provider<ReminderScheduler?>.value(value: deps.reminders),
       ],
       child: MaterialApp.router(

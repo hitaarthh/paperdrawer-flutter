@@ -163,16 +163,12 @@ class FlutterLocalNotificationsGateway implements NotificationGateway {
 
 class ReminderScheduler {
   ReminderScheduler({
-    required NotificationGateway gateway,
-    required ItemRepository items,
-    required ClaimRepository claims,
-    required SettingsRepository settings,
-    required Today today,
-  }) : _gateway = gateway,
-       _items = items,
-       _claims = claims,
-       _settings = settings,
-       _today = today;
+    required this._gateway,
+    required this._items,
+    required this._claims,
+    required this._settings,
+    required this._today,
+  });
 
   final NotificationGateway _gateway;
   final ItemRepository _items;
@@ -228,7 +224,7 @@ class ReminderScheduler {
       for (final reminder in plans) {
         await _gateway.schedule(reminder);
       }
-    } on Exception {
+    } catch (_) {
       // Platform scheduling is optional. The next change can try again.
     }
   }

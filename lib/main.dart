@@ -85,7 +85,7 @@ class _BootstrapState extends State<_Bootstrap> {
           claims: claims,
           settings: settings,
           files: files,
-          exporter: Exporter(files),
+          exporter: Exporter(files, today: today),
           recognizer: PlatformTextRecognizer(),
           today: today,
           reminders: reminders,

@@ -43,8 +43,10 @@ Future<T?> showPdSheet<T>(
   backgroundColor: CupertinoColors.transparent,
   barrierColor: Pd.scrim,
   constraints: const BoxConstraints(maxWidth: Pd.maxContent),
-  builder: (context) => _SheetSurface(
-    child: SingleChildScrollView(
+  builder: (context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: _SheetSurface(
+      child: SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, Pd.s4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,6 +63,7 @@ Future<T?> showPdSheet<T>(
           for (final option in options) _OptionRow(option: option),
           ?body,
         ],
+      ),
       ),
     ),
   ),
