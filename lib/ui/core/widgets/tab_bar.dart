@@ -73,58 +73,8 @@ class PdTabBar extends StatelessWidget {
                         padding: const EdgeInsets.all(Pd.s1),
                         child: Stack(
                           children: [
-                            Positioned.fill(
-                              child: AnimatedAlign(
-                                alignment: AlignmentDirectional(
-                                  -1 + 2 * currentIndex / _tabs.length,
-                                  0,
-                                ),
-                                duration: MediaQuery.disableAnimationsOf(context)
-                                    ? Duration.zero
-                                    : Pd.dockSelectionDuration,
-                                curve: Curves.easeOutCubic,
-                                child: const FractionallySizedBox(
-                                  widthFactor: 1 / (_tabs.length + 1),
-                                  heightFactor: 1,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: Pd.dockSelection,
-                                      borderRadius: _radius,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  for (final (index, (title, glyph))
-                                      in _tabs.indexed)
-                                    Expanded(
-                                      child: _DockButton(
-                                        key: ValueKey('${title.toLowerCase()}-tab'),
-                                        title: title,
-                                        glyph: glyph,
-                                        selected: index == currentIndex,
-                                        badge: glyph == PdGlyph.claims
-                                            ? claimsBadge
-                                            : 0,
-                                        onTap: () => onTap(index),
-                                      ),
-                                    ),
-                                  Expanded(
-                                    child: _DockButton(
-                                      key: const ValueKey('scan-or-add'),
-                                      title: 'Scan or add',
-                                      glyph: PdGlyph.scan,
-                                      onTap: onScan,
-                                      onLongPress: onScanLongPress,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            Positioned.fill(child: _selection(context)),
+                            _controls(),
                           ],
                         ),
                       ),
@@ -138,6 +88,52 @@ class PdTabBar extends StatelessWidget {
       ),
     );
   }
+
+  Widget _selection(BuildContext context) => AnimatedAlign(
+    alignment: AlignmentDirectional(-1 + 2 * currentIndex / _tabs.length, 0),
+    duration: MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : Pd.dockSelectionDuration,
+    curve: Curves.easeOutCubic,
+    child: const FractionallySizedBox(
+      widthFactor: 1 / (_tabs.length + 1),
+      heightFactor: 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Pd.dockSelection,
+          borderRadius: _radius,
+        ),
+      ),
+    ),
+  );
+
+  Widget _controls() => IntrinsicHeight(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (index, (title, glyph)) in _tabs.indexed)
+          Expanded(
+            child: _DockButton(
+              key: ValueKey('${title.toLowerCase()}-tab'),
+              title: title,
+              glyph: glyph,
+              selected: index == currentIndex,
+              badge: glyph == PdGlyph.claims ? claimsBadge : 0,
+              onTap: () => onTap(index),
+            ),
+          ),
+        Expanded(
+          child: _DockButton(
+            key: const ValueKey('scan-or-add'),
+            title: 'Scan or add',
+            glyph: PdGlyph.scan,
+            onTap: onScan,
+            onLongPress: onScanLongPress,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _DockButton extends StatelessWidget {
