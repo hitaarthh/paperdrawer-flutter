@@ -14,7 +14,11 @@ class SharedVaultService {
   static const _files = 'attachments(file_name,storage_path,mime_type)';
 
   Future<SharedVault> fetch(String userId) async {
-    final profile = _client.from('profiles').select('plan').eq('id', userId).maybeSingle();
+    final profile = _client
+        .from('profiles')
+        .select('plan')
+        .eq('id', userId)
+        .maybeSingle();
     final rows = await Future.wait([
       _page(
         'bills',

@@ -31,7 +31,8 @@ Future<AddSheetChoice?> showAddSheet(
 }) => showPdCustomSheet<AddSheetChoice>(
   context,
   semanticLabel: 'Scan or add',
-  builder: (context) => AddSheet(used: used, shared: shared, onBasePlan: onBasePlan),
+  builder: (context) =>
+      AddSheet(used: used, shared: shared, onBasePlan: onBasePlan),
 );
 
 /// The Add sheet's content. Shown inside [showPdCustomSheet], which owns the

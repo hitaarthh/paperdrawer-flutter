@@ -7,6 +7,7 @@ import '../ui/features/account/account_screen.dart';
 import '../ui/features/account/shared_session.dart';
 import '../ui/features/account/shared_vault_screens.dart';
 import '../ui/features/intro/intro_flow.dart';
+import '../ui/features/vault/shared_vault_screen.dart';
 
 GoRouter buildSharedRouter(SharedSession session) => GoRouter(
   initialLocation: '/vault',

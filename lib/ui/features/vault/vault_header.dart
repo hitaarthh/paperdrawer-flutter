@@ -86,18 +86,21 @@ class _VaultSearchFieldState extends State<VaultSearchField> {
         padding: EdgeInsets.only(left: Pd.s3),
         child: Icon(LucideIcons.search, size: Pd.iconSm, color: Pd.placeholder),
       ),
-      suffix: widget.count == null ? null : Padding(
-        padding: const EdgeInsets.only(right: Pd.s3),
-        child: Text(
-          '${widget.count} OF $baseItemLimit',
-          semanticsLabel: '${widget.count} of $baseItemLimit items on Base',
-          style: PdType.label.copyWith(
-            color: Pd.textMuted,
-            fontWeight: FontWeight.w400,
-            fontVariations: const [FontVariation.weight(400)],
-          ),
-        ),
-      ),
+      suffix: widget.count == null
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(right: Pd.s3),
+              child: Text(
+                '${widget.count} OF $baseItemLimit',
+                semanticsLabel:
+                    '${widget.count} of $baseItemLimit items on Base',
+                style: PdType.label.copyWith(
+                  color: Pd.textMuted,
+                  fontWeight: FontWeight.w400,
+                  fontVariations: const [FontVariation.weight(400)],
+                ),
+              ),
+            ),
       suffixMode: OverlayVisibilityMode.notEditing,
       clearButtonMode: OverlayVisibilityMode.editing,
       clearButtonSemanticLabel: 'Clear search',

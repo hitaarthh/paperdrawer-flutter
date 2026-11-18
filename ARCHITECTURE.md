@@ -19,7 +19,10 @@ uses the existing web callback and password reset uses the web sign-in flow.
 `SharedVaultService` reads bills, bill parts, documents, claims, events and
 originals with the current user's session and owner RLS. The shared router gates
 `/vault`, `/claims` and `/settings` behind `/account`. Shared records can be
-viewed on the phone, and editing uses the web app. Originals are downloaded
+viewed on the phone, and the Vault shares the local design's search, filters,
+countdown tickets, empty state, and Add sheet. Shared records are added or
+edited in the web app. Email reminders are managed on the web, and the iOS
+notification permission flow belongs to the device-only vault. Originals are downloaded
 into the temporary directory as needed. The shared build does not open the
 SQLite database or transfer existing device-only originals. The unconfigured
 build uses the on-device repositories and routes below.

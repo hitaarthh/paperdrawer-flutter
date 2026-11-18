@@ -17,74 +17,6 @@ import '../../core/widgets/nav.dart';
 import '../../core/widgets/snackbar.dart';
 import 'shared_session.dart';
 
-class SharedVaultScreen extends StatelessWidget {
-  const SharedVaultScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final session = context.watch<SharedSession>();
-    final inbox = session.vault;
-    final today = session.today.value;
-    final claims = <String>{
-      for (final claim in inbox?.claims ?? const <SharedClaim>[])
-        if (claim.settled == null && claim.itemId != null) claim.itemId!,
-    };
-    final cards = [
-      for (final entry in inbox?.items ?? const <SharedItem>[])
-        ItemSummary.of(
-          entry.item,
-          today,
-          hasOpenClaim: claims.contains(entry.item.id),
-        ),
-    ]..sort((a, b) => a.sortRank.compareTo(b.sortRank));
-    return PdLargeTitleScaffold(
-      title: 'Vault',
-      heroTag: 'shared-vault',
-      trailing: _Refresh(session),
-      slivers: [
-        if (session.failed) _inset(_LoadFailure(session)),
-        if (inbox == null && session.loading) _inset(const _Loading()),
-        if (inbox != null && cards.isEmpty)
-          _inset(
-            DashedTile(
-              title: 'Your drawer is empty',
-              body: 'Add a bill on PaperDrawer web. It will appear here when you refresh.',
-              action: PdButton.primary(
-                label: 'Open PaperDrawer web',
-                onPressed: () => _open(context, session, '/vault'),
-              ),
-            ),
-          )
-        else if (cards.isNotEmpty) ...[
-          _inset(
-            PdButton.text(
-              label: 'Manage vault on web',
-              onPressed: () => _open(context, session, '/vault'),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: Pd.margin),
-            sliver: SliverList.builder(
-              itemCount: cards.length,
-              itemBuilder: (context, index) {
-                final summary = cards[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: Pd.s3),
-                  child: ItemCard(
-                    key: ValueKey('shared-item-${summary.item.id}'),
-                    summary: summary,
-                    onTap: () => context.push('/vault/item/${summary.item.id}'),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 class SharedClaimsScreen extends StatelessWidget {
   const SharedClaimsScreen({super.key});
 
@@ -274,6 +206,18 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
       title: 'Settings',
       heroTag: 'shared-settings',
       slivers: [
+        _inset(
+          PdListGroup(
+            header: 'Reminders',
+            children: [
+              PdListRow(
+                title: 'Manage email reminders on web',
+                chevron: true,
+                onTap: () => _open(context, session, '/settings#reminders'),
+              ),
+            ],
+          ),
+        ),
         _inset(
           PdListGroup(
             header: 'Account',

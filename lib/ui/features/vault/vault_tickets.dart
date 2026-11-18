@@ -66,7 +66,10 @@ class VaultTicketData {
   factory VaultTicketData.sharedClaim(SharedClaim claim, DateTime today) =>
       VaultTicketData._(
         key: '${isoDate(today)}/shared-claim/${claim.id}',
-        number: daysBetween(claim.opened, today).clamp(0, 999).toString().padLeft(2, '0'),
+        number: daysBetween(
+          claim.opened,
+          today,
+        ).clamp(0, 999).toString().padLeft(2, '0'),
         unit: 'CLAIM DAY',
         kicker: 'CLAIM · ${claim.statusLabel.toUpperCase()}',
         title: claim.title,

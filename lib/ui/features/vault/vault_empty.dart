@@ -119,7 +119,7 @@ class _WelcomeReceipt extends StatelessWidget {
             shared
                 ? 'Take a photo or upload a bill on PaperDrawer web. After you save it, it will be here on your phone.'
                 : 'Snap its bill. We’ll read it, set the return and warranty '
-                  'dates, and remind you before they pass. Takes under a minute.',
+                      'dates, and remind you before they pass. Takes under a minute.',
             style: PdType.callout.copyWith(color: Pd.ink2),
           ),
           Padding(
