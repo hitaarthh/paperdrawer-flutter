@@ -218,10 +218,7 @@ class _InlineLink extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: Pd.tapMin),
         child: Align(
           widthFactor: 1,
-          child: Text(
-            label,
-            style: PdType.footnote.copyWith(color: Pd.lime),
-          ),
+          child: Text(label, style: PdType.footnote.copyWith(color: Pd.lime)),
         ),
       ),
     ),

@@ -8,6 +8,7 @@ class SettingsRepository extends ChangeNotifier {
   static const _reminders = 'reminders_on';
   static const _lead = 'lead_days';
   static const _ticket = 'ticket_dismissed_key';
+  static const _offered = 'reminders_offered';
 
   final Database _db;
   Map<String, String> _values = {};
@@ -20,6 +21,11 @@ class SettingsRepository extends ChangeNotifier {
   }
 
   String? get ticketDismissedKey => _values[_ticket];
+
+  /// True once the "Turn on reminders" offer has been answered (turned on,
+  /// declined at the iOS prompt, or put off with "Not now"). It never shows
+  /// again after that.
+  bool get remindersOffered => _values[_offered] == '1';
 
   Future<void> load() async {
     _values = {
@@ -41,6 +47,8 @@ class SettingsRepository extends ChangeNotifier {
   }
 
   Future<void> dismissTicket(String key) => _set(_ticket, key);
+
+  Future<void> markRemindersOffered() => _set(_offered, '1');
 
   Future<void> eraseAll() => _write(() async {
     await _db.delete('preferences');
