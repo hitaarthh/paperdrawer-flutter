@@ -48,9 +48,6 @@ class ClaimsListData {
     ClaimsFilter.all => _claims.length,
   };
 
-  int get needsAction =>
-      _claims.where((claim) => claim.status.needsAction).length;
-
   ClaimListEntry? get featured =>
       _claims.where((claim) => claim.status.needsAction).firstOrNull;
 

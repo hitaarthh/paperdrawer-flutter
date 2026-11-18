@@ -94,24 +94,9 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           spacing: Pd.s6,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: Pd.s2,
-                              children: [
-                                Text(
-                                  'ACCOUNT · PLAN · REMINDERS · DATA',
-                                  style: PdType.label.copyWith(
-                                    color: Pd.textMuted,
-                                  ),
-                                ),
-                                Semantics(
-                                  header: true,
-                                  child: Text(
-                                    'Settings',
-                                    style: PdType.heroTitle,
-                                  ),
-                                ),
-                              ],
+                            Semantics(
+                              header: true,
+                              child: Text('Settings', style: PdType.heroTitle),
                             ),
                             SharedSettingsSection(
                               number: '01',

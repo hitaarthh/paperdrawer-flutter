@@ -55,22 +55,9 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
           : const AlwaysScrollableScrollPhysics(),
       slivers: [
         _inset(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: Pd.s2,
-            children: [
-              if (data != null)
-                Text(
-                  '${data.openCount} OPEN · ${data.settledCount} SETTLED · '
-                  '${data.needsAction} '
-                  '${data.needsAction == 1 ? 'NEEDS' : 'NEED'} YOU',
-                  style: PdType.label.copyWith(color: Pd.textMuted),
-                ),
-              Semantics(
-                header: true,
-                child: Text('Claims', style: PdType.heroTitle),
-              ),
-            ],
+          Semantics(
+            header: true,
+            child: Text('Claims', style: PdType.heroTitle),
           ),
           top: Pd.s3,
         ),

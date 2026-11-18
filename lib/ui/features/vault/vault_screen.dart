@@ -182,7 +182,7 @@ class _VaultViewState extends State<_VaultView> {
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     slivers: [
-                      _inset(VaultHeader(kicker: model.kicker), top: Pd.s3),
+                      _inset(const VaultHeader(), top: Pd.s3),
                       if (model.justAdded case final recent?)
                         _inset(
                           Column(

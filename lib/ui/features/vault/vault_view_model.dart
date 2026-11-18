@@ -44,18 +44,6 @@ class VaultViewModel extends ChangeNotifier {
       .where((summary) => summary.item.id == _justAddedId)
       .firstOrNull;
 
-  /// "010 ITEMS · 4 DUE SOON · 3 OPEN CLAIMS", over the hero title.
-  String get kicker {
-    final due = _summaries.where(VaultFilter.due.matches).length;
-    final open = _claims.claims.where((claim) => claim.isOpen).length;
-    return [
-      '${activeCount.toString().padLeft(3, '0')} '
-          '${activeCount == 1 ? 'ITEM' : 'ITEMS'}',
-      due == 0 ? 'NOTHING DUE' : '$due DUE SOON',
-      if (open > 0) '$open OPEN ${open == 1 ? 'CLAIM' : 'CLAIMS'}',
-    ].join(' · ');
-  }
-
   /// Tab counts follow the search, so they always match the list.
   int count(VaultFilter filter) => _searched.where(filter.matches).length;
 

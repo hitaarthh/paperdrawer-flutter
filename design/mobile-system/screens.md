@@ -37,7 +37,7 @@ How the components build the app's main screens. The web designs on paperdrawer.
 
 ## Claims (tab 2)
 
-1. **Header:** Paper Drawer brand bar with the Scan or add action. Show the open, settled and needs-action counts above the Claims title.
+1. **Header:** Paper Drawer brand bar with the Scan or add action, followed by the Claims title.
 2. **Needs You:** when a claim needs attention, link to the oldest such claim with a lime ticket and the reason it needs attention.
 3. **Filters:** underlined Open, Settled and All tabs with live counts. List claims that need attention first, then other open claims by oldest reply. List settled claims newest first.
 4. **Claim rows on `surface-2`:** display the claim day beside a dashed rule, the claim type and item, title, current step, next action and a status stamp. Shared claims can also show DOCS ASKED.

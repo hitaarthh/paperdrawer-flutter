@@ -6,27 +6,13 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
 import '../../core/widgets/filter_tabs.dart';
 
-/// The mono kicker ("010 ITEMS · 4 DUE SOON") over the "The vault" headline.
 class VaultHeader extends StatelessWidget {
-  const VaultHeader({required this.kicker, super.key});
-
-  final String kicker;
+  const VaultHeader({super.key});
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    spacing: Pd.s2,
-    children: [
-      Text(
-        kicker,
-        key: const ValueKey('vault-kicker'),
-        style: PdType.label.copyWith(color: Pd.textMuted),
-      ),
-      Semantics(
-        header: true,
-        child: Text('The vault', style: PdType.heroTitle),
-      ),
-    ],
+  Widget build(BuildContext context) => Semantics(
+    header: true,
+    child: Text('The vault', style: PdType.heroTitle),
   );
 }
 

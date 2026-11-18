@@ -74,14 +74,6 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
           hasOpenClaim: openItemIds.contains(entry.item.id),
         ),
     ]..sort((a, b) => a.sortRank.compareTo(b.sortRank));
-    final due = summaries.where(VaultFilter.due.matches).length;
-    final count = summaries.length;
-    final kicker = [
-      '${count.toString().padLeft(3, '0')} ${count == 1 ? 'ITEM' : 'ITEMS'}',
-      due == 0 ? 'NOTHING DUE' : '$due DUE SOON',
-      if (claims.isNotEmpty)
-        '${claims.length} OPEN ${claims.length == 1 ? 'CLAIM' : 'CLAIMS'}',
-    ].join(' · ');
     return Scaffold(
       backgroundColor: Pd.bg,
       body: Center(
@@ -107,12 +99,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     slivers: [
-                      _inset(
-                        VaultHeader(
-                          kicker: vault == null ? 'SHARED VAULT' : kicker,
-                        ),
-                        top: Pd.s3,
-                      ),
+                      _inset(const VaultHeader(), top: Pd.s3),
                       if (session.failed)
                         _inset(
                           DashedTile(
