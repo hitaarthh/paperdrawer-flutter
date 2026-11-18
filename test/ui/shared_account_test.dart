@@ -2,11 +2,13 @@ import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
+import 'package:paperdrawer/data/services/shared_vault_service.dart';
 import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/domain/models/shared_vault.dart';
 import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
+import 'package:paperdrawer/ui/core/widgets/icons.dart';
 import 'package:paperdrawer/ui/features/account/shared_session.dart';
 import 'package:paperdrawer/ui/features/account/shared_vault_screens.dart';
 import 'package:paperdrawer/ui/features/vault/shared_vault_screen.dart';
@@ -202,6 +204,101 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+
+  testWidgets('shared detail headers match the design at 130% text', (
+    tester,
+  ) async {
+    final session = _SharedVaultSession();
+    session.vault = _DetailService().snapshot;
+    addTearDown(session.dispose);
+    _setPhoneSize(tester, 1.3);
+    await tester.pumpWidget(
+      ChangeNotifierProvider<SharedSession>.value(
+        value: session,
+        child: MaterialApp(
+          theme: pdTheme(),
+          home: const SharedItemScreen('earbuds'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('VAULT'), findsOneWidget);
+    expect(find.text('EDIT'), findsOneWidget);
+    expect(
+      tester.widgetList<PdIcon>(find.byType(PdIcon)).map((icon) => icon.glyph),
+      contains(PdGlyph.back),
+    );
+    await tester.tap(find.byKey(const ValueKey('shared-item-edit')));
+    await tester.pumpAndSettle();
+    expect(session.opened, '/bills/new?edit=earbuds');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'shared claims settle in the app and display the logged outcome',
+    (tester) async {
+      final service = _DetailService();
+      final session = SharedSession(_SignedInAccount(), service: service);
+      addTearDown(session.dispose);
+      _setPhoneSize(tester, 1.3);
+      await tester.pumpWidget(
+        ChangeNotifierProvider<SharedSession>.value(
+          value: session,
+          child: MaterialApp(
+            theme: pdTheme(),
+            home: const SharedClaimScreen('repair'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final mark = find.byKey(const ValueKey('shared-mark-claim-settled'));
+      final save = find.byKey(const ValueKey('save-claim-log'));
+      expect(find.text('CLAIMS'), findsOneWidget);
+      expect(find.text('MARK SETTLED'), findsOneWidget);
+      expect(find.text('Settle on web'), findsNothing);
+
+      await tester.tap(mark);
+      await tester.pumpAndSettle();
+      expect(find.text('HOW WAS IT RESOLVED?'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(service.writes, isEmpty);
+
+      service.rejectWrite = true;
+      await tester.tap(mark);
+      await tester.pumpAndSettle();
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      expect(mark, findsOneWidget);
+      expect(
+        find.text('Couldn’t settle this claim. Try again.'),
+        findsOneWidget,
+      );
+
+      service.rejectWrite = false;
+      await tester.tap(mark);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('claim-log-text')),
+        'Replaced under warranty.',
+      );
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      expect(service.writes, [
+        ('account', 'repair', 'Replaced under warranty.'),
+      ]);
+      expect(session.vault!.claims.single.settled, DateTime.utc(2026, 11, 19));
+      expect(
+        session.vault!.claims.single.events.single.note,
+        'Replaced under warranty.',
+      );
+      expect(mark, findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 Future<void> _launchVault(WidgetTester tester, SharedSession session) async {
@@ -284,4 +381,68 @@ class _SignedOutAccount extends SharedAccount {
 class _UnusedClient implements SupabaseClient {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SignedInAccount extends _SignedOutAccount {
+  @override
+  User? get user => const User(
+    id: 'account',
+    appMetadata: {},
+    userMetadata: {},
+    aud: '',
+    createdAt: '',
+  );
+}
+
+class _DetailService extends SharedVaultService {
+  _DetailService() : super(_UnusedClient());
+
+  final writes = <(String, String, String)>[];
+  bool rejectWrite = false;
+  String? _outcome;
+
+  SharedVault get snapshot => SharedVault(
+    items: [
+      SharedItem.bill({
+        'id': 'earbuds',
+        'name': 'Wireless earbuds',
+        'store': 'Online order',
+        'created_at': '2026-11-10T00:00:00Z',
+        'purchased_on': '2026-11-10',
+        'return_days': 10,
+        'warranty_months': 12,
+      }),
+    ],
+    claims: [
+      SharedClaim.fromRow({
+        'id': 'repair',
+        'title': 'Laptop hinge repair',
+        'type': 'repair',
+        'state': _outcome == null ? 'no_reply' : 'settled',
+        'opened_on': '2026-11-04',
+        if (_outcome != null) ...{
+          'settled_on': '2026-11-19',
+          'claim_events': [
+            {
+              'title': 'Marked as settled',
+              'note': _outcome,
+              'occurred_on': '2026-11-19',
+              'created_at': '2026-11-19T00:00:00Z',
+            },
+          ],
+        },
+      }),
+    ],
+  );
+
+  @override
+  Future<SharedVault> fetch(String userId) async => snapshot;
+
+  @override
+  Future<DateTime> settleClaim(String userId, String id, String outcome) async {
+    if (rejectWrite) throw StateError('Could not settle claim');
+    writes.add((userId, id, outcome));
+    _outcome = outcome;
+    return DateTime.utc(2026, 11, 19);
+  }
 }

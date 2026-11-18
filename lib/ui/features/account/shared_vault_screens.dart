@@ -224,7 +224,10 @@ class SharedClaimScreen extends StatelessWidget {
             key: const ValueKey('shared-mark-claim-settled'),
             label: 'Mark settled',
             monospaced: true,
-            onPressed: session.loading || session.settlingClaim || session.savingReminders
+            onPressed:
+                session.loading ||
+                    session.settlingClaim ||
+                    session.savingReminders
                 ? null
                 : () => _markSettled(context, session, claim.id),
           ),
@@ -385,7 +388,9 @@ Future<void> _markSettled(
     if (context.mounted) {
       showPdSnackbar(
         context,
-        error is FormatException ? error.message : 'Couldn’t settle this claim. Try again.',
+        error is FormatException
+            ? error.message
+            : 'Couldn’t settle this claim. Try again.',
       );
     }
   }

@@ -125,7 +125,9 @@ class SharedSession extends ChangeNotifier {
     }
     final note = outcome.trim();
     if (note.runes.length > 2000) {
-      throw const FormatException('Keep the outcome to 2,000 characters or fewer.');
+      throw const FormatException(
+        'Keep the outcome to 2,000 characters or fewer.',
+      );
     }
 
     final generation = _accountGeneration;

@@ -89,7 +89,10 @@ class _GlyphPainter extends CustomPainter {
         canvas.drawCircle(const Offset(9, 17), 2, stroke);
       case PdGlyph.back:
         canvas.drawPath(
-          Path()..moveTo(15, 5)..lineTo(8, 12)..lineTo(15, 19),
+          Path()
+            ..moveTo(15, 5)
+            ..lineTo(8, 12)
+            ..lineTo(15, 19),
           stroke..strokeWidth = 2.2,
         );
       case PdGlyph.scan:

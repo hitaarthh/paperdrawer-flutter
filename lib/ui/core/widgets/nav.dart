@@ -155,7 +155,9 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Transform.flip(
-                                  flipX: Directionality.of(context) == TextDirection.rtl,
+                                  flipX:
+                                      Directionality.of(context) ==
+                                      TextDirection.rtl,
                                   child: PdIcon(
                                     PdGlyph.back,
                                     color: widget.backStyle?.color ?? Pd.lime,
