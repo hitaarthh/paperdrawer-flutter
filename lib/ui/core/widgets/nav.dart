@@ -181,8 +181,9 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                       return false;
                     }
                     final scrolled = notification.metrics.extentBefore > 0;
-                    if (scrolled != _scrolled)
+                    if (scrolled != _scrolled) {
                       setState(() => _scrolled = scrolled);
+                    }
                     return false;
                   },
                   child: ListView(
