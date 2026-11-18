@@ -91,7 +91,10 @@ final _policy = RegExp(
   r'\b(?:policy schedule|sum insured|premium|insurance)\b',
   caseSensitive: false,
 );
-final _bill = RegExp(r'\b(?:invoice|receipt|bill|inv\.?\s+[0-9])\b', caseSensitive: false);
+final _bill = RegExp(
+  r'\b(?:invoice|receipt|bill|inv\.?\s+[0-9])\b',
+  caseSensitive: false,
+);
 final _sourceLabel = RegExp(
   r'^(?:seller|sold by|store|insurer|issued by)\s*:\s*(.+)$',
   caseSensitive: false,

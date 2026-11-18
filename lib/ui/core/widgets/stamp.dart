@@ -7,6 +7,35 @@ import '../../../domain/item_status.dart';
 import '../theme/tokens.dart';
 import '../theme/type.dart';
 
+/// The decorative FILED stamp used in PaperDrawer's brand artwork.
+class PdFiledStamp extends StatelessWidget {
+  const PdFiledStamp({
+    this.paperOpacity = 0.55,
+    this.padding = const EdgeInsets.symmetric(horizontal: Pd.s2, vertical: 3),
+    super.key,
+  });
+
+  final double paperOpacity;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: Pd.paper.withValues(alpha: paperOpacity),
+      border: Border.all(color: Pd.stampCovered, width: 2),
+      borderRadius: BorderRadius.circular(Pd.rXs),
+    ),
+    child: Padding(
+      padding: padding,
+      child: Text(
+        'FILED',
+        softWrap: false,
+        style: PdType.stamp.copyWith(color: Pd.stampCovered),
+      ),
+    ),
+  );
+}
+
 class PdStamp extends StatefulWidget {
   const PdStamp(
     this.kind, {

@@ -124,6 +124,18 @@ To confirm installation from Terminal:
 xcrun devicectl device info apps --device "$PAPERDRAWER_IPHONE_ID" --bundle-id app.paperdrawer.mobile
 ```
 
+If Flutter prints `Lost connection to device` after `Installing and launching`,
+check whether the app is running directly on the iPhone:
+
+```sh
+xcrun devicectl device info processes --device "$PAPERDRAWER_IPHONE_ID" | rg 'Runner\.app/Runner'
+```
+
+A process with a path ending in `Runner.app/Runner` confirms the app is
+running. Open **Paper Drawer** from the Home Screen to reopen the profile
+build. If the process is absent, use the `devicectl device process launch`
+command above.
+
 ## 4. Sign in and check the data
 
 Clara’s account exists in the development Docker database.
@@ -199,3 +211,29 @@ copy, including a local Docker integration check for signing in, reading the
 seeded vault, and fetching a private original. The email-signup check also
 passed against the local inbox and web confirmation callback. Apple’s device
 tool confirmed that the profile build installed and launched on the real iPhone.
+
+### November 19, 2026 screen update
+
+This update used the existing Docker and Next.js services and the physical
+iPhone 16. After confirming the developer disk image and local endpoints, the
+updated source passed the analyzer and 72 tests. The suite included capture and
+review with fake camera and OCR services, Bill Detail at 130% text scale, the
+SQLite upgrade, and read access to the local shared vault.
+
+```sh
+xcrun devicectl device info ddiServices --device "$PAPERDRAWER_IPHONE_ID"
+curl -fsS -o /dev/null http://127.0.0.1:54321/auth/v1/health
+curl -fsS -o /dev/null http://127.0.0.1:3000/signin
+flutter analyze --no-pub
+flutter test --no-pub --reporter expanded
+export PAPERDRAWER_LAN_HOST="$(ipconfig getifaddr en0)"
+python3 tool/run_shared_local.py --profile --lan-host "$PAPERDRAWER_LAN_HOST" -d "$PAPERDRAWER_IPHONE_ID" --no-pub --no-resident
+xcrun devicectl device info apps --device "$PAPERDRAWER_IPHONE_ID" --bundle-id app.paperdrawer.mobile
+xcrun devicectl device info processes --device "$PAPERDRAWER_IPHONE_ID" | rg 'Runner\.app/Runner'
+```
+
+The `--no-pub` commands use the dependencies already installed in the build
+copy. Run `flutter pub get` before them if you are starting from a fresh copy.
+On-device Camera, Reading, Review, and Just Added belong to the device-only
+build. In the shared-vault build, **Scan or add** opens the web flow for adding
+records to the same Supabase vault.

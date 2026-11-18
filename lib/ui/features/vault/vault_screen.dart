@@ -189,7 +189,10 @@ class _VaultViewState extends State<_VaultView> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             spacing: Pd.s3,
                             children: [
-                              Text('JUST ADDED', style: PdType.label.copyWith(color: Pd.lime)),
+                              Text(
+                                'JUST ADDED',
+                                style: PdType.label.copyWith(color: Pd.lime),
+                              ),
                               _card(model, recent),
                             ],
                           ),
@@ -222,7 +225,9 @@ class _VaultViewState extends State<_VaultView> {
         ? model.tickets
         : const <VaultTicketData>[];
     final recent = model.justAdded?.item.id;
-    final visible = model.visible.where((item) => item.item.id != recent).toList();
+    final visible = model.visible
+        .where((item) => item.item.id != recent)
+        .toList();
     return [
       _inset(
         VaultSearchField(

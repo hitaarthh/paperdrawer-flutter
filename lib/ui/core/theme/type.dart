@@ -66,6 +66,9 @@ abstract final class PdType {
   /// The PaperDrawer wordmark beside the mark in [PdBrandBar].
   static final wordmark = _display(20, 24, 700, -0.03);
 
+  static final openingWordmark = _display(34, 40, 700, -0.04);
+  static final openingTicketTitle = _display(19, 20.9, 700, -0.02);
+
   // Text (Inter)
   static final body = _sans(16, 24, 400);
   static final bodyStrong = _sans(16, 24, 600);
@@ -90,6 +93,8 @@ abstract final class PdType {
   /// Stamps: label type at +0.12em.
   static final stamp = _mono(11, 14, 700, 0.12);
   static final compactStamp = _mono(10, 12, 700, 0.12);
+  static final openingTicketNumber = _mono(10, 13, 700, 0.1);
+  static final openingTagline = _mono(11, 14, 700, 0.14);
 }
 
 /// True at accessibility text sizes: receipts stack their rows and the stamp

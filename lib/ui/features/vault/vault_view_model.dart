@@ -40,9 +40,9 @@ class VaultViewModel extends ChangeNotifier {
   String get query => _query;
   int get activeCount => _summaries.length;
   bool get atLimit => _items.atLimit;
-  ItemSummary? get justAdded => _summaries.where(
-    (summary) => summary.item.id == _justAddedId,
-  ).firstOrNull;
+  ItemSummary? get justAdded => _summaries
+      .where((summary) => summary.item.id == _justAddedId)
+      .firstOrNull;
 
   /// "010 ITEMS · 4 DUE SOON · 3 OPEN CLAIMS", over the hero title.
   String get kicker {

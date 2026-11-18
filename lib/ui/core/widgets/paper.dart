@@ -2,6 +2,99 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/tokens.dart';
 
+/// The design's one-point dot on a four-point grid.
+class PaperGrain extends CustomPainter {
+  const PaperGrain();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final dot = Paint()..color = Pd.hairline.withValues(alpha: 0.035);
+    for (double y = 2; y < size.height; y += Pd.s1) {
+      for (double x = 2; x < size.width; x += Pd.s1) {
+        canvas.drawCircle(Offset(x, y), 0.5, dot);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(PaperGrain oldDelegate) => false;
+}
+
+/// Paper with side notches and a dashed perforation at the stub.
+class NotchedTicketPaper extends StatelessWidget {
+  const NotchedTicketPaper({
+    required this.stubWidth,
+    required this.child,
+    this.fill = Pd.paper,
+    this.perforationAlpha = 0.25,
+    super.key,
+  });
+
+  final double stubWidth;
+  final Widget child;
+  final Color fill;
+  final double perforationAlpha;
+
+  @override
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: CustomPaint(
+      painter: _NotchedTicketPainter(
+        fill: fill,
+        perforation: Pd.ink.withValues(alpha: perforationAlpha),
+        stubWidth: stubWidth,
+      ),
+      child: child,
+    ),
+  );
+}
+
+class _NotchedTicketPainter extends CustomPainter {
+  const _NotchedTicketPainter({
+    required this.fill,
+    required this.perforation,
+    required this.stubWidth,
+  });
+
+  final Color fill;
+  final Color perforation;
+  final double stubWidth;
+
+  static const _notchRadius = 10.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final middle = size.height / 2;
+    final ticket = Path.combine(
+      PathOperation.difference,
+      Path()..addRRect(
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(Pd.rSm)),
+      ),
+      Path()
+        ..addOval(Rect.fromCircle(center: Offset(0, middle), radius: _notchRadius))
+        ..addOval(
+          Rect.fromCircle(center: Offset(size.width, middle), radius: _notchRadius),
+        ),
+    );
+    canvas.drawPath(ticket, Paint()..color = fill);
+    final dash = Paint()
+      ..color = perforation
+      ..strokeWidth = 2;
+    for (double y = 0; y < size.height; y += Pd.s2) {
+      canvas.drawLine(
+        Offset(stubWidth, y),
+        Offset(stubWidth, (y + Pd.s1).clamp(0, size.height)),
+        dash,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_NotchedTicketPainter oldDelegate) =>
+      oldDelegate.fill != fill ||
+      oldDelegate.perforation != perforation ||
+      oldDelegate.stubWidth != stubWidth;
+}
+
 class ReceiptPaper extends StatelessWidget {
   const ReceiptPaper({
     required this.child,
