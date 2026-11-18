@@ -77,7 +77,7 @@ class _AppOpeningState<T extends Object> extends State<AppOpening<T>>
     alignment: Alignment.topLeft,
     fit: StackFit.expand,
     children: [
-      if (current != null) current,
+      ?current,
       for (final child in previous)
         IgnorePointer(child: ExcludeSemantics(child: child)),
     ],
