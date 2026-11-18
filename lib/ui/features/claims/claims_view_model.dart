@@ -16,7 +16,9 @@ class ClaimsViewModel extends ChangeNotifier {
   final Today _today;
 
   ClaimsListData get list => ClaimsListData(
-    _repository.claims.map((claim) => ClaimListEntry.local(claim, _today.value)),
+    _repository.claims.map(
+      (claim) => ClaimListEntry.local(claim, _today.value),
+    ),
   );
 
   @override

@@ -133,9 +133,14 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         _inset(
                           VaultEmpty(
                             shared: true,
-                            onScan: () => openSharedAdd(context, session, ItemKind.bill),
-                            onStart: (kind) =>
-                                openSharedAdd(context, session, kind, manual: true),
+                            onScan: () =>
+                                openSharedAdd(context, session, ItemKind.bill),
+                            onStart: (kind) => openSharedAdd(
+                              context,
+                              session,
+                              kind,
+                              manual: true,
+                            ),
                           ),
                         ),
                       if (vault != null && summaries.isNotEmpty)

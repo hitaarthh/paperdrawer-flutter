@@ -109,7 +109,7 @@ void main() {
       await _tap(tester, 'claims-tab');
       expect(_key('claim-row-claim-1'), findsOneWidget);
       expect(find.widgetWithText(PdStamp, 'NO REPLY'), findsOneWidget);
-      await _tap(tester, 'claim-row-claim-1');
+      await _tap(tester, 'claim-featured-claim-1');
       expect(find.text('Family health policy insurance claim'), findsOneWidget);
       expect(find.textContaining('YOU ARE HERE'), findsOneWidget);
       await _tap(tester, 'settings-tab');
@@ -121,6 +121,60 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('Claims filters and scan work at 130% text scale', (
+    tester,
+  ) async {
+    Claim claim(String id, String name, int age, {int? settledDaysAgo}) {
+      final opened = addDays(_today, -age);
+      return Claim(
+        id: id,
+        itemLabel: name,
+        type: ClaimType.repair,
+        want: ClaimWant.repair,
+        problem: 'It stopped working.',
+        openedOn: opened,
+        stepSince: opened,
+        step: 0,
+        settledOn: settledDaysAgo == null
+            ? null
+            : addDays(_today, -settledDaysAgo),
+      );
+    }
+
+    final claims = _Claims([
+      claim('waiting', 'Mixer', 4),
+      claim('settled', 'Headphones', 12, settledDaysAgo: 2),
+      claim('late', 'Laptop with a very long model name and a loose hinge', 14),
+    ]);
+    await _launch(tester, _Items([]), claims: claims, scale: 1.3);
+    await _tap(tester, 'claims-tab');
+    expect(find.text('2 OPEN · 1 SETTLED · 1 NEEDS YOU'), findsOneWidget);
+    expect(_key('claim-featured-late'), findsOneWidget);
+    expect(_key('claim-row-settled'), findsNothing);
+    expect(
+      tester.getTopLeft(_key('claim-row-late')).dy,
+      lessThan(tester.getTopLeft(_key('claim-row-waiting')).dy),
+    );
+
+    await _tap(tester, 'claim-settled-filter');
+    expect(_key('claim-row-late'), findsNothing);
+    expect(find.text('Settled on 16 Nov'), findsOneWidget);
+    await _tap(tester, 'claim-all-filter');
+    await tester.scrollUntilVisible(
+      _key('claim-row-settled'),
+      180,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    expect(_key('claim-row-settled'), findsOneWidget);
+    await _tap(tester, 'claims-scan');
+    expect(find.text('What are you adding?'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Finder _key(String key) => find.byKey(ValueKey(key));

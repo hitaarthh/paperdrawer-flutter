@@ -111,10 +111,11 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
               child: Text(
                 widget.compactLabel ?? widget.label ?? widget.kind.word,
                 textAlign: TextAlign.center,
-                style: (widget.compactLabel == null
-                        ? PdType.stamp
-                        : PdType.compactStamp)
-                    .copyWith(color: color),
+                style:
+                    (widget.compactLabel == null
+                            ? PdType.stamp
+                            : PdType.compactStamp)
+                        .copyWith(color: color),
               ),
             ),
           ),

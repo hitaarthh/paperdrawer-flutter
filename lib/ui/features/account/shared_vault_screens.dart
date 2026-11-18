@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../../data/services/drawer_actions.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
 import '../../../domain/models/shared_vault.dart';
@@ -17,7 +18,9 @@ import '../../core/widgets/list_row.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/paper.dart';
 import '../../core/widgets/snackbar.dart';
+import '../../core/widgets/vault_ticket.dart';
 import '../add/shared_add_flow.dart';
+import '../claims/claim_detail_sections.dart';
 import '../claims/claims_list_data.dart';
 import '../claims/claims_overview.dart';
 import '../item/item_detail_sections.dart';
@@ -192,27 +195,119 @@ class SharedClaimScreen extends StatelessWidget {
     if (claim == null) {
       return _missing(context, session, 'Claims', '/claims');
     }
+    final today = session.today.value;
+    final entry = ClaimListEntry.shared(claim, today);
+    final open = entry.status.isOpen;
+    final next = claim.nextStep;
+    final step = claim.step.clamp(0, claim.ladderTitles.length - 1);
+    final mail = claim.draft;
+    const actions = DrawerActions();
     return PdPushedScaffold(
       backLabel: 'Claims',
       onBack: () => context.canPop() ? context.pop() : context.go('/claims'),
       title: claim.title,
-      kicker: claim.statusLabel.toUpperCase(),
+      kicker:
+          '${entry.metadata} · ${entry.status.label} · OPENED ${shortDate(claim.opened).toUpperCase()}',
+      actions: [
+        PdButton.text(
+          label: open ? 'Settle on web' : 'Manage on web',
+          onPressed: () => _open(context, session, claim.webPath),
+        ),
+      ],
       children: [
-        if (claim.itemLabel.isNotEmpty)
-          Text(claim.itemLabel, style: PdType.bodyStrong),
-        const SizedBox(height: Pd.s2),
-        Text(claim.problem, style: PdType.body),
-        const SizedBox(height: Pd.s5),
-        _Details([
-          ('Opened', longDate(claim.opened)),
-          if (claim.settled case final settled?) ('Settled', longDate(settled)),
-          ...claim.facts,
-        ]),
-        _Originals(claim.originals, session),
-        if (claim.events.isNotEmpty) ...[
+        if (open) ...[
+          VaultTicket(
+            number: entry.waitDays.toString().padLeft(2, '0'),
+            unit: entry.waitDays == 1 ? 'DAY' : 'DAYS',
+            kicker:
+                'STEP ${step + 1} OF ${claim.ladderTitles.length} · ${entry.status.label}',
+            title: next?.$1 ?? claim.ladderTitles[step],
+            body: next?.$2 ?? entry.next,
+            tone: entry.status.needsAction
+                ? VaultTicketTone.lime
+                : VaultTicketTone.paper,
+            semanticLabel:
+                '${entry.waitDays} days since the last reply or the opening date. ${next?.$1 ?? entry.next}',
+          ),
           const SizedBox(height: Pd.s5),
+        ],
+        if (open && mail != null) ...[
+          Text('Your next message', style: PdType.title2),
+          const SizedBox(height: Pd.s3),
+          ClaimDraftCard(message: mail),
+          const SizedBox(height: Pd.s2),
+          Wrap(
+            spacing: Pd.s2,
+            runSpacing: Pd.s2,
+            children: [
+              PdButton.secondary(
+                label: 'Copy message',
+                icon: const Icon(LucideIcons.copy),
+                onPressed: () => _draftAction(
+                  context,
+                  () => actions.copyText(mail.full),
+                  failure: 'Couldn’t copy this message.',
+                  success: 'Message copied',
+                ),
+              ),
+              PdButton.secondary(
+                label: 'Open mail',
+                icon: const Icon(LucideIcons.mail),
+                onPressed: () => _draftAction(
+                  context,
+                  () => actions.openLink(mail.mailto),
+                  failure:
+                      'Your mail app couldn’t open. You can copy the message.',
+                ),
+              ),
+              Builder(
+                builder: (anchor) => PdButton.secondary(
+                  label: 'Share',
+                  icon: const Icon(LucideIcons.share2),
+                  onPressed: () => _draftAction(
+                    context,
+                    () => actions.shareText(
+                      mail.full,
+                      origin: _shareOrigin(anchor),
+                    ),
+                    failure: 'Couldn’t share this message.',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Pd.s5),
+        ],
+        Text('Claim steps', style: PdType.title2),
+        const SizedBox(height: Pd.s3),
+        PdListGroup(
+          children: [
+            for (final (index, title) in claim.ladderTitles.indexed)
+              PdListRow(
+                title: '${index + 1}. $title',
+                value: index == step && open ? 'You are here' : null,
+                actionIcon: index < step || index == step && !open
+                    ? LucideIcons.check
+                    : null,
+              ),
+          ],
+        ),
+        const SizedBox(height: Pd.s6),
+        Row(
+          children: [
+            Expanded(child: Text('Claim log', style: PdType.title2)),
+            Flexible(
+              child: PdButton.text(
+                label: 'Log an update on web',
+                onPressed: () => _open(context, session, claim.webPath),
+              ),
+            ),
+          ],
+        ),
+        if (claim.events.isEmpty)
+          Text('Updates will appear here.', style: PdType.callout)
+        else
           PdListGroup(
-            header: 'Activity',
             children: [
               for (final event in claim.events)
                 Padding(
@@ -221,7 +316,10 @@ class SharedClaimScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: Pd.s1,
                     children: [
-                      Text(monoDate(event.date), style: PdType.label),
+                      Text(
+                        monoDate(event.date),
+                        style: PdType.label.copyWith(color: Pd.textMuted),
+                      ),
                       Text(event.title, style: PdType.bodyStrong),
                       if (event.note.isNotEmpty)
                         Text(event.note, style: PdType.callout),
@@ -230,14 +328,44 @@ class SharedClaimScreen extends StatelessWidget {
                 ),
             ],
           ),
-        ],
+        _Originals(claim.originals, session),
         const SizedBox(height: Pd.s5),
-        PdButton.secondary(
-          label: 'Manage claim on web',
-          onPressed: () => _open(context, session, claim.webPath),
-        ),
+        if (claim.problem.isNotEmpty) ...[
+          Text('What happened', style: PdType.title2),
+          const SizedBox(height: Pd.s2),
+          Text(claim.problem, style: PdType.body),
+          const SizedBox(height: Pd.s3),
+        ],
+        _Details([
+          ('Opened', longDate(claim.opened)),
+          if (claim.settled case final settled?) ('Settled', longDate(settled)),
+          ...claim.facts,
+        ]),
       ],
     );
+  }
+}
+
+Rect? _shareOrigin(BuildContext anchor) {
+  final box = anchor.findRenderObject();
+  return box is RenderBox && box.hasSize
+      ? box.localToGlobal(Offset.zero) & box.size
+      : null;
+}
+
+Future<void> _draftAction(
+  BuildContext context,
+  Future<void> Function() action, {
+  required String failure,
+  String? success,
+}) async {
+  try {
+    await action();
+    if (context.mounted && success != null) {
+      showPdSnackbar(context, success, success: true);
+    }
+  } catch (_) {
+    if (context.mounted) showPdSnackbar(context, failure);
   }
 }
 
@@ -285,8 +413,9 @@ class _SharedItemOriginalState extends State<_SharedItemOriginal> {
     try {
       await action();
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         showPdSnackbar(context, 'Couldn’t load this original. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

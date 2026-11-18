@@ -56,10 +56,14 @@ class _ReadingScreenState extends State<ReadingScreen> {
         try {
           pages[file.path] = await recognizer.recognize(file.path);
           if (!mounted || _leaving) return;
-          setState(() => _reading = readBill(
-            widget.files.expand((file) => pages[file.path] ?? const <String>[]).toList(),
-            today: today,
-          ));
+          setState(
+            () => _reading = readBill(
+              widget.files
+                  .expand((file) => pages[file.path] ?? const <String>[])
+                  .toList(),
+              today: today,
+            ),
+          );
         } catch (_) {
           // An unreadable original still belongs in the drawer.
         }
@@ -119,13 +123,29 @@ class _ReadingScreenState extends State<ReadingScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, Pd.s4),
+                padding: const EdgeInsets.fromLTRB(
+                  Pd.margin,
+                  Pd.s2,
+                  Pd.margin,
+                  Pd.s4,
+                ),
                 child: Flex(
-                  direction: isLargeText(context) ? Axis.vertical : Axis.horizontal,
+                  direction: isLargeText(context)
+                      ? Axis.vertical
+                      : Axis.horizontal,
                   spacing: Pd.s2,
                   children: isLargeText(context)
-                      ? _actions().map((button) => SizedBox(width: double.infinity, child: button)).toList()
-                      : _actions().map((button) => Expanded(child: button)).toList(),
+                      ? _actions()
+                            .map(
+                              (button) => SizedBox(
+                                width: double.infinity,
+                                child: button,
+                              ),
+                            )
+                            .toList()
+                      : _actions()
+                            .map((button) => Expanded(child: button))
+                            .toList(),
                 ),
               ),
             ],
@@ -158,7 +178,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          original == null ? header : '$header · ${original.name.toUpperCase()}',
+          original == null
+              ? header
+              : '$header · ${original.name.toUpperCase()}',
           style: PdType.label.copyWith(color: Pd.textMuted),
         ),
         const SizedBox(height: Pd.s4),
@@ -173,10 +195,23 @@ class _ReadingScreenState extends State<ReadingScreen> {
         ),
         const SizedBox(height: Pd.s4),
         _ReadingRow('Store', reading?.source),
-        _ReadingRow('Date', reading?.startsOn == null ? null : monoDate(reading!.startsOn!)),
+        _ReadingRow(
+          'Date',
+          reading?.startsOn == null ? null : monoDate(reading!.startsOn!),
+        ),
         _ReadingRow('Product', reading?.name),
-        _ReadingRow('Total', reading?.amountMinor == null ? null : money(reading!.amountMinor!, 'INR')),
-        _ReadingRow('Warranty', reading?.warrantyMonths == null ? null : monthsLabel(reading!.warrantyMonths!)),
+        _ReadingRow(
+          'Total',
+          reading?.amountMinor == null
+              ? null
+              : money(reading!.amountMinor!, 'INR'),
+        ),
+        _ReadingRow(
+          'Warranty',
+          reading?.warrantyMonths == null
+              ? null
+              : monthsLabel(reading!.warrantyMonths!),
+        ),
         _ReadingRow('Reference', reading?.reference),
         _ReadingRow('Serial no.', reading?.serialNumber),
         const SizedBox(height: Pd.s4),
@@ -196,7 +231,10 @@ class _ReadingPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = (MediaQuery.sizeOf(context).height * 0.29).clamp(Pd.s12 * 3, Pd.s12 * 6);
+    final height = (MediaQuery.sizeOf(context).height * 0.29).clamp(
+      Pd.s12 * 3,
+      Pd.s12 * 6,
+    );
     final fallback = Center(
       child: Icon(LucideIcons.fileText, size: Pd.s10, color: Pd.inkMuted),
     );
@@ -226,10 +264,8 @@ class _ReadingPreview extends StatelessWidget {
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: -1, end: 1),
                 duration: _ReadingScreenState._readingBudget,
-                builder: (context, y, child) => Align(
-                  alignment: Alignment(0, y),
-                  child: child,
-                ),
+                builder: (context, y, child) =>
+                    Align(alignment: Alignment(0, y), child: child),
                 child: const ColoredBox(
                   color: Pd.lime,
                   child: SizedBox(height: 2, width: double.infinity),
@@ -252,7 +288,9 @@ class _ReadingRow extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     constraints: const BoxConstraints(minHeight: Pd.s8 + Pd.s1),
     padding: const EdgeInsets.symmetric(vertical: Pd.s2),
-    decoration: const BoxDecoration(border: Border(top: BorderSide(color: Pd.hairline))),
+    decoration: const BoxDecoration(
+      border: Border(top: BorderSide(color: Pd.hairline)),
+    ),
     child: Row(
       spacing: Pd.s3,
       children: [
@@ -263,7 +301,10 @@ class _ReadingRow extends StatelessWidget {
         ),
         Expanded(
           flex: 2,
-          child: Text(label.toUpperCase(), style: PdType.label.copyWith(color: Pd.textMuted)),
+          child: Text(
+            label.toUpperCase(),
+            style: PdType.label.copyWith(color: Pd.textMuted),
+          ),
         ),
         Expanded(flex: 4, child: Text(value ?? '—', style: PdType.data)),
       ],

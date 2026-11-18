@@ -37,7 +37,9 @@ class ClaimsListData {
       )
       .toList(growable: false);
 
-  late final int openCount = _claims.where((claim) => claim.status.isOpen).length;
+  late final int openCount = _claims
+      .where((claim) => claim.status.isOpen)
+      .length;
   int get settledCount => _claims.length - openCount;
 
   int count(ClaimsFilter filter) => switch (filter) {
@@ -46,7 +48,8 @@ class ClaimsListData {
     ClaimsFilter.all => _claims.length,
   };
 
-  int get needsAction => _claims.where((claim) => claim.status.needsAction).length;
+  int get needsAction =>
+      _claims.where((claim) => claim.status.needsAction).length;
 
   ClaimListEntry? get featured =>
       _claims.where((claim) => claim.status.needsAction).firstOrNull;
@@ -100,7 +103,8 @@ class ClaimListEntry {
       step: _stepLabel(claim.step, steps.length, current),
       next: switch (status) {
         ClaimListStatus.settled => 'Settled on ${shortDate(claim.settledOn!)}',
-        ClaimListStatus.noReply when nextStep != null => 'Next: $nextStep',
+        ClaimListStatus.noReply when nextStep != null =>
+          'Next: ${steps[claim.step + 1].guidance}',
         _ when claim.nudgeDays <= 0 || status.needsAction =>
           'Next: Follow up with ${current.toLowerCase()}',
         _ => 'Follow up on ${shortDate(claim.nudgeOn)}',
@@ -122,9 +126,8 @@ class ClaimListEntry {
     };
     final lastReply = claim.lastHeard ?? claim.opened;
     final type = ClaimType.values.asNameMap()[claim.type];
-    final current = claim.step == 0 && type != null
-        ? firstRungTitle(type)
-        : null;
+    final steps = claim.ladderTitles;
+    final step = claim.step.clamp(0, steps.length - 1);
     final next = claim.nextStep?.$1;
     return ClaimListEntry._(
       id: claim.id,
@@ -133,7 +136,7 @@ class ClaimListEntry {
         type?.caps ?? 'OTHER CLAIM',
         if (claim.itemLabel.isNotEmpty) claim.itemLabel,
       ].join(' · '),
-      step: _stepLabel(claim.step.clamp(0, 3), 4, current),
+      step: _stepLabel(step, steps.length, steps[step]),
       next: switch (status) {
         ClaimListStatus.settled when claim.settled != null =>
           'Settled on ${shortDate(claim.settled!)}',
@@ -171,9 +174,10 @@ class ClaimListEntry {
   };
 
   String get ticketBody => switch (status) {
-    ClaimListStatus.documents => 'They asked for documents. $next.',
-    _ => 'No reply in ${daysWord(waitDays)}. '
-        '${hasDraft ? 'Your draft is ready.' : 'Open the claim to see what comes next.'}',
+    ClaimListStatus.documents => 'They asked for documents. $next',
+    _ =>
+      'No reply in ${daysWord(waitDays)}. '
+          '${hasDraft ? 'Your draft is ready.' : 'Open the claim to see what comes next.'}',
   };
 
   static String _stepLabel(int step, int total, String? current) =>

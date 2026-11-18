@@ -24,7 +24,8 @@ List<(String, String)> itemRecord(ItemSummary summary) {
   return [
     if (draft.amountMinor case final amount?)
       (draft.kind.amountLabel, money(amount, draft.currency)),
-    if (draft.reference.isNotEmpty) (draft.kind.referenceLabel, draft.reference),
+    if (draft.reference.isNotEmpty)
+      (draft.kind.referenceLabel, draft.reference),
     if (draft.source.isNotEmpty) (draft.kind.sourceLabel, draft.source),
     if (draft.serialNumber.isNotEmpty) ('SERIAL NUMBER', draft.serialNumber),
   ];
@@ -40,14 +41,19 @@ class ItemReturnTicket extends StatelessWidget {
     final window = summary.windows
         .where((window) => window.type == WindowType.returnWindow)
         .firstOrNull;
-    if (window == null || summary.item.isArchived) return const SizedBox.shrink();
+    if (window == null || summary.item.isArchived)
+      return const SizedBox.shrink();
     final left = window.daysLeft(summary.today);
     if (left < 0 || left > ticketWithinDays) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: Pd.s5),
       child: VaultTicket(
         number: left == 0 ? 'TODAY' : left.toString().padLeft(2, '0'),
-        unit: left == 0 ? null : left == 1 ? 'DAY' : 'DAYS',
+        unit: left == 0
+            ? null
+            : left == 1
+            ? 'DAY'
+            : 'DAYS',
         kicker: window.ticketKicker,
         title: 'Return by ${shortDate(window.end)}',
         body: 'Keep your original handy if you need to make a return.',
@@ -75,7 +81,11 @@ class ItemCoverage extends StatelessWidget {
           Text('Coverage', style: PdType.title2),
           for (final window in summary.windows)
             DocumentPaper(
-              child: PdMeter(window: window, today: summary.today, onPaper: true),
+              child: PdMeter(
+                window: window,
+                today: summary.today,
+                onPaper: true,
+              ),
             ),
         ],
       ),
@@ -84,7 +94,11 @@ class ItemCoverage extends StatelessWidget {
 }
 
 class ItemClaimKit extends StatelessWidget {
-  const ItemClaimKit({required this.description, required this.actions, super.key});
+  const ItemClaimKit({
+    required this.description,
+    required this.actions,
+    super.key,
+  });
 
   final String description;
   final List<Widget> actions;
@@ -104,7 +118,10 @@ class ItemClaimKit extends StatelessWidget {
         spacing: Pd.s3,
         children: [
           Text('Claim kit', style: PdType.title2),
-          Text(description, style: PdType.callout.copyWith(color: Pd.textMuted)),
+          Text(
+            description,
+            style: PdType.callout.copyWith(color: Pd.textMuted),
+          ),
           Wrap(spacing: Pd.s2, runSpacing: Pd.s2, children: actions),
         ],
       ),
@@ -123,7 +140,8 @@ class ItemRecord extends StatelessWidget {
       : PdListGroup(
           header: 'On record',
           children: [
-            for (final (label, value) in rows) PdListRow(title: label, value: value),
+            for (final (label, value) in rows)
+              PdListRow(title: label, value: value),
           ],
         );
 }

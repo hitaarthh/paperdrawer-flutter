@@ -149,7 +149,6 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                                 SharedReminderSettings(
                                   profile: profile,
                                   email: session.email,
-                                  failed: session.failed,
                                   loading: session.loading,
                                   onLeadChanged: canEditReminders
                                       ? (days) => _saveReminders(

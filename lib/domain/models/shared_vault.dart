@@ -164,6 +164,15 @@ class SharedClaim {
     _ => 'Waiting',
   };
 
+  // Labels follow the web vault's claim stages, which can differ from the
+  // on-device drawer's escalation guidance.
+  List<String> get ladderTitles => switch (type) {
+    'repair' => const ['Brand support', 'Customer relations', 'Consumer protection', 'Small claims court'],
+    'refund' => const ['Seller support', 'Escalate with the seller', 'Card dispute', 'Small claims court'],
+    'insurance' => const ['Insurer claims team', 'Internal appeal', 'State insurance department', 'External review'],
+    _ => const ['Ask the company', 'Escalate inside', 'Regulator or agency', 'Formal complaint'],
+  };
+
   bool get needsAction => state == 'no_reply' || state == 'docs_asked';
   int day(DateTime today) =>
       daysBetween(opened, settled ?? today).clamp(0, 1 << 30);

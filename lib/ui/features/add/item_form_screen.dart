@@ -216,7 +216,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               : 'NEW ${form.kind.chip} · ${form.reviewedFieldCount} OF 7 FIELDS READ',
           title: widget.id != null
               ? 'Edit details'
-              : original == null ? 'Check the details' : 'Check what we read',
+              : original == null
+              ? 'Check the details'
+              : 'Check what we read',
           bottom: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -255,7 +257,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                   'Check the fields marked Read from bill. Add details we couldn’t read.',
                   style: PdType.callout.copyWith(color: Pd.textMuted),
                 ),
-              )
+              ),
             ],
             PdTextField(
               fieldKey: const ValueKey('item-name'),
@@ -321,7 +323,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                 fieldKey: const ValueKey('item-serial-number'),
                 label: 'Serial no.',
                 hint: 'Optional',
-                help: original != null && !form.readFields.contains(ReadField.serialNumber)
+                help:
+                    original != null &&
+                        !form.readFields.contains(ReadField.serialNumber)
                     ? 'Couldn’t read the serial number from the original.'
                     : null,
                 controller: _serial,

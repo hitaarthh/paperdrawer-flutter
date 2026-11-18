@@ -165,7 +165,9 @@ class _ItemDetailView extends StatelessWidget {
       actions: [
         PdButton.text(
           label: 'Edit',
-          onPressed: model.busy ? null : () => context.push(Routes.edit(item.id)),
+          onPressed: model.busy
+              ? null
+              : () => context.push(Routes.edit(item.id)),
         ),
         PdNavIcon(
           key: const ValueKey('item-actions'),
@@ -184,7 +186,9 @@ class _ItemDetailView extends StatelessWidget {
             attachment: original,
             thumbnail: model.thumbnail,
             featured: true,
-            onOpen: model.busy ? null : () => _perform(context, model, model.open(original)),
+            onOpen: model.busy
+                ? null
+                : () => _perform(context, model, model.open(original)),
           ),
           Wrap(
             spacing: Pd.s2,
@@ -192,15 +196,21 @@ class _ItemDetailView extends StatelessWidget {
             children: [
               PdButton.secondary(
                 label: 'Open full size',
-                onPressed: model.busy ? null : () => _perform(context, model, model.open(original)),
+                onPressed: model.busy
+                    ? null
+                    : () => _perform(context, model, model.open(original)),
               ),
               Builder(
                 builder: (anchor) => PdButton.secondary(
                   key: const ValueKey('item-share'),
                   label: 'Share originals',
-                  onPressed: model.busy ? null : () => _perform(
-                    context, model, model.shareOriginals(item, _origin(anchor)),
-                  ),
+                  onPressed: model.busy
+                      ? null
+                      : () => _perform(
+                          context,
+                          model,
+                          model.shareOriginals(item, _origin(anchor)),
+                        ),
                 ),
               ),
             ],
@@ -210,7 +220,9 @@ class _ItemDetailView extends StatelessWidget {
               key: ValueKey('attachment-${attachment.id}'),
               title: attachment.name,
               chevron: true,
-              onTap: model.busy ? null : () => _perform(context, model, model.open(attachment)),
+              onTap: model.busy
+                  ? null
+                  : () => _perform(context, model, model.open(attachment)),
             ),
           const SizedBox(height: Pd.s6),
         ],
@@ -224,29 +236,40 @@ class _ItemDetailView extends StatelessWidget {
               PdButton.primary(
                 key: const ValueKey('item-claim'),
                 label: claim == null ? 'Start a claim' : 'View claim',
-                onPressed: model.busy ? null : () {
-                  if (claim != null) {
-                    context.go(Routes.claim(claim.id));
-                  } else {
-                    context.push(Routes.startClaim(item.id));
-                  }
-                },
+                onPressed: model.busy
+                    ? null
+                    : () {
+                        if (claim != null) {
+                          context.go(Routes.claim(claim.id));
+                        } else {
+                          context.push(Routes.startClaim(item.id));
+                        }
+                      },
               )
             else
               PdButton.primary(
                 key: const ValueKey('item-restore'),
                 label: 'Restore to vault',
-                onPressed: model.busy ? null : () => _perform(
-                  context, model, model.archive(false), success: 'Restored to vault',
-                ),
+                onPressed: model.busy
+                    ? null
+                    : () => _perform(
+                        context,
+                        model,
+                        model.archive(false),
+                        success: 'Restored to vault',
+                      ),
               ),
             Builder(
               builder: (anchor) => PdButton.secondary(
                 key: const ValueKey('item-export-kit'),
                 label: 'Share kit',
-                onPressed: model.busy ? null : () => _perform(
-                  context, model, model.exportKit(item, _origin(anchor)),
-                ),
+                onPressed: model.busy
+                    ? null
+                    : () => _perform(
+                        context,
+                        model,
+                        model.exportKit(item, _origin(anchor)),
+                      ),
               ),
             ),
           ],

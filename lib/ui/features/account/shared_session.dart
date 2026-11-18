@@ -14,7 +14,8 @@ import '../../../domain/models/shared_profile.dart';
 import '../../../domain/models/shared_vault.dart';
 
 class SharedSession extends ChangeNotifier {
-  SharedSession(this.account) : _service = SharedVaultService(account.client) {
+  SharedSession(this.account, {SharedVaultService? service})
+    : _service = service ?? SharedVaultService(account.client) {
     _subscription = account.changes.listen(
       (_) => _onAccount(),
       onError: (Object _, StackTrace _) => _onAccount(),
@@ -69,12 +70,16 @@ class SharedSession extends ChangeNotifier {
   Future<void> updateReminders({int? leadDays, bool? emailReminders}) async {
     final owner = _userId;
     final snapshot = vault;
+    final current = snapshot?.profile;
     if (owner == null ||
+        snapshot == null ||
+        current == null ||
         loading ||
-        savingReminders ||
-        snapshot?.profile == null) {
+        savingReminders) {
       return;
     }
+    if (leadDays == current.leadDays) leadDays = null;
+    if (emailReminders == current.emailReminders) emailReminders = null;
     if (leadDays == null && emailReminders == null) return;
     if (leadDays != null && !SharedProfile.leadDayChoices.contains(leadDays)) {
       throw ArgumentError.value(leadDays, 'leadDays');
@@ -90,7 +95,7 @@ class SharedSession extends ChangeNotifier {
       );
       if (_isCurrent(generation)) {
         vault = SharedVault(
-          items: snapshot!.items,
+          items: snapshot.items,
           claims: snapshot.claims,
           profile: profile,
         );

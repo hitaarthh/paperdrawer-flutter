@@ -120,7 +120,12 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
               top: Pd.s3,
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s6, Pd.margin, 0),
+              padding: const EdgeInsets.fromLTRB(
+                Pd.margin,
+                Pd.s6,
+                Pd.margin,
+                0,
+              ),
               sliver: SliverList.builder(
                 itemCount: visible.length,
                 itemBuilder: (context, index) {
@@ -141,10 +146,7 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
             Text(
               'PAPER DRAWER GUIDES YOU THROUGH EACH STEP. '
               'YOU CHOOSE WHEN TO CONTACT SOMEONE. FOR GENERAL GUIDANCE ONLY.',
-              style: PdType.tabLabel.copyWith(
-                color: Pd.textMuted,
-                height: 1.6,
-              ),
+              style: PdType.tabLabel.copyWith(color: Pd.textMuted, height: 1.6),
             ),
             top: Pd.s6,
           ),
@@ -163,7 +165,10 @@ class _ClaimsOverviewState extends State<ClaimsOverview> {
             constraints: const BoxConstraints(maxWidth: Pd.maxContent),
             child: Column(
               children: [
-                PdBrandBar(onMarkTap: widget.onVault, trailing: widget.trailing),
+                PdBrandBar(
+                  onMarkTap: widget.onVault,
+                  trailing: widget.trailing,
+                ),
                 Expanded(
                   child: refresh == null
                       ? scroll
@@ -199,7 +204,8 @@ class _ClaimRow extends StatelessWidget {
     return Semantics(
       button: true,
       excludeSemantics: true,
-      label: '${claim.title}. Day ${claim.day}. ${claim.status.label}. '
+      label:
+          '${claim.title}. Day ${claim.day}. ${claim.status.label}. '
           '${claim.metadata}. ${claim.step}. ${claim.next}.',
       onTap: onTap,
       child: Material(
@@ -267,7 +273,9 @@ class _ClaimRow extends StatelessWidget {
                             claim.metadata,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: PdType.tabLabel.copyWith(color: Pd.textMuted),
+                            style: PdType.tabLabel.copyWith(
+                              color: Pd.textMuted,
+                            ),
                           ),
                           Text(claim.title, style: PdType.cardTitle),
                           Text(
@@ -276,7 +284,9 @@ class _ClaimRow extends StatelessWidget {
                           ),
                           Text(
                             claim.next,
-                            style: PdType.footnote.copyWith(color: Pd.textMuted),
+                            style: PdType.footnote.copyWith(
+                              color: Pd.textMuted,
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(top: Pd.s1),

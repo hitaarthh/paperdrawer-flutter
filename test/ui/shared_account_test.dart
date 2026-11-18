@@ -8,6 +8,7 @@ import 'package:paperdrawer/domain/models/shared_vault.dart';
 import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/features/account/shared_session.dart';
+import 'package:paperdrawer/ui/features/account/shared_vault_screens.dart';
 import 'package:paperdrawer/ui/features/vault/shared_vault_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -144,6 +145,62 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets(
+    'shared Claims shows requested documents and opens the add flow',
+    (tester) async {
+      final session = _SharedVaultSession();
+      session.vault = SharedVault(
+        items: const [],
+        claims: [
+          SharedClaim.fromRow({
+            'id': 'hospital',
+            'title': 'Hospital bill reimbursement',
+            'item_label': 'Family health policy',
+            'type': 'insurance',
+            'state': 'docs_asked',
+            'step': 0,
+            'opened_on': isoDate(addDays(session.today.value, -16)),
+            'next_step': {
+              'title': 'Upload the discharge summary',
+              'text': 'Send the summary to the insurer.',
+            },
+          }),
+        ],
+      );
+      _setPhoneSize(tester, 1.3);
+      addTearDown(session.dispose);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: session,
+          child: MaterialApp(
+            theme: pdTheme(),
+            home: const SharedClaimsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 OPEN · 0 SETTLED · 1 NEEDS YOU'), findsOneWidget);
+      expect(find.text('NEEDS YOU · DOCUMENTS ASKED'), findsOneWidget);
+      expect(find.text('STEP 1 OF 4 · INSURER OR TPA'), findsOneWidget);
+      expect(find.text('DOCS ASKED'), findsOneWidget);
+      expect(find.text('Next: Upload the discharge summary'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('claim-settled-filter')));
+      await tester.pumpAndSettle();
+      expect(find.text('No settled claims yet'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('shared-claims-scan')));
+      await tester.pumpAndSettle();
+      final manual = find.byKey(const ValueKey('add-sheet-manual'));
+      await tester.ensureVisible(manual);
+      await tester.tap(manual);
+      await tester.pumpAndSettle();
+      expect(session.opened, '/bills/new');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 }
 
 Future<void> _launchVault(WidgetTester tester, SharedSession session) async {

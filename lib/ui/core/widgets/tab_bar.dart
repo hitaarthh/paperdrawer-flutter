@@ -73,52 +73,45 @@ class _Tab extends StatelessWidget {
       button: true,
       onTap: onTap,
       excludeSemantics: true,
-      child: CupertinoButton(
-        key: ValueKey('${title.toLowerCase()}-tab'),
-        minimumSize: const Size(0, Pd.tabbarIos),
-        padding: const EdgeInsets.symmetric(vertical: Pd.s1),
-        pressedOpacity: 0.7,
-        focusColor: Pd.lime,
-        onPressed: onTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                PdIcon(glyph, color: color),
-                if (badge > 0)
-                  Positioned(
-                    left: Pd.iconSm,
-                    top: -Pd.s1,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Pd.signal,
-                        borderRadius: BorderRadius.circular(Pd.rPill),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
-                        child: Text(
-                          '$badge',
-                          textScaler: MediaQuery.textScalerOf(context)
-                              .clamp(maxScaleFactor: 1.3),
-                          style: PdType.tabLabel.copyWith(color: Pd.onLime),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Pd.lime.withValues(alpha: selected ? 1 : 0),
+              width: 2,
             ),
-            const SizedBox(height: Pd.s1),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
-              child: Text(
-                title.toUpperCase(),
+          ),
+        ),
+        child: CupertinoButton(
+          key: ValueKey('${title.toLowerCase()}-tab'),
+          minimumSize: const Size(0, Pd.tabbarIos),
+          padding: const EdgeInsets.fromLTRB(Pd.s1, Pd.s2, Pd.s1, Pd.s1),
+          pressedOpacity: 0.7,
+          focusColor: Pd.lime,
+          onPressed: onTap,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: Pd.s1,
+            children: [
+              PdIcon(glyph, color: color),
+              Text.rich(
+                TextSpan(
+                  text: title.toUpperCase(),
+                  children: [
+                    if (badge > 0)
+                      TextSpan(
+                        text: ' $badge',
+                        style: const TextStyle(color: Pd.signal),
+                      ),
+                  ],
+                ),
                 textAlign: TextAlign.center,
-                style: PdType.tabLabel.copyWith(color: color),
+                style: PdType.tabLabel.copyWith(
+                  color: selected ? Pd.text : Pd.textSubtle,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

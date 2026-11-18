@@ -108,6 +108,7 @@ class SharedSettingsAccount extends StatelessWidget {
     required this.email,
     required this.signingOut,
     required this.onSignOut,
+    super.key,
   });
 
   final String name;
@@ -184,6 +185,7 @@ class SharedSettingsPlan extends StatelessWidget {
     required this.failed,
     required this.onRetry,
     required this.onSeePlans,
+    super.key,
   });
 
   final SharedVault? vault;
@@ -281,6 +283,7 @@ class SharedSettingsDataAction extends StatelessWidget {
     required this.description,
     required this.button,
     this.separated = false,
+    super.key,
   });
 
   final String title;
@@ -316,6 +319,7 @@ class SharedSettingsFooter extends StatelessWidget {
     required this.version,
     required this.onPrivacy,
     required this.onTerms,
+    super.key,
   });
 
   final Future<String?> version;

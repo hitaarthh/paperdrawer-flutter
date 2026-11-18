@@ -61,8 +61,8 @@ class SharedVaultService {
     final row = await _client
         .from('profiles')
         .update({
-          if (leadDays != null) 'reminder_lead_days': leadDays,
-          if (emailReminders != null) 'email_reminders': emailReminders,
+          'reminder_lead_days': ?leadDays,
+          'email_reminders': ?emailReminders,
         })
         .eq('id', userId)
         .select(_profileFields)

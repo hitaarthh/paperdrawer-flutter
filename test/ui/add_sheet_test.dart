@@ -164,13 +164,15 @@ Future<void> _launch(
       ),
       GoRoute(
         path: Routes.reading,
-        builder: (context, state) =>
-            _Stub('reading ${(state.extra! as List<PendingFile>).length}'),
+        builder: (context, state) => _Stub(
+          'reading ${(state.extra! as CaptureReadingArgs).files.length}',
+        ),
       ),
       GoRoute(
         path: Routes.details,
-        builder: (context, state) =>
-            _Stub('details ${(state.extra! as AddDetailsArgs).kind.name}'),
+        builder: (context, state) => _Stub(
+          'details ${(state.extra! as AddDetailsArgs).effectiveKind.name}',
+        ),
       ),
     ],
   );

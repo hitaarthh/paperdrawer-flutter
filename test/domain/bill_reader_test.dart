@@ -24,7 +24,9 @@ void main() {
   });
 
   test('leaves the serial blank when the scan only has an invoice', () {
-    final reading = readBill(['Invoice No. 6621'], today: DateTime.utc(2026, 11, 19));
+    final reading = readBill([
+      'Invoice No. 6621',
+    ], today: DateTime.utc(2026, 11, 19));
 
     expect(reading.reference, '6621');
     expect(reading.serialNumber, isNull);

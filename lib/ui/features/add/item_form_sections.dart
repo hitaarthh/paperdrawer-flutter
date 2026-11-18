@@ -106,7 +106,10 @@ class _FormCoverSectionState extends State<FormCoverSection> {
       await settings.setLeadDays(days);
     } catch (_) {
       if (!mounted) return;
-      showPdSnackbar(context, 'Couldn’t change the reminder timing. Try again.');
+      showPdSnackbar(
+        context,
+        'Couldn’t change the reminder timing. Try again.',
+      );
     }
   }
 
@@ -159,7 +162,8 @@ class _FormCoverSectionState extends State<FormCoverSection> {
           ),
           const SizedBox(height: Pd.s4),
           _Presets(
-            title: !_editedCover && _form.readFields.contains(ReadField.warranty)
+            title:
+                !_editedCover && _form.readFields.contains(ReadField.warranty)
                 ? 'Warranty · Read from bill'
                 : 'Warranty',
             options: const [6, 12, 24],
@@ -255,7 +259,10 @@ class _Presets extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     spacing: Pd.s2,
     children: [
-      Text(title.toUpperCase(), style: PdType.label.copyWith(color: Pd.textMuted)),
+      Text(
+        title.toUpperCase(),
+        style: PdType.label.copyWith(color: Pd.textMuted),
+      ),
       Wrap(
         spacing: Pd.s2,
         children: [
@@ -267,7 +274,12 @@ class _Presets extends StatelessWidget {
               onTap: () => onSelect(option),
             ),
           if (onOther case final handler?)
-            PdChoiceChip(label: 'OTHER', selected: false, onPaper: false, onTap: handler),
+            PdChoiceChip(
+              label: 'OTHER',
+              selected: false,
+              onPaper: false,
+              onTap: handler,
+            ),
         ],
       ),
     ],
@@ -275,7 +287,11 @@ class _Presets extends StatelessWidget {
 }
 
 class FormReviewOriginal extends StatefulWidget {
-  const FormReviewOriginal({required this.original, required this.onRetake, super.key});
+  const FormReviewOriginal({
+    required this.original,
+    required this.onRetake,
+    super.key,
+  });
 
   final PendingFile original;
   final VoidCallback? onRetake;
@@ -285,7 +301,9 @@ class FormReviewOriginal extends StatefulWidget {
 }
 
 class _FormReviewOriginalState extends State<FormReviewOriginal> {
-  late final _original = context.read<CaptureService>().inspect(widget.original);
+  late final _original = context.read<CaptureService>().inspect(
+    widget.original,
+  );
 
   @override
   Widget build(BuildContext context) => FutureBuilder(
@@ -296,7 +314,11 @@ class _FormReviewOriginalState extends State<FormReviewOriginal> {
       final description = size == null
           ? 'KEPT AS THE ORIGINAL'
           : '${_fileSize(size)} · KEPT AS THE ORIGINAL';
-      final icon = Icon(LucideIcons.fileText, color: Pd.textMuted, size: Pd.iconMd);
+      final icon = Icon(
+        LucideIcons.fileText,
+        color: Pd.textMuted,
+        size: Pd.iconMd,
+      );
       return PdListGroup(
         children: [
           Padding(
@@ -308,24 +330,31 @@ class _FormReviewOriginalState extends State<FormReviewOriginal> {
               children: [
                 SizedBox.square(
                   dimension: Pd.s12,
-                  child: image == null ? icon : ClipRRect(
-                    borderRadius: BorderRadius.circular(Pd.rXs),
-                    child: Image.memory(
-                      image,
-                      cacheWidth: 144,
-                      fit: BoxFit.cover,
-                      excludeFromSemantics: true,
-                      errorBuilder: (_, _, _) => icon,
-                    ),
-                  ),
+                  child: image == null
+                      ? icon
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(Pd.rXs),
+                          child: Image.memory(
+                            image,
+                            cacheWidth: 144,
+                            fit: BoxFit.cover,
+                            excludeFromSemantics: true,
+                            errorBuilder: (_, _, _) => icon,
+                          ),
+                        ),
                 ),
                 ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.53),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.53,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(widget.original.name, style: PdType.dataStrong),
-                      Text(description, style: PdType.label.copyWith(color: Pd.textMuted)),
+                      Text(
+                        description,
+                        style: PdType.label.copyWith(color: Pd.textMuted),
+                      ),
                     ],
                   ),
                 ),

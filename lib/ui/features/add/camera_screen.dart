@@ -257,7 +257,11 @@ class _CameraScreenState extends State<CameraScreen>
                             ),
                           ),
                         ),
-                        _Shutter(onTap: session == null || _taking ? null : _takePicture),
+                        _Shutter(
+                          onTap: session == null || _taking
+                              ? null
+                              : _takePicture,
+                        ),
                         Expanded(
                           child: PdButton.text(
                             key: const ValueKey('capture-done'),

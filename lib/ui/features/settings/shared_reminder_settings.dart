@@ -10,7 +10,6 @@ class SharedReminderSettings extends StatelessWidget {
   const SharedReminderSettings({
     required this.profile,
     required this.email,
-    required this.failed,
     required this.loading,
     required this.onLeadChanged,
     required this.onEmailChanged,
@@ -20,84 +19,85 @@ class SharedReminderSettings extends StatelessWidget {
 
   final SharedProfile? profile;
   final String? email;
-  final bool failed;
   final bool loading;
   final ValueChanged<int>? onLeadChanged;
   final ValueChanged<bool>? onEmailChanged;
   final VoidCallback onOpenWeb;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    spacing: Pd.s3,
-    children: [
-      if (profile == null)
+  Widget build(BuildContext context) {
+    final settings = profile;
+    final chooseLead = onLeadChanged;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: Pd.s3,
+      children: [
+        if (settings == null)
+          Semantics(
+            liveRegion: true,
+            child: SharedSettingsDetail(
+              loading
+                  ? 'Loading reminder settings…'
+                  : 'Couldn’t load your email reminder settings.',
+            ),
+          ),
         Semantics(
-          liveRegion: true,
-          child: SharedSettingsDetail(
-            loading && !failed
-                ? 'Loading reminder settings…'
-                : 'Couldn’t load your email reminder settings.',
+          label: 'Reminder timing',
+          container: true,
+          child: Row(
+            spacing: Pd.s2,
+            children: [
+              for (final days in SharedProfile.leadDayChoices)
+                Expanded(
+                  child: _LeadChoice(
+                    key: ValueKey('shared-settings-lead-$days'),
+                    days: days,
+                    selected: days == settings?.leadDays,
+                    onPressed: settings == null || chooseLead == null
+                        ? null
+                        : () => chooseLead(days),
+                  ),
+                ),
+            ],
           ),
         ),
-      Semantics(
-        label: 'Reminder timing',
-        container: true,
-        child: Row(
-          spacing: Pd.s2,
+        Column(
           children: [
-            for (final days in SharedProfile.leadDayChoices)
-              Expanded(
-                child: _LeadChoice(
-                  key: ValueKey('shared-settings-lead-$days'),
-                  days: days,
-                  selected: days == profile?.leadDays,
-                  onPressed: profile == null || onLeadChanged == null
-                      ? null
-                      : days == profile?.leadDays
-                      ? () {}
-                      : () => onLeadChanged!(days),
-                ),
-              ),
+            _ReminderChannel(
+              title: 'Email',
+              detail: email,
+              control: settings == null
+                  ? null
+                  : PdSwitch(
+                      key: const ValueKey('shared-settings-email-reminders'),
+                      value: settings.emailReminders,
+                      onChanged: onEmailChanged,
+                    ),
+            ),
+            const _ReminderChannel(
+              title: 'Notifications on this phone',
+              detail: 'Coming soon',
+              control: PdSwitch(value: false),
+            ),
+            const _ReminderChannel(
+              title: 'WhatsApp',
+              detail: 'Coming soon with Pro',
+              control: PdSwitch(value: false),
+            ),
           ],
         ),
-      ),
-      Column(
-        children: [
-          _ReminderChannel(
-            title: 'Email',
-            detail: email,
-            control: profile == null
-                ? null
-                : PdSwitch(
-                    key: const ValueKey('shared-settings-email-reminders'),
-                    value: profile!.emailReminders,
-                    onChanged: onEmailChanged,
-                  ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: SharedSettingsLink(
+            key: const ValueKey('shared-settings-web-reminders'),
+            label: 'More reminder options on web',
+            color: Pd.lime,
+            onPressed: onOpenWeb,
           ),
-          const _ReminderChannel(
-            title: 'Notifications on this phone',
-            detail: 'Coming soon',
-            control: PdSwitch(value: false),
-          ),
-          const _ReminderChannel(
-            title: 'WhatsApp',
-            detail: 'Coming soon with Pro',
-            control: PdSwitch(value: false),
-          ),
-        ],
-      ),
-      Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: SharedSettingsLink(
-          key: const ValueKey('shared-settings-web-reminders'),
-          label: 'More reminder options on web',
-          color: Pd.lime,
-          onPressed: onOpenWeb,
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 class _LeadChoice extends StatelessWidget {

@@ -41,6 +41,7 @@ Future<void> openSharedAdd(
   try {
     await session.openWeb(path);
   } catch (_) {
-    if (context.mounted) showPdSnackbar(context, 'Couldn’t open Paper Drawer web.');
+    if (context.mounted)
+      showPdSnackbar(context, 'Couldn’t open Paper Drawer web.');
   }
 }
