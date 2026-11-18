@@ -2,9 +2,13 @@ import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
+import 'package:paperdrawer/domain/formats.dart';
+import 'package:paperdrawer/domain/models/item.dart';
+import 'package:paperdrawer/domain/models/shared_vault.dart';
 import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/features/account/shared_session.dart';
+import 'package:paperdrawer/ui/features/vault/shared_vault_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -74,17 +78,87 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('signed-in vault shows the new search, tickets, and Add sheet', (
+    tester,
+  ) async {
+    final session = _SharedVaultSession();
+    final today = session.today.value;
+    session.vault = SharedVault(
+      items: [
+        SharedItem(
+          Item(
+            id: 'bill',
+            createdAt: today,
+            draft: ItemDraft(
+              kind: ItemKind.bill,
+              name: 'Headphones',
+              startsOn: today,
+              returnUntil: addDays(today, 2),
+            ),
+          ),
+          const [],
+          const [],
+        ),
+      ],
+      claims: const [],
+    );
+    await _launchVault(tester, session);
+    expect(find.text('The vault'), findsOneWidget);
+    expect(find.text('1 OF 25'), findsOneWidget);
+    expect(find.text('DUE NEXT'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('shared-vault-add')));
+    await tester.pumpAndSettle();
+    expect(find.text('What are you adding?'), findsOneWidget);
+    final manual = find.byKey(const ValueKey('add-sheet-manual'));
+    await tester.ensureVisible(manual);
+    await tester.tap(manual);
+    await tester.pumpAndSettle();
+    expect(session.opened, '/bills/new');
+
+    await tester.enterText(
+      find.byKey(const ValueKey('vault-search')),
+      'Laptop',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('DUE NEXT'), findsNothing);
+    expect(find.text('No matching items'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('empty shared vault opens the web add flow from the receipt', (
+    tester,
+  ) async {
+    final session = _SharedVaultSession()
+      ..vault = const SharedVault(items: [], claims: []);
+    await _launchVault(tester, session);
+    expect(find.text('Add the last thing you bought.'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('scan-first-bill')));
+    await tester.pumpAndSettle();
+    expect(session.opened, '/add?type=bill');
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+}
+
+Future<void> _launchVault(WidgetTester tester, SharedSession session) async {
+  _setPhoneSize(tester, 1.3);
+  addTearDown(session.dispose);
+  await tester.pumpWidget(
+    ChangeNotifierProvider.value(
+      value: session,
+      child: MaterialApp(theme: pdTheme(), home: const SharedVaultScreen()),
+    ),
+  );
+  await tester.pumpAndSettle();
 }
 
 Future<void> _launch(WidgetTester tester, {double scale = 1.3}) async {
   final session = SharedSession(_SignedOutAccount());
   final router = buildSharedRouter(session);
-  tester.view.devicePixelRatio = 3;
-  tester.view.physicalSize = const Size(1179, 2556);
-  tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
-  tester.platformDispatcher.textScaleFactorTestValue = scale;
-  addTearDown(tester.view.reset);
-  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  _setPhoneSize(tester, scale);
   addTearDown(session.dispose);
   addTearDown(router.dispose);
 
@@ -108,6 +182,24 @@ Future<void> _launch(WidgetTester tester, {double scale = 1.3}) async {
     ),
   );
   await tester.pumpAndSettle();
+}
+
+void _setPhoneSize(WidgetTester tester, double scale) {
+  tester.view.devicePixelRatio = 3;
+  tester.view.physicalSize = const Size(1179, 2556);
+  tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
+  tester.platformDispatcher.textScaleFactorTestValue = scale;
+  addTearDown(tester.view.reset);
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+}
+
+class _SharedVaultSession extends SharedSession {
+  _SharedVaultSession() : super(_SignedOutAccount());
+
+  String? opened;
+
+  @override
+  Future<void> openWeb(String path) async => opened = path;
 }
 
 class _SignedOutAccount extends SharedAccount {
