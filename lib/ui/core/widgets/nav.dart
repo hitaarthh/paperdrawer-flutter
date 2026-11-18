@@ -154,10 +154,13 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  CupertinoIcons.back,
-                                  color: widget.backStyle?.color ?? Pd.lime,
-                                  size: Pd.iconMd,
+                                Transform.flip(
+                                  flipX: Directionality.of(context) == TextDirection.rtl,
+                                  child: PdIcon(
+                                    PdGlyph.back,
+                                    color: widget.backStyle?.color ?? Pd.lime,
+                                    size: Pd.s5,
+                                  ),
                                 ),
                                 const SizedBox(width: Pd.s1),
                                 Flexible(

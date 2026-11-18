@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/formats.dart';
 import '../../domain/models/shared_profile.dart';
 import '../../domain/models/shared_vault.dart';
 
@@ -68,6 +69,17 @@ class SharedVaultService {
         .select(_profileFields)
         .single();
     return SharedProfile.fromRow(row);
+  }
+
+  Future<DateTime> settleClaim(String userId, String id, String outcome) async {
+    if (_client.auth.currentUser?.id != userId) {
+      throw const FormatException('Sign in to settle this claim.');
+    }
+    final date = await _client.rpc<Object?>(
+      'settle_claim',
+      params: {'p_id': id, 'p_outcome': outcome},
+    );
+    return parseIsoDate(date) ?? (throw StateError('Missing settlement date'));
   }
 
   Future<List<Map<String, dynamic>>> _page(

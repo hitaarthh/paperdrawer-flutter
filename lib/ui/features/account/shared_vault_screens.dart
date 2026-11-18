@@ -17,6 +17,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/paper.dart';
+import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/vault_ticket.dart';
 import '../add/shared_add_flow.dart';
@@ -106,13 +107,17 @@ class SharedItemScreen extends StatelessWidget {
         .firstOrNull
         ?.$2;
     return PdPushedScaffold(
-      backLabel: 'Vault',
+      backLabel: 'VAULT',
+      backStyle: PdType.monoButton,
       onBack: () => context.canPop() ? context.pop() : context.go('/vault'),
       kicker: itemDetailKicker(summary, category: category),
       title: item.item.name,
+      titleStyle: PdType.trackerTitle,
       actions: [
         PdButton.text(
-          label: 'Edit on web',
+          key: const ValueKey('shared-item-edit'),
+          label: 'Edit',
+          monospaced: true,
           onPressed: () => _open(context, session, item.editPath),
         ),
       ],
@@ -203,16 +208,26 @@ class SharedClaimScreen extends StatelessWidget {
     final mail = claim.draft;
     const actions = DrawerActions();
     return PdPushedScaffold(
-      backLabel: 'Claims',
+      backLabel: 'CLAIMS',
+      backStyle: PdType.monoButton,
       onBack: () => context.canPop() ? context.pop() : context.go('/claims'),
       title: claim.title,
-      kicker:
-          '${entry.metadata} · ${entry.status.label} · OPENED ${shortDate(claim.opened).toUpperCase()}',
+      titleStyle: PdType.trackerTitle,
+      kicker: [
+        entry.metadata.toUpperCase(),
+        'OPENED ${longDate(claim.opened).toUpperCase()}',
+        if (!open) entry.status.label,
+      ].join(' · '),
       actions: [
-        PdButton.text(
-          label: open ? 'Settle on web' : 'Manage on web',
-          onPressed: () => _open(context, session, claim.webPath),
-        ),
+        if (open)
+          PdButton.text(
+            key: const ValueKey('shared-mark-claim-settled'),
+            label: 'Mark settled',
+            monospaced: true,
+            onPressed: session.loading || session.settlingClaim || session.savingReminders
+                ? null
+                : () => _markSettled(context, session, claim.id),
+          ),
       ],
       children: [
         if (open) ...[
@@ -343,6 +358,36 @@ class SharedClaimScreen extends StatelessWidget {
         ]),
       ],
     );
+  }
+}
+
+Future<void> _markSettled(
+  BuildContext context,
+  SharedSession session,
+  String claimId,
+) async {
+  final outcome = await showPdSheet<String>(
+    context,
+    title: 'Mark settled',
+    body: const ClaimNoteForm(
+      fieldLabel: 'HOW WAS IT RESOLVED?',
+      saveLabel: 'Mark settled',
+      requiredNote: false,
+    ),
+  );
+  if (!context.mounted || outcome == null) return;
+  try {
+    final saved = await session.settleClaim(claimId, outcome);
+    if (context.mounted && saved) {
+      showPdSnackbar(context, 'Claim settled', success: true);
+    }
+  } catch (error) {
+    if (context.mounted) {
+      showPdSnackbar(
+        context,
+        error is FormatException ? error.message : 'Couldn’t settle this claim. Try again.',
+      );
+    }
   }
 }
 

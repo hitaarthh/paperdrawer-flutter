@@ -4,7 +4,7 @@ Design source: `design/mobile-system/` (tokens, components, screens, platforms).
 Pattern: the official Flutter layered architecture (`.claude/skills/flutter-apply-architecture-best-practices`):
 **data** (services + repositories, single source of truth) → **domain** (immutable models, pure logic) → **ui** (MVVM: ChangeNotifier view models + lean views). Dependency injection with `provider`. Navigation with `go_router` (`StatefulShellRoute` for tabs).
 
-Imports: use `package:material_ui/material_ui.dart` and `package:cupertino_ui/cupertino_ui.dart` (the `flutter/material.dart` and `flutter/cupertino.dart` libraries are deprecated in Flutter 3.50). Icons: custom `PdGlyph` for tab/scan icons, `package:lucide_icons_flutter/lucide_icons.dart` (`LucideIcons.x`) for everything else, `CupertinoIcons.share` for share and `CupertinoIcons.back` for the iOS back chevron.
+Imports: use `package:material_ui/material_ui.dart` and `package:cupertino_ui/cupertino_ui.dart` (the `flutter/material.dart` and `flutter/cupertino.dart` libraries are deprecated in Flutter 3.50). Icons: custom `PdGlyph` for tab/scan icons, `package:lucide_icons_flutter/lucide_icons.dart` (`LucideIcons.x`) for everything else, `CupertinoIcons.share` for share and the drawn `PdGlyph.back` for pushed screens.
 
 Region: India first (₹, Indian grouping, 1915 / IRDAI ladders). All money is minor units + currency code.
 
@@ -21,7 +21,10 @@ originals with the current user's session and owner RLS. The shared router gates
 `/vault`, `/claims` and `/settings` behind `/account`. Shared records can be
 viewed on the phone, and the Vault shares the local design's search, filters,
 countdown tickets, empty state, and Add sheet. Shared records are added or
-edited in the web app. `SharedSettingsScreen` reads the signed-in user's profile
+edited in the web app. An open shared claim can be marked settled in the app
+with an optional outcome using the owner-scoped `settle_claim` RPC. The
+acknowledged settlement updates the snapshot before the claim log refreshes.
+`SharedSettingsScreen` reads the signed-in user's profile
 and plan usage from the shared vault snapshot. It saves email reminder timing
 (30, 7 or 2 days) and delivery preferences to the owner's `profiles` row.
 The iOS notification permission flow belongs to the device-only vault. Shared

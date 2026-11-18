@@ -44,12 +44,13 @@ class SharedSession extends ChangeNotifier {
   bool loading = false;
   bool failed = false;
   bool savingReminders = false;
+  bool settlingClaim = false;
   bool _disposed = false;
 
   Future<void> refresh() async {
     today.refresh();
     final owner = _userId;
-    if (owner == null || loading || savingReminders) return;
+    if (owner == null || loading || savingReminders || settlingClaim) return;
     final generation = _accountGeneration;
     loading = true;
     failed = false;
@@ -75,7 +76,8 @@ class SharedSession extends ChangeNotifier {
         snapshot == null ||
         current == null ||
         loading ||
-        savingReminders) {
+        savingReminders ||
+        settlingClaim) {
       return;
     }
     if (leadDays == current.leadDays) leadDays = null;
@@ -108,6 +110,47 @@ class SharedSession extends ChangeNotifier {
     }
   }
 
+  Future<bool> settleClaim(String id, String outcome) async {
+    final owner = _userId;
+    final snapshot = vault;
+    final claim = snapshot?.claims.where((claim) => claim.id == id).firstOrNull;
+    if (owner == null ||
+        snapshot == null ||
+        claim == null ||
+        claim.settled != null ||
+        loading ||
+        savingReminders ||
+        settlingClaim) {
+      return false;
+    }
+    final note = outcome.trim();
+    if (note.runes.length > 2000) {
+      throw const FormatException('Keep the outcome to 2,000 characters or fewer.');
+    }
+
+    final generation = _accountGeneration;
+    settlingClaim = true;
+    notifyListeners();
+    try {
+      final date = await _service.settleClaim(owner, id, note);
+      if (!_isCurrent(generation)) return false;
+      vault = SharedVault(
+        items: snapshot.items,
+        claims: [
+          for (final item in snapshot.claims)
+            item.id == id ? SharedClaim.withSettlement(item, date) : item,
+        ],
+        profile: snapshot.profile,
+      );
+      return true;
+    } finally {
+      if (_isCurrent(generation)) {
+        settlingClaim = false;
+        unawaited(refresh());
+      }
+    }
+  }
+
   bool _isCurrent(int generation) =>
       !_disposed && _accountGeneration == generation;
 
@@ -121,6 +164,7 @@ class SharedSession extends ChangeNotifier {
     loading = false;
     failed = false;
     savingReminders = false;
+    settlingClaim = false;
     notifyListeners();
     if (previous != null) unawaited(_clearDownloads(previous));
     if (owner != null) unawaited(refresh());

@@ -142,6 +142,24 @@ class SharedClaim {
 
   final String id;
   final String title;
+  SharedClaim.withSettlement(SharedClaim claim, DateTime date)
+    : id = claim.id,
+      title = claim.title,
+      itemId = claim.itemId,
+      state = 'settled',
+      type = claim.type,
+      opened = claim.opened,
+      lastHeard = claim.lastHeard,
+      settled = date.isBefore(claim.opened) ? claim.opened : date,
+      step = claim.step,
+      draft = claim.draft,
+      nextStep = claim.nextStep,
+      problem = claim.problem,
+      itemLabel = claim.itemLabel,
+      facts = claim.facts,
+      originals = claim.originals,
+      events = claim.events;
+
   final String? itemId;
   final String state;
   final String type;
