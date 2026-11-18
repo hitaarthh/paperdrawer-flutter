@@ -1,0 +1,65 @@
+<!-- @dsCard group="Cards" height=380 subtitle="Policies, PUC, agreements" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.rc{position:relative;width:320px;filter:drop-shadow(0 18px 24px rgba(0,0,0,0.35))}
+.paperx{;color:var(--ink-2);padding:20px 20px 32px;font-family:var(--font-mono);font-size:13px;line-height:20px}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.1em;color:var(--ink-muted)}
+.top span:first-child{white-space:nowrap;flex-shrink:0}
+.src{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dash{border-top:1px dashed var(--paper-dash);margin:10px 0 12px}
+.nm{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:24px;letter-spacing:-.02em;color:var(--ink);padding-right:84px;min-height:48px}
+.kv{display:flex;justify-content:space-between;margin-top:2px}
+.kv:first-of-type{margin-top:10px}
+.k{color:var(--ink-muted)}
+.sm{font-size:11px;letter-spacing:.04em}
+.trk{height:8px;background:var(--paper-track);margin-top:8px;position:relative}
+.trk div{position:absolute;left:0;top:0;bottom:0}
+.un{font-size:11px;color:var(--ink-muted);margin-top:6px}
+.stamp{position:absolute;top:46px;right:14px;transform:rotate(-12deg);padding:3px 8px;border:2px solid;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.12em;border-radius:var(--radius-xs)}
+
+.doc{background:var(--paper-2);color:var(--ink-2);padding:16px 20px 22px;border-radius:var(--radius-xs);border-top:6px double var(--ink-2);font-family:var(--font-mono);font-size:13px;line-height:20px}
+.rule{border-top:1px solid var(--paper-rule);margin:10px 0 12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="rc"><div class="doc">
+<div class="top"><span style="font-weight:700">POLICY SCHEDULE</span><span class="src">SHIELD GENERAL INSURANCE</span></div>
+<div class="rule"></div><div class="nm">Family health policy</div>
+<div class="kv"><span class="k">RENEWS</span><span>30.11.2026</span></div>
+<div class="kv"><span class="k">PREMIUM</span><span style="font-weight:700">₹24,600/yr</span></div>
+<div class="rule"></div>
+<div class="kv sm"><span class="k">POLICY YEAR</span><span style="font-weight:700;color:var(--due-ink)">RENEWS IN 12 DAYS</span></div>
+<div class="trk"><div style="width:3%;background:var(--stamp-due)"></div></div>
+<div class="un">Sum insured ₹10,00,000</div></div>
+<span class="stamp" style="top:52px;color:var(--stamp-due);border-color:var(--stamp-due)">DUE</span></div>
+<div class="rc"><div class="doc">
+<div class="top"><span style="font-weight:700">RENT AGREEMENT</span><span class="src">11-MONTH AGREEMENT</span></div>
+<div class="rule"></div><div class="nm">Flat rent agreement</div>
+<div class="kv"><span class="k">RENEWS</span><span>14.04.2027</span></div>
+<div class="kv"><span class="k">DEPOSIT</span><span style="font-weight:700">₹40,000</span></div>
+<div class="rule"></div>
+<div class="kv sm"><span class="k">TERM</span><span style="font-weight:700">147 DAYS LEFT</span></div>
+<div class="trk"><div style="width:44%;background:var(--ink-2)"></div></div>
+<div class="un">Deposit refundable on exit</div></div>
+<span class="stamp" style="top:52px;color:var(--stamp-covered);border-color:var(--stamp-covered)">ACTIVE</span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!-- @dsCard group="Status" height=220 subtitle="The free plan limit, without fear" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.ln{width:360px;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:var(--radius-sm);background:var(--signal-tint)}
+.lt{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--signal)}
+.lb{font-size:15px;line-height:22px;color:var(--signal-soft)}
+.trk{height:6px;background:var(--surface-3);position:relative}.trk div{position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--signal)}
+.acts{display:flex;gap:8px;margin-top:4px}
+.b{white-space:nowrap;height:40px;padding:0 12px;display:inline-flex;align-items:center;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="ln"><span class="lt">25 OF 25 ITEMS · BASE PLAN</span><div class="trk"><div></div></div>
+<span class="lb">Nothing is deleted and reminders keep running. Remove an old item to add a new one, or join the Pro waitlist.</span>
+<div class="acts"><span class="b" style="border:1px solid var(--line);color:var(--text)">REVIEW OLD ITEMS</span><span class="b" style="color:var(--lime)">JOIN PRO WAITLIST</span></div></div></div>
+</body>
+</html>

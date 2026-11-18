@@ -1,0 +1,36 @@
+<!-- @dsCard group="Claims" height=420 subtitle="Where a claim is, and where it goes next" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.card{width:360px;background:var(--surface-2);border-radius:var(--radius-sm);padding:20px 20px 8px}
+.hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);margin-bottom:16px}
+.st{display:flex;gap:14px}
+.rail{display:flex;flex-direction:column;align-items:center}
+.dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:700;flex-shrink:0}
+.ln{flex:1;width:2px;background:var(--line);min-height:20px;margin:4px 0}
+.tx{display:flex;flex-direction:column;gap:2px;padding:3px 0 18px;min-width:0}
+.t{font-size:16px;font-weight:600;line-height:22px}
+.s{font-size:13px;line-height:18px;color:var(--text-muted)}
+.nowtag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--signal)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card"><div class="hd"><span>WARRANTY · ESCALATION</span><span>LAPTOP</span></div><div class="st"><div class="rail"><span class="dot" style="background:var(--settled);color:var(--on-lime)"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="ln"></span></div><div class="tx"><span class="t" style="color:var(--text-muted)">Brand support</span><span class="s">Ticket LT-88213 · no reply in 14 days</span></div></div><div class="st"><div class="rail"><span class="dot" style="background:var(--signal);color:var(--on-lime)">2</span><span class="ln"></span></div><div class="tx"><span class="nowtag">YOU ARE HERE · DAY 14</span><span class="t" style="color:var(--text)">Grievance officer</span><span class="s">Send the drafted escalation today</span></div></div><div class="st"><div class="rail"><span class="dot" style="border:2px solid var(--line);color:var(--text-muted)">3</span><span class="ln"></span></div><div class="tx"><span class="t" style="color:var(--text-2)">National Consumer Helpline</span><span class="s">Call 1915 or file on consumerhelpline.gov.in</span></div></div><div class="st"><div class="rail"><span class="dot" style="border:2px solid var(--line);color:var(--text-muted)">4</span></div><div class="tx"><span class="t" style="color:var(--text-2)">Consumer commission</span><span class="s">File on e-Jagriti if the helpline fails</span></div></div></div></div>
+</body>
+</html>

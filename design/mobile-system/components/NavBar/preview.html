@@ -1,0 +1,42 @@
+<!-- @dsCard group="Navigation" height=320 subtitle="iOS large title and pushed screen · Android top app bar" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.st{height:28px}
+.ios{padding:0 20px}
+.row{height:44px;display:flex;align-items:center;justify-content:space-between}
+.back{display:inline-flex;align-items:center;gap:2px;color:var(--lime);font-size:17px;margin-left:-8px;min-height:44px}
+.lt{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:36px;letter-spacing:-.03em;padding:4px 0 12px}
+.kick{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.and{height:64px;display:flex;align-items:center;gap:8px;padding:0 4px}
+.icb{width:48px;height:48px;display:inline-flex;align-items:center;justify-content:center;color:var(--text)}
+.at{flex:1;font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.line{border-bottom:1px solid var(--hairline)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">iOS · PUSHED DETAIL</span>
+<div class="phone"><div class="st"></div><div class="ios line"><div class="row"><span class="back"><svg class="" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Vault</span><span class="icb" style="color:var(--lime)"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg></span></div>
+<div class="kick">BILL · GUPTA HOME APPLIANCES</div><div class="lt">Washing machine</div></div><div style="height:60px"></div></div></div>
+<div class="col"><span class="cap">ANDROID · SMALL TOP APP BAR</span>
+<div class="phone"><div class="st"></div><div class="and line"><span class="icb"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></span><span class="at">Washing machine</span><span class="icb"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg></span><span class="icb"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></span></div><div style="height:118px"></div></div></div>
+</div>
+</body>
+</html>

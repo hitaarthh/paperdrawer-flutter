@@ -1,0 +1,44 @@
+<!-- @dsCard group="Navigation" height=280 subtitle="iOS tab bar · Android navigation bar" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.bar{display:flex;border-top:1px solid var(--hairline);background:var(--bg)}
+.ti,.ta{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ti{padding:7px 0 0;height:49px}
+.ta{padding:12px 0 16px;height:80px;gap:4px}
+.tl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.08em;line-height:12px}
+.ib,.ind{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ind{width:64px;height:32px;border-radius:var(--radius-pill)}
+.badge{position:absolute;top:-4px;right:-10px;min-width:18px;height:18px;padding:0 5px;border-radius:var(--radius-pill);background:var(--signal);color:var(--on-lime);font-family:var(--font-mono);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ind .badge{top:0;right:10px}
+.home{height:34px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px}
+.home span{width:134px;height:5px;border-radius:3px;background:var(--text)}
+.gest{height:16px;display:flex;align-items:center;justify-content:center}
+.gest span{width:108px;height:4px;border-radius:2px;background:var(--text-subtle)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">iOS · 49PT + HOME INDICATOR</span>
+<div class="phone"><div style="height:60px"></div><div class="bar"><div class="ti" style="color:var(--lime)"><span class="ib"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M10 7.5h4M10 16.5h4"/></svg></span><span class="tl">VAULT</span></div><div class="ti" style="color:var(--text-subtle)"><span class="ib"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 000-4z"/><path d="M14 5v14" stroke-dasharray="2 2.5"/></svg><span class="badge">3</span></span><span class="tl">CLAIMS</span></div><div class="ti" style="color:var(--text-subtle)"><span class="ib"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span><span class="tl">SETTINGS</span></div></div><div class="home"><span></span></div></div></div>
+<div class="col"><span class="cap">ANDROID · 80DP + GESTURE INSET</span>
+<div class="phone"><div style="height:60px"></div><div class="bar"><div class="ta" style="color:var(--text)"><span class="ind" style="background:var(--lime-tint);color:var(--lime)"><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M10 7.5h4M10 16.5h4"/></svg></span><span class="tl">VAULT</span></div><div class="ta" style="color:var(--text-subtle)"><span class="ind" style=""><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 000-4z"/><path d="M14 5v14" stroke-dasharray="2 2.5"/></svg><span class="badge">3</span></span><span class="tl">CLAIMS</span></div><div class="ta" style="color:var(--text-subtle)"><span class="ind" style=""><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span><span class="tl">SETTINGS</span></div></div><div class="gest"><span></span></div></div></div>
+</div>
+</body>
+</html>

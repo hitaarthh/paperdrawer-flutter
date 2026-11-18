@@ -1,0 +1,47 @@
+<!-- @dsCard group="Actions" height=340 subtitle="Primary, secondary, on paper, text" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);height:var(--control-h);padding:0 22px;border-radius:var(--radius-sm);font-family:var(--font-sans);font-size:16px;font-weight:600;border:0}
+.primary{background:var(--lime);color:var(--on-lime)}
+.pressed{background:var(--lime-pressed);color:var(--on-lime)}
+.disabled{background:var(--surface-3);color:var(--text-subtle)}
+.ghost{background:transparent;color:var(--text);border:1px solid var(--line);font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.08em}
+.onpaper{background:transparent;color:var(--ink);border:1px solid var(--ink-2);font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.08em}
+.txt{background:transparent;color:var(--lime);padding:0 8px;height:var(--tap-min)}
+.paperbox{background:var(--paper-2);border-top:6px double var(--ink-2);border-radius:var(--radius-xs);padding:20px;display:flex;flex-direction:column;gap:12px}
+.full{width:312px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">PRIMARY · FULL WIDTH</span>
+<span class="btn primary full"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M7 12h10"/></svg>Scan a bill</span>
+<span class="btn pressed full">Pressed</span>
+<span class="btn disabled full">Save item</span></div>
+<div class="col"><span class="cap">SECONDARY ON DARK</span>
+<span class="btn ghost">EXPORT EVERYTHING</span>
+<span class="cap" style="margin-top:8px">TEXT</span>
+<span class="btn txt">Type it in instead</span></div>
+<div class="col"><span class="cap">ON PAPER</span>
+<div class="paperbox"><span class="mono" style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink-muted)">25 OF 25 ITEMS</span>
+<span class="btn onpaper">REVIEW OLD ITEMS</span></div></div>
+</div>
+</body>
+</html>

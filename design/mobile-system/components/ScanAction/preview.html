@@ -1,0 +1,39 @@
+<!-- @dsCard group="Actions" height=300 subtitle="iOS nav-bar button · Android extended FAB" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.iosbar{padding:14px 20px 12px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--hairline)}
+.iostop{display:flex;justify-content:flex-end;height:44px;align-items:center}
+.scanbtn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--radius-md);background:var(--lime);color:var(--on-lime);font-weight:600;font-size:15px;outline:6px solid transparent}
+.lt{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:36px;letter-spacing:-.03em}
+.body{height:120px;position:relative}
+.fab{position:absolute;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:12px;height:var(--fab);padding:0 20px 0 16px;border-radius:var(--radius-md);background:var(--lime);color:var(--on-lime);font-weight:600;font-size:16px;box-shadow:var(--shadow-fab)}
+.andbar{height:64px;display:flex;align-items:center;padding:0 16px;font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-.02em;border-bottom:1px solid var(--hairline)}
+.ghostcard{margin:16px;height:56px;border-radius:var(--radius-sm);background:var(--paper);opacity:.12}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">iOS · TRAILING NAV-BAR BUTTON</span>
+<div class="phone" style="height:220px"><div class="iosbar"><div class="iostop"><span class="scanbtn"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M7 12h10"/></svg>Scan</span></div><span class="lt">Vault</span></div><div class="ghostcard"></div></div></div>
+<div class="col"><span class="cap">ANDROID · EXTENDED FAB</span>
+<div class="phone" style="height:220px"><div class="andbar">Vault</div><div class="ghostcard"></div><div class="fab"><svg class="" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M7 12h10"/></svg>Scan</div></div></div>
+</div>
+</body>
+</html>

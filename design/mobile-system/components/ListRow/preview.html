@@ -1,0 +1,49 @@
+<!-- @dsCard group="Lists" height=380 subtitle="Settings rows: switch, value, action, destructive" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.grp{width:360px;background:var(--surface-1);border-radius:var(--radius-sm);overflow:hidden}
+.r{min-height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--hairline)}
+.r:last-child{border-bottom:0}
+.r .t{flex:1;font-size:16px;font-weight:600}
+.r .v{font-size:15px;color:var(--text-muted)}
+.r .ic{color:var(--text-subtle)}
+.sw{position:relative;display:inline-block}
+.sw.i{width:51px;height:31px;border-radius:var(--radius-pill);background:var(--surface-3)}
+.sw.i span{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:var(--text)}
+.sw.i.on{background:var(--lime)}.sw.i.on span{left:22px;background:var(--bg)}
+.sw.a{width:52px;height:32px;border-radius:var(--radius-pill);border:2px solid var(--line);background:var(--surface-3)}
+.sw.a span{position:absolute;top:6px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--text-muted)}
+.sw.a.on{background:var(--lime);border-color:var(--lime)}.sw.a.on span{top:2px;left:22px;width:24px;height:24px;background:var(--on-lime)}
+.gl{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);padding:0 4px 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">iOS SWITCH</span><div><div class="gl">REMINDERS</div><div class="grp">
+<div class="r"><span class="t">Email reminders</span><span class="sw i on"><span></span></span></div>
+<div class="r"><span class="t">Remind me</span><span class="v">7 days before</span><span class="ic"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></div>
+<div class="r"><span class="t">WhatsApp reminders</span><span class="v">Pro</span><span class="sw i"><span></span></span></div></div></div></div>
+<div class="col"><span class="cap">ANDROID SWITCH</span><div><div class="gl">YOUR DATA</div><div class="grp">
+<div class="r"><span class="t">Email reminders</span><span class="sw a on"><span></span></span></div>
+<div class="r"><span class="t">Export everything</span><span class="ic"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></span></div>
+<div class="r"><span class="t" style="color:var(--signal)">Delete account</span></div></div></div></div>
+</div>
+</body>
+</html>

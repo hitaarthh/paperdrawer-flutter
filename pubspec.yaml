@@ -41,8 +41,12 @@ flutter:
   uses-material-design: true
   assets:
     - assets/fonts/BricolageGrotesque-OFL.txt
+    - assets/fonts/Inter-OFL.txt
     - assets/fonts/JetBrainsMono-OFL.txt
   fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
     - family: Bricolage
       fonts:
         - asset: assets/fonts/BricolageGrotesque.ttf

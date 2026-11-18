@@ -1,0 +1,43 @@
+<!-- @dsCard group="Status" height=300 subtitle="Time left in a window" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.m{display:flex;flex-direction:column;gap:8px;width:320px;padding:14px 0;border-top:1px solid var(--hairline)}
+.mh{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;letter-spacing:.08em}
+.mt{height:8px;position:relative}.mt div{position:absolute;left:0;top:0;bottom:0}
+.mu{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em}
+.pp{background:var(--paper);padding:6px 20px 10px;border-radius:var(--radius-sm)}
+.pp .m{border-top-color:var(--paper-rule);width:300px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">ON DARK · ITEM DETAIL</span>
+<div class="m"><div class="mh"><span style="color:var(--text-2)">RETURN WINDOW</span><span style="color:var(--signal);font-weight:700">2 DAYS LEFT</span></div>
+<div class="mt" style="background:var(--surface-3)" role="img" aria-label="2 DAYS LEFT"><div style="width:80%;background:var(--signal)"></div></div><span class="mu" style="color:var(--text-muted)">Closes 20 Nov 2026</span></div>
+<div class="m"><div class="mh"><span style="color:var(--text-2)">WARRANTY</span><span style="color:var(--lime);font-weight:700">357 DAYS LEFT</span></div>
+<div class="mt" style="background:var(--surface-3)" role="img" aria-label="357 DAYS LEFT"><div style="width:2%;background:var(--lime)"></div></div><span class="mu" style="color:var(--text-muted)">Until 10 Nov 2027</span></div></div>
+<div class="col"><span class="cap">ON PAPER</span><div class="pp">
+<div class="m"><div class="mh"><span style="color:var(--ink-muted)">COVERAGE</span><span style="color:var(--stamp-due);font-weight:700">22 DAYS LEFT</span></div>
+<div class="mt" style="background:var(--paper-track)" role="img" aria-label="22 DAYS LEFT"><div style="width:6%;background:var(--stamp-due)"></div></div><span class="mu" style="color:var(--ink-muted)">Until 10 Dec 2026</span></div>
+<div class="m"><div class="mh"><span style="color:var(--ink-muted)">COVERAGE</span><span style="color:var(--stamp-expired);font-weight:700">ENDED</span></div>
+<div class="mt" style="background:var(--paper-track)" role="img" aria-label="ENDED"><div style="width:0%;background:var(--stamp-expired)"></div></div><span class="mu" style="color:var(--ink-muted)">Ended 18 Sep 2025</span></div></div></div>
+</div>
+</body>
+</html>

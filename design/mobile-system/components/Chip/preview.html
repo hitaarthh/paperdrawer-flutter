@@ -1,0 +1,35 @@
+<!-- @dsCard group="Inputs" height=260 subtitle="Vault filters · choices on paper" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.c{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--line);color:var(--text);font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.08em;white-space:nowrap;outline:6px solid transparent}
+.cn{opacity:.7;font-weight:500}
+.rowc{display:flex;gap:8px;overflow:hidden;width:360px}
+.sheet{background:var(--paper-2);border-top:6px double var(--ink-2);border-radius:var(--radius-xs);padding:20px;display:flex;flex-direction:column;gap:12px;width:360px}
+.sg{display:inline-flex;align-items:center;height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--ink-2);color:var(--ink-2);font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col"><span class="cap">FILTER CHIPS · ON DARK</span><div class="rowc"><span class="c" style="background:var(--lime);color:var(--on-lime);border-color:var(--lime)">ALL<span class="cn">10</span></span><span class="c" style="">DUE<span class="cn">4</span></span><span class="c" style="">IN CLAIM<span class="cn">1</span></span><span class="c" style="">COVERED<span class="cn">4</span></span></div></div>
+<div class="col"><span class="cap">CHOICE · ON PAPER (CLAIM FORM)</span><div class="sheet"><span class="mono" style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink-muted)">WHAT DO YOU WANT?</span>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="sg" style="background:var(--ink-2);color:var(--paper)">REPAIR</span><span class="sg" style="">REPLACEMENT</span><span class="sg" style="">REFUND</span></div></div></div>
+</div>
+</body>
+</html>

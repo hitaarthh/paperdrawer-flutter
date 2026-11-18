@@ -1,0 +1,44 @@
+<!-- @dsCard group="Inputs" height=360 subtitle="Default, read by scan, focused, error" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;padding:28px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px}
+.cap{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.disp{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.phone{width:360px;background:var(--bg);border:1px solid var(--hairline);border-radius:28px;overflow:hidden;position:relative}
+.ico{width:24px;height:24px;flex-shrink:0}
+
+.f{display:flex;flex-direction:column;gap:8px;width:320px}
+.lb{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted)}
+.tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--lime)}
+.in{height:var(--control-h);border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-1);padding:0 14px;display:flex;align-items:center;font-size:16px;color:var(--text)}
+.ph{color:var(--placeholder)}
+.fo{border-color:var(--lime);box-shadow:0 0 0 1px var(--lime)}
+.er{border-color:var(--signal)}
+.help{font-size:13px;line-height:18px;color:var(--text-muted)}
+.cur{display:inline-block;width:2px;height:20px;background:var(--lime);margin-left:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="col" style="gap:24px">
+<div class="f"><span class="lb">STORE OR SELLER</span><div class="in"><span class="ph">e.g. Croma, Amazon</span></div></div>
+<div class="f"><span class="lb">PURCHASE DATE<span class="tag">READ FROM BILL</span></span><div class="in">10 Nov 2026</div><span class="help">Check it against your bill before saving.</span></div>
+</div>
+<div class="col" style="gap:24px">
+<div class="f"><span class="lb">PRODUCT</span><div class="in fo">Wireless earb<span class="cur"></span></div></div>
+<div class="f"><span class="lb">WARRANTY (MONTHS)</span><div class="in er">0</div><span class="help" style="color:var(--signal)">Enter at least 1 month, or turn off warranty.</span></div>
+</div>
+</div>
+</body>
+</html>
