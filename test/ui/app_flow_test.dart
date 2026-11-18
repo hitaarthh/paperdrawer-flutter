@@ -92,6 +92,15 @@ void main() {
       await _launch(tester, items, claims: claims, scale: 1.3);
 
       expect(_key('vault-ticket-due'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        _key('vault-item-due'),
+        200,
+        scrollable: find
+            .byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
       expect(_key('vault-item-due'), findsOneWidget);
       await _tap(tester, 'vault-filter-inClaim');
       expect(_key('vault-item-due'), findsNothing);

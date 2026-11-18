@@ -55,6 +55,9 @@ abstract final class PdType {
   /// -0.05em. Screens may step it down to 40 with `copyWith(fontSize:)`.
   static final heroTitle = _display(44, 42, 700, -0.05);
 
+  /// Option-card title (Add sheet item types): 17/19, -0.02em.
+  static final optionTitle = _display(17, 19, 700, -0.02);
+
   /// The PaperDrawer wordmark beside the mark in [PdBrandBar].
   static final wordmark = _display(20, 24, 700, -0.03);
 

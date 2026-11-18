@@ -25,6 +25,9 @@ void showPdSnackbar(
         borderRadius: BorderRadius.circular(Pd.rMd),
         side: const BorderSide(color: Pd.hairline),
       ),
+      // Action snackbars persist by default in material_ui 1.11; keep the
+      // timed dismissal so an Undo never covers the next screen's button.
+      persist: false,
       duration: Duration(seconds: action != null && onAction != null ? 8 : 4),
       action: action == null || onAction == null
           ? null

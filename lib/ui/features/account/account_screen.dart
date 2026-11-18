@@ -36,6 +36,7 @@ class _AccountScreenState extends State<AccountScreen> {
   final _name = TextEditingController();
   late bool _creating = widget.startCreating;
   bool _busy = false;
+  bool _showPassword = false;
   String? _error;
 
   /// The address a confirmation link went to, once sign-up needs one.
@@ -223,7 +224,11 @@ class _AccountScreenState extends State<AccountScreen> {
               ? '8+ characters. A number or symbol makes it stronger.'
               : null,
           enabled: !_busy,
-          obscureText: true,
+          obscureText: !_showPassword,
+          suffix: _PasswordToggle(
+            shown: _showPassword,
+            onTap: () => setState(() => _showPassword = !_showPassword),
+          ),
           textCapitalization: TextCapitalization.none,
           autofillHints: [
             _creating ? AutofillHints.newPassword : AutofillHints.password,
@@ -300,4 +305,40 @@ class _AccountScreenState extends State<AccountScreen> {
       onPressed: () => _switch(false),
     ),
   ];
+}
+
+/// SHOW / HIDE inside the password field: mono label, lime, 44pt target.
+class _PasswordToggle extends StatelessWidget {
+  const _PasswordToggle({required this.shown, required this.onTap});
+
+  final bool shown;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: shown ? 'Hide password' : 'Show password',
+    excludeSemantics: true,
+    child: GestureDetector(
+      key: const ValueKey('account-password-toggle'),
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: Pd.appbarIos,
+          minWidth: Pd.appbarIos,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Pd.s3),
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              shown ? 'HIDE' : 'SHOW',
+              style: PdType.label.copyWith(color: Pd.lime),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

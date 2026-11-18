@@ -215,7 +215,7 @@ class _KindCard extends StatelessWidget {
                   color: selected ? Pd.lime : Pd.textMuted,
                 ),
               ),
-              Text(title, style: PdType.cardTitle),
+              Text(title, style: PdType.optionTitle),
               Text(
                 description,
                 style: PdType.footnote.copyWith(color: Pd.textMuted),

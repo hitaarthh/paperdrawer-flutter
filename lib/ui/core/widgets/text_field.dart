@@ -22,6 +22,7 @@ class PdTextField extends StatefulWidget {
     this.enabled = true,
     this.obscureText = false,
     this.autofillHints,
+    this.suffix,
     super.key,
   });
 
@@ -41,6 +42,10 @@ class PdTextField extends StatefulWidget {
   final bool enabled;
   final bool obscureText;
   final Iterable<String>? autofillHints;
+
+  /// Trailing control inside the field (for example a SHOW/HIDE toggle).
+  /// When set, it replaces the clear button.
+  final Widget? suffix;
 
   @override
   State<PdTextField> createState() => _PdTextFieldState();
@@ -141,7 +146,15 @@ class _PdTextFieldState extends State<PdTextField> {
                 borderColor,
                 focused: _focus.hasFocus,
               ),
-              clearButtonMode: OverlayVisibilityMode.editing,
+              suffix: widget.suffix == null
+                  ? null
+                  : Padding(
+                      padding: const EdgeInsets.only(right: Pd.s1),
+                      child: widget.suffix,
+                    ),
+              clearButtonMode: widget.suffix == null
+                  ? OverlayVisibilityMode.editing
+                  : OverlayVisibilityMode.never,
               keyboardType: widget.keyboardType,
               textInputAction: widget.textInputAction,
               textCapitalization: widget.textCapitalization,

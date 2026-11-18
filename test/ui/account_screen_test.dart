@@ -78,6 +78,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('SHOW reveals the password and HIDE masks it again', (
+    tester,
+  ) async {
+    await _launch(tester, create: true);
+    bool obscured() =>
+        tester.widget<CupertinoTextField>(find.byKey(_password)).obscureText;
+    await tester.enterText(find.byKey(_password), _secret);
+    expect(obscured(), isTrue);
+    expect(find.text('SHOW'), findsOneWidget);
+
+    await _tap(tester, const ValueKey('account-password-toggle'));
+    expect(obscured(), isFalse);
+    expect(find.text('HIDE'), findsOneWidget);
+    expect(_text(tester, _password), _secret);
+
+    await _tap(tester, const ValueKey('account-password-toggle'));
+    expect(obscured(), isTrue);
+    expect(find.bySemanticsLabel('Show password'), findsOneWidget);
+  });
+
   testWidgets('field errors show after leaving the field', (tester) async {
     await _launch(tester, create: true);
     await tester.enterText(find.byKey(_email), 'asha');
