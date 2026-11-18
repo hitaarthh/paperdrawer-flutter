@@ -50,6 +50,7 @@ void main() {
     expect(find.text('Saved to your drawer'), findsOneWidget);
 
     await _saveNew(tester, 'Ceiling fan');
+    expect(app.items.active, hasLength(2));
     expect(find.text(_headline), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -73,6 +74,7 @@ void main() {
     expect(find.text('Saved to your drawer'), findsOneWidget);
 
     await _saveNew(tester, 'Ceiling fan');
+    expect(app.items.active, hasLength(2));
     expect(find.text(_headline), findsNothing);
     expect(app.gateway.asked, 1);
     expect(tester.takeException(), isNull);
@@ -102,6 +104,7 @@ void main() {
   ) async {
     final app = await _launch(tester, grant: true);
     await _saveNew(tester, 'Rent agreement', withWarranty: false);
+    expect(app.items.active, hasLength(1));
     expect(find.text(_headline), findsNothing);
     expect(app.settings.remindersOffered, isFalse);
     expect(find.text('Saved to your drawer'), findsOneWidget);
@@ -118,6 +121,7 @@ void main() {
     expect(app.settings.remindersOffered, isTrue);
 
     await _saveNew(tester, 'Mixer grinder');
+    expect(app.items.active, hasLength(1));
     expect(find.text(_headline), findsNothing);
   });
 
@@ -148,7 +152,11 @@ Future<void> _saveNew(
   String name, {
   bool withWarranty = true,
 }) async {
-  GoRouter.of(rootNavigatorKey.currentContext!).push(
+  // An earlier "Saved · Undo" snackbar persists; swipe it away like a user.
+  final context = rootNavigatorKey.currentContext!;
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  await tester.pumpAndSettle();
+  GoRouter.of(context).push(
     Routes.details,
     extra: AddDetailsArgs(
       reading: withWarranty

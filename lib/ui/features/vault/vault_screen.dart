@@ -193,9 +193,7 @@ class _VaultViewState extends State<_VaultView> {
                         )
                       else
                         ..._full(model),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: Pd.s12),
-                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: Pd.s12)),
                     ],
                   ),
                 ),

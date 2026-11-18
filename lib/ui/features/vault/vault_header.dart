@@ -81,10 +81,7 @@ class _VaultSearchFieldState extends State<VaultSearchField> {
       cursorColor: Pd.lime,
       textInputAction: TextInputAction.search,
       autocorrect: false,
-      padding: const EdgeInsets.symmetric(
-        horizontal: Pd.s3,
-        vertical: Pd.s3,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: Pd.s3, vertical: Pd.s3),
       prefix: const Padding(
         padding: EdgeInsets.only(left: Pd.s3),
         child: Icon(LucideIcons.search, size: Pd.iconSm, color: Pd.placeholder),
@@ -209,9 +206,7 @@ class _Tab extends StatelessWidget {
               children: [
                 TextSpan(
                   text: ' $count',
-                  style: TextStyle(
-                    color: selected ? Pd.lime : Pd.textSubtle,
-                  ),
+                  style: TextStyle(color: selected ? Pd.lime : Pd.textSubtle),
                 ),
               ],
             ),

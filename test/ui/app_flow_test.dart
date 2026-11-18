@@ -15,7 +15,6 @@ import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
-import 'package:paperdrawer/ui/core/widgets/countdown_ticket.dart';
 import 'package:paperdrawer/ui/core/widgets/stamp.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
@@ -26,7 +25,7 @@ void main() {
   ) async {
     final items = _Items([]);
     await _launch(tester, items);
-    expect(find.text('Your drawer is empty'), findsOneWidget);
+    expect(find.text('Add the last thing you bought.'), findsOneWidget);
     await _tap(tester, 'vault-scan');
     await _tap(tester, 'add-sheet-manual');
     expect(find.text('Check the details'), findsOneWidget);
@@ -92,7 +91,7 @@ void main() {
       ]);
       await _launch(tester, items, claims: claims, scale: 1.3);
 
-      expect(find.byType(CountdownTicket), findsOneWidget);
+      expect(_key('vault-ticket-due'), findsOneWidget);
       expect(_key('vault-item-due'), findsOneWidget);
       await _tap(tester, 'vault-filter-inClaim');
       expect(_key('vault-item-due'), findsNothing);

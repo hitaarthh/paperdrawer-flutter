@@ -15,7 +15,12 @@ class VaultEmpty extends StatelessWidget {
   final ValueChanged<ItemKind> onStart;
 
   static const _starts = [
-    (ItemKind.policy, 'POLICY', 'An insurance policy', 'Health, motor or gadget.'),
+    (
+      ItemKind.policy,
+      'POLICY',
+      'An insurance policy',
+      'Health, motor or gadget.',
+    ),
     (
       ItemKind.vehicle,
       'VEHICLE',
@@ -124,11 +129,7 @@ class _WelcomeReceipt extends StatelessWidget {
 
 /// Dark ink button printed on the receipt, with a lime label.
 class _InkButton extends StatelessWidget {
-  const _InkButton({
-    required this.label,
-    required this.onPressed,
-    super.key,
-  });
+  const _InkButton({required this.label, required this.onPressed, super.key});
 
   final String label;
   final VoidCallback onPressed;
@@ -147,10 +148,7 @@ class _InkButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(Pd.rSm),
       child: Container(
         constraints: const BoxConstraints(minHeight: Pd.controlH),
-        padding: const EdgeInsets.symmetric(
-          horizontal: Pd.s4,
-          vertical: Pd.s2,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: Pd.s4, vertical: Pd.s2),
         decoration: BoxDecoration(
           color: Pd.ink,
           borderRadius: BorderRadius.circular(Pd.rSm),
