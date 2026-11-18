@@ -200,6 +200,7 @@ void main() {
     await tester.tap(find.text('Add a note'));
     await tester.pumpAndSettle();
     await tester.enterText(_key('claim-log-text'), 'Asked for a repair date.');
+    await tester.pump();
     await _tap(tester, 'save-claim-log');
     expect(claims.lastNote, ('laptop', 'Asked for a repair date.'));
 
@@ -238,6 +239,16 @@ void main() {
     expect(find.text('2 OPEN · 1 SETTLED · 1 NEEDS YOU'), findsOneWidget);
     expect(_key('claim-featured-late'), findsOneWidget);
     expect(_key('claim-row-settled'), findsNothing);
+    final claimsScroll = find
+        .byWidgetPredicate(
+          (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+        )
+        .first;
+    await tester.scrollUntilVisible(
+      _key('claim-row-waiting'),
+      120,
+      scrollable: claimsScroll,
+    );
     expect(
       tester.getTopLeft(_key('claim-row-late')).dy,
       lessThan(tester.getTopLeft(_key('claim-row-waiting')).dy),
@@ -250,11 +261,7 @@ void main() {
     await tester.scrollUntilVisible(
       _key('claim-row-settled'),
       180,
-      scrollable: find
-          .byWidgetPredicate(
-            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-          )
-          .first,
+      scrollable: claimsScroll,
     );
     expect(_key('claim-row-settled'), findsOneWidget);
     await _tap(tester, 'claims-scan');

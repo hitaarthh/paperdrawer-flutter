@@ -37,18 +37,18 @@ class ClaimStatusTicket extends StatelessWidget {
         'If you’re still waiting on ${shortDate(claim.nudgeOn)}, '
             'your next step is ${stepTitle(claim.type, claim.step + 1)}.',
     };
-    final step =
-        'Step ${claim.step + 1} of ${steps.length}. '
-        '${shouldEscalate ? 'No reply from ' : ''}$current';
+    final position = 'Step ${claim.step + 1} of ${steps.length}';
+    final contact = shouldEscalate ? 'No reply from $current' : current;
 
     return VaultTicket(
       number: '$days',
       unit: days == 1 ? 'DAY' : 'DAYS',
-      kicker: step.toUpperCase().replaceFirst('. ', ' · '),
+      kicker: '$position · $contact'.toUpperCase(),
       title: heading,
       body: detail,
       tone: shouldEscalate ? VaultTicketTone.lime : VaultTicketTone.paper,
-      semanticLabel: '${daysWord(days)} waiting. $step. $heading. $detail',
+      semanticLabel:
+          '${daysWord(days)} waiting. $position. $contact. $heading. $detail',
     );
   }
 }

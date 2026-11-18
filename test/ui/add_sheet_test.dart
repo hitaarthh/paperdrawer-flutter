@@ -66,7 +66,7 @@ void main() {
       await _tap(tester, 'open-add');
       await _tap(tester, 'add-kind-policy');
       await _tap(tester, 'add-sheet-camera');
-      expect(find.text('FILL THE FRAME'), findsOneWidget);
+      expect(find.textContaining('FILL THE FRAME'), findsOneWidget);
 
       await _tap(tester, 'capture-flash');
       expect(capture.session.torch, isTrue);

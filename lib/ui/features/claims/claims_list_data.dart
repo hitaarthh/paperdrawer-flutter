@@ -112,6 +112,7 @@ class ClaimListEntry {
       waitDays: claim.waitingDays(today),
       orderDate: claim.settledOn ?? claim.waitingSince,
       otherSide: claim.step == 0 ? claim.type.otherSide : current.toUpperCase(),
+      hasDraft: recommended != null,
     );
   }
 

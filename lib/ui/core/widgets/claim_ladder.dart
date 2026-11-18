@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../domain/ladders.dart';
 import '../../../domain/formats.dart';
+import '../../../domain/ladders.dart';
 import '../../../domain/models/claim.dart';
 import '../theme/tokens.dart';
 import '../theme/type.dart';
@@ -81,12 +81,10 @@ class _LadderRung extends StatelessWidget {
       _RungState.recommended => Pd.lime,
       _RungState.upcoming => null,
     };
-    final status = switch (state) {
-      _RungState.current =>
-        noReplyDays == null
-            ? 'YOU ARE HERE'
-            : 'NO REPLY · ${daysCaps(noReplyDays!)}',
-      _RungState.recommended => 'RECOMMENDED NEXT',
+    final status = switch ((state, noReplyDays)) {
+      (_RungState.current, final int days) => 'NO REPLY · ${daysCaps(days)}',
+      (_RungState.current, _) => 'YOU ARE HERE',
+      (_RungState.recommended, _) => 'RECOMMENDED NEXT',
       _ => null,
     };
     return Semantics(
