@@ -11,6 +11,16 @@ abstract final class Pd {
   static const hairline = Color(0x14FFFFFF);
   static const line = Color(0xFF66726B);
 
+  // Floating glass dock
+  static const dockGlassTop = Color(0xCF252F2A);
+  static const dockGlassBottom = Color(0xE60E1311);
+  static const dockRimLight = Color(0x59FFFFFF);
+  static const dockRimShade = Color(0x1FFFFFFF);
+  static const dockSelection = Color(0x24F2F4EF);
+  static const dockBlur = 20.0;
+  static const dockMaxWidth = 440.0;
+  static const dockSelectionDuration = Duration(milliseconds: 200);
+
   // Text on dark
   static const text = Color(0xFFF2F4EF);
   static const text2 = Color(0xFFDDE3DF);
