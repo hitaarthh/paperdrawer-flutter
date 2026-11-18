@@ -7,8 +7,8 @@ description: End-to-end senior mobile engineering workflow for adding a feature,
 
 Work like a senior mobile engineer. Understand the request before you write
 code, change each layer of the app in order, handle the unhappy paths, and
-prove that the result works. Read `AGENTS.md` at the repo root first. Its rules
-and its architecture snapshot override anything here. Then read the code you
+prove that the result works. Read `AGENTS.md` at the repo root first, then the
+sections of `ARCHITECTURE.md` you will touch. Both override anything here. Then read the code you
 are about to change. The code is the source of truth.
 
 ## 1. Frame the change (before you write code)
@@ -19,7 +19,7 @@ large or ambiguous:
 - **User outcome.** In one sentence, what can the user do afterwards?
 - **Layers touched.** Mark each one yes or no: domain models and rules
   (`lib/domain`), repository or service (`lib/data`), schema migration, view
-  model, UI (`lib/ui/<feature>`), shared widgets (`lib/ui/core`), native or
+  model, UI (`lib/ui/features/<feature>`), shared widgets (`lib/ui/core`), native or
   platform config, tests.
 - **States.** List the empty, loading, success, and error states. Cover 0
   items, 1 item, a Base plan near or at its limit, and very long names. For
@@ -54,9 +54,10 @@ Change one layer at a time, and keep `flutter analyze` clean as you go.
    (`save`, `archive`, `escalate`), serializes writes, and catches errors from
    the layer below to turn them into user-facing state. Expose derived data as
    getters. Widgets should not compute it.
-4. **UI (`lib/ui/<feature>`).** Follow the `paperdrawer-design-system` skill.
-   Reuse the papers and primitives in `lib/ui/core`, and use only `Pd` and
-   `PdType` for styling. Give every interactive element tests use a `ValueKey`.
+4. **UI (`lib/ui/features/<feature>`).** Follow the `paperdrawer-design-system` skill.
+   Reuse the kit in `lib/ui/core/widgets/`, follow the screen recipe in
+   `design/mobile-system/screens.md`, add routes in `lib/routing/router.dart`,
+   and use only `Pd` and `PdType` for styling. Give every interactive element tests use a `ValueKey`.
    Handle every state you listed in step 1.
 5. **Platform.** For any plugin or native work, follow the
    `mobile-platform-integration` skill. Make the permission strings, manifest
@@ -99,8 +100,8 @@ A senior engineer's work stands out here. Check each item:
 ## 5. Verify and report
 
 Run the `mobile-verify` skill. If the toolchain is available, launch the app on
-an iOS simulator and look at the new screen. If you changed the structure,
-update the architecture snapshot in `AGENTS.md`.
+an iOS simulator and look at the new screen. If you changed a contract, route,
+schema, or kit component, update `ARCHITECTURE.md`.
 
 Finish with a short report: what changed (by layer), the decisions you made and
 why, the verification you ran (with its results), and anything you could not

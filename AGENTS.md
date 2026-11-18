@@ -13,8 +13,8 @@ follow. Do not leave half-finished features behind.
 These rules apply to Codex, Claude, and any other agent working in this repo.
 Where they conflict with a generic skill (Flutter, architecture, routing), these
 rules win. **The code is the source of truth.** Read the relevant part of
-`lib/` before you change it. If this file is wrong about the code, fix this file
-as part of your change.
+`lib/` before you change it. If this file or `ARCHITECTURE.md` is wrong about the
+code, fix it as part of your change.
 
 ## Preserve files and folders
 
@@ -57,36 +57,30 @@ because agents rooted in this git repo do not load that file.
   tell the user what to do next. Use the typographic apostrophe (’). Use
   India-first examples, currency (₹, `en_IN` grouping), and escalation routes.
 
-## Architecture snapshot
+## Architecture
 
-*Last checked 2026-11-18. The app was mid-rewrite then. Keep this section
-accurate.*
+**`ARCHITECTURE.md` is the contract.** It covers the folder layout, the
+database schema and migrations, the repository and service APIs, the routes,
+and the UI kit. Read the parts you will touch before you change code. If you
+change a contract, update `ARCHITECTURE.md` in the same change. The design
+source is `design/mobile-system/` (`README.md`, `platforms.md`, `screens.md`,
+`tokens.json`, `components/`).
 
-The app follows a layered approach (see `flutter-apply-architecture-best-practices`):
+The invariants to keep in mind:
 
-```
-lib/
-  domain/            pure Dart: models, rules, formatting. No Flutter UI imports.
-    models/          item.dart (ItemKind, Item…), claim.dart (Claim, ClaimEvent…)
-    formats.dart     civil-date maths, isoDate/parseIsoDate, INR money formatting
-    item_status.dart CoverWindow, due/ticket thresholds, Base plan limits
-    ladders.dart     escalation routes (LadderStep)
-  data/              repositories + services (persistence, files, notifications)
-  ui/
-    core/theme/      tokens.dart (Pd), type.dart (PdType)
-    core/widgets/    shared primitives
-    <feature>/       one folder per feature: view model + widgets
-```
-
-- Domain logic, such as status, due dates, plan limits, and ladders, lives in
-  `lib/domain` and gets unit tests. Widgets do not compute business rules.
-- Widgets talk to view models or controllers, and those talk to repositories.
-  Widgets never touch the database or the file system directly. Serialize
-  writes that must not interleave.
-- Calendar dates are civil dates (UTC midnight through `civil()`, stored as
-  `YYYY-MM-DD`). Instants are stored as milliseconds since the epoch. Money is
-  stored as integer minor units plus a currency code (default `INR`). Never
-  store money as a floating-point number.
+- The layering runs **data** (services and repositories, the single source of
+  truth), then **domain** (immutable models and pure logic, unit-tested), then
+  **ui** (ChangeNotifier view models and lean views, in
+  `lib/ui/features/<feature>/`). Dependencies are injected with `provider`.
+  Widgets never touch the database, files, or plugins directly.
+- Repositories hold an in-memory snapshot, write through to SQLite, serialize
+  writes through one queue, and notify listeners after each successful write.
+  `FormatException.message` is always user-facing copy.
+- Calendar dates are civil dates (`isoDate` / `parseIsoDate`, `yyyy-mm-dd`).
+  "Today" comes from the `Today` service, never from `DateTime.now()` scattered
+  through the code. Instants are milliseconds since the epoch. Money is stored
+  as integer minor units plus a currency code. Never store money as a
+  floating-point number.
 
 ## Stack and conventions
 
@@ -98,11 +92,17 @@ lib/
 - Read the `pubspec.yaml` packages before you add one. Prefer what is already
   declared. Before you wire in a plugin, add the platform setup it needs
   (Info.plist keys, Android manifest entries, entitlements) in the same change.
-- Pick one navigation approach and use it everywhere. `go_router` is declared.
-  Do not mix imperative `Navigator.push` flows with router-based ones.
-- Styling: use only `Pd` tokens (colours, spacing `s1…s12`, radii, sizes,
-  shadows) and `PdType` text styles. Do not hard-code hex colours, font sizes,
-  or magic spacing inside widgets. The app is dark-only at launch ("paper is the
+- Navigation uses `go_router` (`lib/routing/router.dart`, with
+  `StatefulShellRoute` for the tabs). Add routes there. Do not push
+  `MaterialPageRoute`s for screens. Modal sheets and dialogs go through the
+  kit helpers (`showPdSheet`, `showPdActions`, `showPdConfirm`).
+- Styling: build from the UI kit in `lib/ui/core/widgets/` (`PdButton`,
+  `ReceiptPaper` and `DocumentPaper`, `ItemCard`, `PdStamp`, `PdMeter`,
+  `PdTextField`, `PdListRow`, `showPdSnackbar`, `PdLargeTitleScaffold`, and
+  others), and use only `Pd` tokens and `PdType` styles. Do not hard-code hex
+  colours, font sizes, or magic spacing inside widgets. Icons are `PdGlyph`
+  for tab and scan icons, `LucideIcons` for everything else, and
+  `CupertinoIcons` for share and back. The app is dark-only at launch ("paper is the
   content, dark is the room").
 - Interactive widgets that tests drive get a stable `ValueKey('kebab-name')`.
 - After every `await` in a `State`, check `if (!mounted) return;` before you
@@ -128,7 +128,8 @@ You also need:
 - A check at a 1.3× text scale for any UI change, so nothing overflows.
 - For native or plugin changes, a successful
   `flutter build ios --simulator --debug`.
-- An updated architecture snapshot above, if you changed the structure.
+- An updated `ARCHITECTURE.md`, if you changed a contract, route, schema, or
+  kit component.
 - A short report: what changed, why, how you verified it, and what you did not
   verify (for example "camera needs a physical device").
 

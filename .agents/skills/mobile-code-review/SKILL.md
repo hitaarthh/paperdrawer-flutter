@@ -47,7 +47,7 @@ style nits that the analyzer or formatter already catches.
 8. **Maintainability.** Check for business rules in widgets or view models
    that belong in `lib/domain`, duplication of primitives in `lib/ui/core`,
    files growing past roughly 400 lines, a mix of `Navigator` and `go_router`
-   styles, and an architecture snapshot in `AGENTS.md` left out of date.
+   styles, and an `ARCHITECTURE.md` left out of date.
 
 ## Before you hand off
 

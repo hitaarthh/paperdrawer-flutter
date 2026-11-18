@@ -11,9 +11,19 @@ official document for a policy, a vehicle paper, or an agreement. The paper
 sits on the dark ground with a soft shadow. A lime marker is the single accent,
 and orange signals urgency. The app is dark-only at launch.
 
-Look first at the sources of truth: `lib/ui/core/theme/tokens.dart` (`Pd`),
-`lib/ui/core/theme/type.dart` (`PdType`), and `design/` (renders, plus
-`tokens.json` when it exists). If this skill disagrees with them, they win.
+Look first at the sources of truth, which win over this skill:
+
+- `design/mobile-system/README.md` for the principles and voice,
+  `platforms.md` for differences between iOS and Android, `screens.md` for
+  screen recipes, `components/<Name>/` for each component's spec and
+  preview, and `tokens.json` for the tokens.
+- `lib/ui/core/theme/tokens.dart` (`Pd`), `type.dart` (`PdType`), and
+  `app_theme.dart`.
+- The UI kit in `lib/ui/core/widgets/`, listed in `ARCHITECTURE.md` under
+  "UI kit". **Compose screens from the kit.** Build a new widget only when the
+  design system has a component the kit lacks. Then build it in
+  `lib/ui/core/widgets/` to match `components/<Name>/README.md`, and add it to
+  `ARCHITECTURE.md`.
 
 ## Tokens (always `Pd.*`, never raw values in widgets)
 
@@ -60,21 +70,25 @@ alike.
 
 - Screens are a dark `bg` scaffold with a `Pd.margin` gutter, a scrollable
   body, and safe areas respected. The tab bar and app bar follow iOS metrics.
-- Papers are custom-drawn widgets: receipt edges for bills, ruled official
-  papers for the other kinds. They live in `lib/ui/core/widgets/` and are
-  reused, not redrawn for each screen. Wrap them in a `RepaintBoundary`, and
+- Papers are `ReceiptPaper` (bills, with a torn zigzag bottom) and
+  `DocumentPaper` (everything else, with a double rule at the top). List
+  entries use `ItemCard`, which picks the right paper. Never redraw papers for
+  each screen. Wrap them in a `RepaintBoundary`, and
   give their painter a correct `shouldRepaint`.
 - Cover windows show as a progress track (`paperTrack`) plus a stamp. The
   countdown "ticket" appears only within `ticketWithinDays`.
-- Primary action: lime and `controlH` tall, one per screen. Secondary actions
-  use outlined or text buttons on `surface*`.
-- Sheets use `rLg` top corners, `shadowSheet`, and `scrim`.
+- Buttons: `PdButton.primary` (lime, one per screen), `.secondary`,
+  `.onPaper`, and `.text`. Scaffolds: `PdLargeTitleScaffold` for tab roots and
+  `PdPushedScaffold` for pushed screens.
+- Sheets, action sheets, date pickers, and confirms go through `showPdSheet`,
+  `showPdActions`, `showPdDatePicker`, and `showPdConfirm`. Transient feedback
+  goes through `showPdSnackbar`. Empty states use `DashedTile`.
 - Empty states have a friendly headline, one line of guidance, and one clear
   action.
-- Feedback: use a SnackBar or inline banner for transient results, and inline
-  field messages for validation. Destructive, irreversible actions need
+- Validation shows inline through `PdTextField`, and only after the field
+  loses focus. Destructive, irreversible actions need
   confirmation.
-- Plan limits: show the "N items left on Base" footnote from `baseItemWarnAt`.
+- Plan limits use `LimitNotice` and `LimitFootnote` (from `baseItemWarnAt`).
   Keep it calm and informative, never a dark pattern.
 
 ## Motion

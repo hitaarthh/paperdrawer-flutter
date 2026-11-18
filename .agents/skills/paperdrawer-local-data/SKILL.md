@@ -14,17 +14,19 @@ the repository joins them back into a full path when it reads. Never persist an
 absolute path, because the iOS container path changes between installs and
 restores.
 
-The first version (`../#Archive/paperdrawer-flutter/lib/src/data/`) shows these
-patterns working, with copy-then-insert and cleanup on failure. Read it for
-reference only.
+The live schema, the migration history (v1 to v2), and the `FileStore`,
+repository, and `Exporter` APIs are specified in `ARCHITECTURE.md` under "Data
+contracts". Read that first. Keep it in sync with every change you make. The
+v1 to v2 migration renames the old table to `records_v1_backup` and never drops
+it. Follow that precedent.
 
 ## The boundary
 
 - Widgets never touch the database or the file system. They go through view
   models, which call repositories.
-- Define a repository interface in `lib/data`, then the SQLite
-  implementation. Every interface change updates the in-memory fakes used in
-  tests.
+- Repositories live in `lib/data/repositories/`, and services (database,
+  files, OCR, reminders, export) in `lib/data/services/`. Every API change
+  updates `ARCHITECTURE.md` and the fakes used in tests.
 - Validate at the repository: trim strings, check required fields, and throw a
   `FormatException` with a user-facing message for bad input, or a
   `StateError` for impossible states such as a missing row.
