@@ -10,8 +10,15 @@ import '../../core/widgets/text_field.dart';
 import 'shared_session.dart';
 
 class AccountScreen extends StatefulWidget {
-  const AccountScreen({required this.session, super.key});
+  const AccountScreen({
+    required this.session,
+    this.startCreating = false,
+    super.key,
+  });
   final SharedSession session;
+
+  /// Opens on "Create account" instead of "Sign in".
+  final bool startCreating;
 
   @override
   State<AccountScreen> createState() => _AccountScreenState();
@@ -21,7 +28,7 @@ class _AccountScreenState extends State<AccountScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _name = TextEditingController();
-  bool _creating = false;
+  late bool _creating = widget.startCreating;
   bool _busy = false;
   String? _error;
   bool _checkEmail = false;

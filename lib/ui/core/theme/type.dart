@@ -51,6 +51,13 @@ abstract final class PdType {
   static final cardTitle = _display(20, 24, 700, -0.02);
   static final ticketNumber = _display(52, 48, 800, -0.04);
 
+  /// Editorial screen headline ("The vault", "Start your vault"): 44/42,
+  /// -0.05em. Screens may step it down to 40 with `copyWith(fontSize:)`.
+  static final heroTitle = _display(44, 42, 700, -0.05);
+
+  /// The PaperDrawer wordmark beside the mark in [PdBrandBar].
+  static final wordmark = _display(20, 24, 700, -0.03);
+
   // Text (Inter)
   static final body = _sans(16, 24, 400);
   static final bodyStrong = _sans(16, 24, 600);

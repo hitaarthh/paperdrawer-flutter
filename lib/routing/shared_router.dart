@@ -6,20 +6,37 @@ import '../ui/core/widgets/tab_bar.dart';
 import '../ui/features/account/account_screen.dart';
 import '../ui/features/account/shared_session.dart';
 import '../ui/features/account/shared_vault_screens.dart';
+import '../ui/features/intro/intro_flow.dart';
 
 GoRouter buildSharedRouter(SharedSession session) => GoRouter(
   initialLocation: '/vault',
   refreshListenable: session,
   redirect: (context, state) {
-    final signingIn = state.matchedLocation == '/account';
-    if (!session.signedIn && !signingIn) return '/account';
+    final signingIn = const {
+      '/intro',
+      '/account',
+    }.contains(state.matchedLocation);
+    // Signed out, the app opens on the intro, which leads to the account.
+    if (!session.signedIn && !signingIn) return '/intro';
     if (session.signedIn && signingIn) return '/vault';
     return null;
   },
   routes: [
     GoRoute(
+      path: '/intro',
+      builder: (context, state) => IntroFlow(
+        onStart: () => context.go('/account?mode=create'),
+        onSignIn: () => context.go('/account'),
+      ),
+    ),
+    GoRoute(
       path: '/account',
-      builder: (context, state) => AccountScreen(session: session),
+      builder: (context, state) => AccountScreen(
+        // A new key per mode, so switching modes from the intro resets it.
+        key: ValueKey(state.uri.queryParameters['mode']),
+        session: session,
+        startCreating: state.uri.queryParameters['mode'] == 'create',
+      ),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => ListenableBuilder(
