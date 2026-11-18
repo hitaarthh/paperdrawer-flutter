@@ -99,7 +99,6 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                               child: Text('Settings', style: PdType.heroTitle),
                             ),
                             SharedSettingsSection(
-                              number: '01',
                               title: 'Account',
                               description: 'The account your vault belongs to.',
                               children: [
@@ -112,7 +111,6 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                               ],
                             ),
                             SharedSettingsSection(
-                              number: '02',
                               title: 'Plan',
                               description:
                                   'What you get, and how much of it you use.',
@@ -127,7 +125,6 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                               ],
                             ),
                             SharedSettingsSection(
-                              number: '03',
                               title: 'Reminders',
                               description: 'How early we tell you before returns close, warranties end and policies renew.',
                               children: [
@@ -153,7 +150,6 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                               ],
                             ),
                             SharedSettingsSection(
-                              number: '04',
                               title: 'Email import',
                               description: 'Forward order and policy emails and they land here, already read.',
                               children: [
@@ -176,7 +172,6 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                               ],
                             ),
                             SharedSettingsSection(
-                              number: '05',
                               title: 'Your data',
                               description:
                                   'Export your vault or delete your account.',

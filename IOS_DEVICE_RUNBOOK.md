@@ -5,6 +5,30 @@ iPhone. The Mac runs the web app and Docker Supabase. The iPhone uses the same
 Supabase account, bills, documents and claims over Wi-Fi. USB is used to install
 and launch the app.
 
+## Rebuild and relaunch from Windows
+
+Keep the Mac awake, its Paper Drawer services running, and the paired iPhone
+connected to the Mac. On the Mac, enable **System Settings → General →
+Sharing → Remote Login** for your Mac account and note the SSH address shown.
+On Windows, use Python 3.9 or later and the OpenSSH Client.
+
+Copy `tool/deploy_iphone.py` to Windows and run this from PowerShell. Use the
+Mac's LAN IP if Windows can't resolve the `.local` name.
+
+```powershell
+py .\deploy_iphone.py --host hitarth@Hitarths-MacBook-Pro.local --check
+py .\deploy_iphone.py --host hitarth@Hitarths-MacBook-Pro.local
+```
+
+The launcher builds the Mac checkout, installs Paper Drawer in place, and
+relaunches it. Add `--update` to fast-forward a clean checkout from its
+configured Git upstream before building. The default checkout is
+`~/Projects/paperdrawer/paperdrawer-flutter` on the Mac. Supply
+`--project-dir /absolute/mac/path` if you keep it elsewhere.
+
+Run `python3 tool/deploy_iphone.py` from the Mac for the same workflow
+without SSH. Add `--build-only` to verify the signed app without installing it.
+
 ## 1. Start the services on the Mac
 
 Start Docker Desktop, then run these commands in Terminal:

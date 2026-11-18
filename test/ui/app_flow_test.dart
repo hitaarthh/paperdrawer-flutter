@@ -236,7 +236,8 @@ void main() {
     ]);
     await _launch(tester, _Items([]), claims: claims, scale: 1.3);
     await _tap(tester, 'claims-tab');
-    expect(find.text('2 OPEN · 1 SETTLED · 1 NEEDS YOU'), findsOneWidget);
+    expect(find.text('2 OPEN · 1 SETTLED · 1 NEEDS YOU'), findsNothing);
+    expect(find.text('OPEN 2'), findsOneWidget);
     expect(_key('claim-featured-late'), findsOneWidget);
     expect(_key('claim-row-settled'), findsNothing);
     final claimsScroll = find

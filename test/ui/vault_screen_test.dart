@@ -26,7 +26,7 @@ void main() {
       testWidgets('shows the welcome receipt at ${scale}x', (tester) async {
         await _launch(tester, _Items([]), scale: scale);
 
-        expect(find.text('000 ITEMS · NOTHING DUE'), findsOneWidget);
+        expect(find.text('000 ITEMS · NOTHING DUE'), findsNothing);
         expect(find.text('The vault'), findsOneWidget);
         expect(find.text('Add the last thing you bought.'), findsOneWidget);
         expect(_key('scan-first-bill'), findsOneWidget);
@@ -63,8 +63,9 @@ void main() {
 
         expect(
           find.text('005 ITEMS · 4 DUE SOON · 1 OPEN CLAIM'),
-          findsOneWidget,
+          findsNothing,
         );
+        expect(find.text('The vault'), findsOneWidget);
         expect(_key('vault-search'), findsOneWidget);
         expect(find.text('5 OF 25'), findsOneWidget);
         expect(find.text('DUE NEXT'), findsOneWidget);

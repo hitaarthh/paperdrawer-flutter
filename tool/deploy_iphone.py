@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import plistlib
 import shlex
 import shutil
 import subprocess
@@ -104,7 +105,11 @@ def check_local_services(host):
 def deploy(options):
     import fcntl
 
-    project = Path(options.project_dir).expanduser() if options.project_dir else Path(__file__).resolve().parents[1]
+    project = (
+        Path(options.project_dir).expanduser()
+        if options.project_dir
+        else Path(__file__).resolve().parents[1]
+    )
     os.chdir(project)
     if not Path("tool/run_shared_local.py").is_file() or not Path("pubspec.yaml").is_file():
         raise RuntimeError("Set --project-dir to the Paper Drawer Flutter checkout on the Mac.")
@@ -116,7 +121,9 @@ def deploy(options):
 
     host = options.lan_host
     if not host:
-        host = run("ipconfig", "getifaddr", "en0", capture=True).strip()
+        host = subprocess.run(
+            ["ipconfig", "getifaddr", "en0"], text=True, capture_output=True
+        ).stdout.strip()
     if not host:
         raise RuntimeError("The Mac has no Wi-Fi IPv4 address. Supply it with --lan-host.")
     check_local_services(host)
@@ -153,6 +160,9 @@ def deploy(options):
         )
         if app is None:
             raise RuntimeError("The build finished, but Xcode's Runner.app could not be found.")
+        with (app / "Info.plist").open("rb") as plist:
+            if plistlib.load(plist).get("CFBundleIdentifier") != BUNDLE_ID:
+                raise RuntimeError("Xcode produced an unexpected app bundle identifier.")
         run("codesign", "--verify", "--deep", "--strict", str(app))
         if options.build_only:
             print(f"Verified signed build at {app}.")

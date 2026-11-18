@@ -9,14 +9,12 @@ import '../../core/widgets/meter.dart';
 
 class SharedSettingsSection extends StatelessWidget {
   const SharedSettingsSection({
-    required this.number,
     required this.title,
     required this.description,
     required this.children,
     super.key,
   });
 
-  final String number;
   final String title;
   final String description;
   final List<Widget> children;
@@ -31,30 +29,12 @@ class SharedSettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: Pd.s3,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          spacing: Pd.s3,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: Pd.s1,
           children: [
-            ExcludeSemantics(
-              child: Text(
-                number,
-                style: PdType.monoButton.copyWith(color: Pd.lime),
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: Pd.s1,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: Text(title, style: PdType.title2),
-                  ),
-                  SharedSettingsDetail(description),
-                ],
-              ),
-            ),
+            Semantics(header: true, child: Text(title, style: PdType.title2)),
+            SharedSettingsDetail(description),
           ],
         ),
         ...children,

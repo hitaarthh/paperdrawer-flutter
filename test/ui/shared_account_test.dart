@@ -181,7 +181,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('1 OPEN · 0 SETTLED · 1 NEEDS YOU'), findsOneWidget);
+      expect(find.text('1 OPEN · 0 SETTLED · 1 NEEDS YOU'), findsNothing);
+      expect(find.text('OPEN 1'), findsOneWidget);
       expect(find.text('NEEDS YOU · DOCUMENTS ASKED'), findsOneWidget);
       expect(find.text('STEP 1 OF 4 · INSURER CLAIMS TEAM'), findsOneWidget);
       expect(find.text('DOCS ASKED'), findsOneWidget);
