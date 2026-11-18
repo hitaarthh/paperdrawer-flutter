@@ -56,7 +56,7 @@ void main() {
     expect(tester.widget<CupertinoTextField>(password).obscureText, isTrue);
     expect(find.text('Sign in'), findsOneWidget);
 
-    final create = find.text('Create an account');
+    final create = find.byKey(const ValueKey('account-tab-create'));
     await tester.ensureVisible(create);
     await tester.pumpAndSettle();
     await tester.tap(create);

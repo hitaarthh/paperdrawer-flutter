@@ -6,6 +6,10 @@ import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
+import '../../../domain/models/claim.dart';
+import 'vault_tickets.dart';
+
+export 'vault_tickets.dart';
 
 class VaultViewModel extends ChangeNotifier {
   VaultViewModel(this._items, this._claims, this._settings, this._today)
@@ -27,40 +31,100 @@ class VaultViewModel extends ChangeNotifier {
   bool _disposed = false;
   bool _oldestFirst = false;
   VaultFilter _filter = VaultFilter.all;
+  String _query = '';
   List<ItemSummary> _summaries = [];
 
   VaultFilter get filter => _filter;
   bool get oldestFirst => _oldestFirst;
+  String get query => _query;
   int get activeCount => _summaries.length;
   bool get atLimit => _items.atLimit;
 
-  int count(VaultFilter filter) => _summaries.where(filter.matches).length;
+  /// "010 ITEMS · 4 DUE SOON · 3 OPEN CLAIMS", over the hero title.
+  String get kicker {
+    final due = _summaries.where(VaultFilter.due.matches).length;
+    final open = _claims.claims.where((claim) => claim.isOpen).length;
+    return [
+      '${activeCount.toString().padLeft(3, '0')} '
+          '${activeCount == 1 ? 'ITEM' : 'ITEMS'}',
+      due == 0 ? 'NOTHING DUE' : '$due DUE SOON',
+      if (open > 0) '$open OPEN ${open == 1 ? 'CLAIM' : 'CLAIMS'}',
+    ].join(' · ');
+  }
+
+  /// Tab counts follow the search, so they always match the list.
+  int count(VaultFilter filter) =>
+      _searched.where(filter.matches).length;
 
   List<ItemSummary> get visible {
-    final items = _summaries.where(_filter.matches).toList();
+    final items = _searched.where(_filter.matches).toList();
     if (_oldestFirst) {
       items.sort((a, b) => a.item.createdAt.compareTo(b.item.createdAt));
     }
     return items;
   }
 
-  (ItemSummary, CoverWindow)? get ticket {
-    final urgent = mostUrgent(_summaries);
-    if (urgent == null) return null;
-    final key = ticketKey(urgent.$1, urgent.$2);
-    return key == _settings.ticketDismissedKey || key == _dismissing
-        ? null
-        : urgent;
+  Iterable<ItemSummary> get _searched {
+    final words = _query.toLowerCase().split(' ').where((w) => w.isNotEmpty);
+    if (words.isEmpty) return _summaries;
+    return _summaries.where((summary) {
+      final d = summary.d;
+      final haystack = [
+        summary.item.name,
+        d.source,
+        d.subtype,
+        d.reference,
+        summary.item.kind.label,
+      ].join(' ').toLowerCase();
+      return words.every(haystack.contains);
+    });
   }
+
+  /// The "Due next" strip: deadlines within [ticketWithinDays], soonest
+  /// first, then claims waiting on a reply long enough to escalate.
+  List<VaultTicketData> get tickets {
+    final today = _today.value;
+    final hidden = {
+      ...?_settings.ticketDismissedKey?.split(_keySeparator),
+      ?_dismissing,
+    };
+    final dated = [
+      for (final summary in _summaries)
+        if (summary.next case final window?
+            when window.daysLeft(summary.today) <= ticketWithinDays)
+          (summary, window),
+    ]..sort((a, b) => a.$2.end.compareTo(b.$2.end));
+    final result = <VaultTicketData>[
+      for (final (summary, window) in dated)
+        VaultTicketData.window(summary, window, ticketKey(summary, window)),
+      for (final claim in _claims.claims)
+        if (claim.status(today) == ClaimStatus.escalate)
+          VaultTicketData.claim(claim, today, _claimKey(claim, today)),
+    ].where((ticket) => !hidden.contains(ticket.key)).take(maxTickets).toList();
+    if (result.isNotEmpty && result.first.itemId != null) {
+      result[0] = result.first.asMostUrgent();
+    }
+    return result;
+  }
+
+  static const maxTickets = 5;
+  static const _keySeparator = '|';
 
   String ticketKey(ItemSummary summary, CoverWindow window) =>
       '${isoDate(summary.today)}/${summary.item.id}/${window.type.name}/${isoDate(window.end)}';
 
+  String _claimKey(Claim claim, DateTime today) =>
+      '${isoDate(today)}/claim/${claim.id}/${isoDate(claim.waitingSince)}';
+
+  /// Hides a ticket for today. Keys carry the day, so only today's are kept.
   Future<void> dismissTicket(String key) async {
+    final day = key.split('/').first;
+    final kept = (_settings.ticketDismissedKey?.split(_keySeparator) ?? [])
+        .where((old) => old.startsWith('$day/') && old != key);
     _dismissing = key;
     notifyListeners();
     try {
-      await _settings.dismissTicket(key);
+      await _settings.dismissTicket([...kept, key].join(_keySeparator));
     } finally {
       _dismissing = null;
       if (!_disposed) notifyListeners();
@@ -79,8 +143,15 @@ class VaultViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void search(String query) {
+    if (query == _query) return;
+    _query = query;
+    notifyListeners();
+  }
+
   void reviewOld() {
     _filter = VaultFilter.all;
+    _query = '';
     _oldestFirst = true;
     notifyListeners();
   }

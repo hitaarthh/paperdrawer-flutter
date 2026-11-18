@@ -28,8 +28,7 @@ void main() {
     await _launch(tester, items);
     expect(find.text('Your drawer is empty'), findsOneWidget);
     await _tap(tester, 'vault-scan');
-    await tester.tap(find.text('Type it in'));
-    await tester.pumpAndSettle();
+    await _tap(tester, 'add-sheet-manual');
     expect(find.text('Check the details'), findsOneWidget);
 
     await _tap(tester, 'save-to-drawer');
