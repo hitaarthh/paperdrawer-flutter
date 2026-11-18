@@ -58,6 +58,12 @@ class ItemFormViewModel extends ChangeNotifier {
   String get subtype => _active.subtype;
   DateTime? get startsOn => _startsOn;
   int? get warrantyMonths => _active.warrantyMonths;
+  int get reviewedFieldCount {
+    final count = readFields.where(
+      (field) => field != ReadField.kind && field != ReadField.coverUntil && field != ReadField.warranty,
+    ).length;
+    return count + (readFields.contains(ReadField.coverUntil) || readFields.contains(ReadField.warranty) ? 1 : 0);
+  }
   int? get returnDays {
     final start = startsOn;
     final end = returnUntil;

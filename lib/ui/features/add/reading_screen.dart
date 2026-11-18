@@ -178,6 +178,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
         _ReadingRow('Total', reading?.amountMinor == null ? null : money(reading!.amountMinor!, 'INR')),
         _ReadingRow('Warranty', reading?.warrantyMonths == null ? null : monthsLabel(reading!.warrantyMonths!)),
         _ReadingRow('Reference', reading?.reference),
+        _ReadingRow('Serial no.', reading?.serialNumber),
         const SizedBox(height: Pd.s4),
         Text(
           'Takes a few seconds. You’ll check every line before anything is saved.',

@@ -7,12 +7,13 @@ class AddDetailsArgs {
   const AddDetailsArgs({
     this.files = const [],
     this.reading,
-    this.kind = ItemKind.bill,
-  });
+    ItemKind? kind,
+  }) : _kind = kind;
 
   final List<PendingFile> files;
   final ScanReading? reading;
-  final ItemKind kind;
+  final ItemKind? _kind;
+  ItemKind get kind => _kind ?? reading?.kind ?? ItemKind.bill;
 }
 
 class CaptureReadingArgs {

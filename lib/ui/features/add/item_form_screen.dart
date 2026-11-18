@@ -41,6 +41,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   late final TextEditingController _name;
   late final TextEditingController _source;
   late final TextEditingController _reference;
+  late final TextEditingController _serial;
   late final TextEditingController _amount;
   late final TextEditingController _notes;
   final _edited = <ReadField>{};
@@ -61,6 +62,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     _name = TextEditingController(text: form.initialName);
     _source = TextEditingController(text: form.initialSource);
     _reference = TextEditingController(text: form.initialReference);
+    _serial = TextEditingController(text: form.initialSerial);
     _amount = TextEditingController(text: form.initialAmount);
     _notes = TextEditingController(text: form.initialNotes);
   }
@@ -72,6 +74,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       _name.dispose();
       _source.dispose();
       _reference.dispose();
+      _serial.dispose();
       _amount.dispose();
       _notes.dispose();
       form.dispose();
@@ -94,6 +97,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       name: _name.text,
       source: _source.text,
       reference: _reference.text,
+      serialNumber: _serial.text,
       amount: _amount.text,
       notes: _notes.text,
     );
@@ -171,6 +175,17 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     form.setStartsOn(date);
   }
 
+  Future<void> _retake(ItemFormViewModel form) async {
+    final confirmed = await showPdConfirm(
+      context,
+      title: 'Retake the original?',
+      message: 'You’ll review the details again after the new scan.',
+      confirmLabel: 'Retake',
+    );
+    if (!mounted || !confirmed || form.busy) return;
+    context.pushReplacement(Routes.camera, extra: form.kind);
+  }
+
   @override
   Widget build(BuildContext context) {
     final form = _form;
@@ -187,6 +202,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         ],
       );
     }
+    final original = widget.initial?.files.firstOrNull;
     return ListenableBuilder(
       listenable: form,
       builder: (context, _) => PopScope(
@@ -194,7 +210,12 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         child: PdPushedScaffold(
           backLabel: 'Cancel',
           onBack: _close,
-          title: widget.id == null ? 'Check the details' : 'Edit details',
+          kicker: original == null
+              ? null
+              : 'NEW ${form.kind.chip} · ${form.reviewedFieldCount} OF 7 FIELDS READ',
+          title: widget.id != null
+              ? 'Edit details'
+              : original == null ? 'Check the details' : 'Check what we read',
           bottom: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -212,7 +233,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                 ),
               PdButton.primary(
                 key: const ValueKey('save-to-drawer'),
-                label: widget.id == null ? 'Save to drawer' : 'Save changes',
+                label: widget.id == null ? 'Save to vault' : 'Save changes',
                 expand: true,
                 busy: form.busy,
                 onPressed: form.busy ? null : () => _save(form),
@@ -220,22 +241,21 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
             ],
           ),
           children: [
-            if (form.readFields.isNotEmpty)
+            if (original != null) ...[
+              FormReviewOriginal(
+                key: ValueKey(original.path),
+                original: original,
+                onRetake: form.busy ? null : () => _retake(form),
+              ),
+              const SizedBox(height: Pd.s4),
               Padding(
                 padding: const EdgeInsets.only(bottom: Pd.s5),
                 child: Text(
-                  'Check the details we read against your original.',
+                  'Check the fields marked Read from bill. Add details we couldn’t read.',
                   style: PdType.callout.copyWith(color: Pd.textMuted),
                 ),
               )
-            else if (widget.initial?.files.isNotEmpty ?? false)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Pd.s5),
-                child: Text(
-                  'Your original is ready to save. Add the details you want to keep.',
-                  style: PdType.callout.copyWith(color: Pd.textMuted),
-                ),
-              ),
+            ],
             PdTextField(
               fieldKey: const ValueKey('item-name'),
               label: form.kind.nameLabel,
@@ -294,6 +314,22 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               enabled: !form.busy,
               onChanged: (_) => _edit(ReadField.reference),
             ),
+            if (form.kind == ItemKind.bill) ...[
+              const SizedBox(height: Pd.s4),
+              PdTextField(
+                fieldKey: const ValueKey('item-serial-number'),
+                label: 'Serial no.',
+                hint: 'Optional',
+                help: original != null && !form.readFields.contains(ReadField.serialNumber)
+                    ? 'Couldn’t read the serial number from the original.'
+                    : null,
+                controller: _serial,
+                textCapitalization: TextCapitalization.characters,
+                readFromBill: _read(form, ReadField.serialNumber),
+                enabled: !form.busy,
+                onChanged: (_) => _edit(ReadField.serialNumber),
+              ),
+            ],
             const SizedBox(height: Pd.s6),
             FormCoverSection(form: form),
             const SizedBox(height: Pd.s6),
