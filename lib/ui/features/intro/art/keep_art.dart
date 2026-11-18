@@ -91,11 +91,28 @@ class _Pair extends StatelessWidget {
   final TextStyle? rightStyle;
 
   @override
+  // Flexible so a wider fallback font clips a word instead of overflowing.
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    spacing: Pd.s1,
     children: [
-      Text(left, style: leftStyle ?? _muted),
-      Text(right, style: rightStyle ?? _line),
+      Flexible(
+        child: Text(
+          left,
+          maxLines: 1,
+          overflow: TextOverflow.clip,
+          style: leftStyle ?? _muted,
+        ),
+      ),
+      Flexible(
+        child: Text(
+          right,
+          maxLines: 1,
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.end,
+          style: rightStyle ?? _line,
+        ),
+      ),
     ],
   );
 }

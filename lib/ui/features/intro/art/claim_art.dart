@@ -51,10 +51,17 @@ class ClaimArt extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: Pd.s2),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          spacing: Pd.s2,
                           children: [
-                            Text(
-                              'WARRANTY REPAIR · LAPTOP',
-                              style: PdType.label.copyWith(color: Pd.textMuted),
+                            Flexible(
+                              child: Text(
+                                'WARRANTY REPAIR · LAPTOP',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: PdType.label.copyWith(
+                                  color: Pd.textMuted,
+                                ),
+                              ),
                             ),
                             Text(
                               'DAY 14',

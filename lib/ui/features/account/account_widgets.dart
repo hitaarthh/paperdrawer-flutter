@@ -75,7 +75,7 @@ class _Tab extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: selected ? Pd.lime : const Color(0x00000000),
+              color: selected ? Pd.lime : Pd.lime.withAlpha(0),
               width: 2,
             ),
           ),
@@ -218,7 +218,10 @@ class _InlineLink extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: Pd.tapMin),
         child: Align(
           widthFactor: 1,
-          child: Text(label, style: const TextStyle(color: Pd.lime)),
+          child: Text(
+            label,
+            style: PdType.footnote.copyWith(color: Pd.lime),
+          ),
         ),
       ),
     ),
