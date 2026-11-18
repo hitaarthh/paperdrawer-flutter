@@ -205,13 +205,15 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
         titleStyle: PdType.trackerTitle,
         actions: [
           if (claim.isOpen)
-            Flexible(
-              flex: 2,
-              child: PdButton.text(
-                key: const ValueKey('mark-claim-settled'),
-                label: 'Mark settled',
-                monospaced: true,
-                onPressed: _model.busy ? null : _markSettled,
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: PdButton.text(
+                  key: const ValueKey('mark-claim-settled'),
+                  label: 'Mark settled',
+                  monospaced: true,
+                  onPressed: _model.busy ? null : _markSettled,
+                ),
               ),
             ),
           PdNavIcon(

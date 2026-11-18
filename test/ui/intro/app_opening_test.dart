@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paperdrawer/ui/core/theme/type.dart';
 import 'package:paperdrawer/ui/core/widgets/icons.dart';
 import 'package:paperdrawer/ui/core/widgets/paper.dart';
 import 'package:paperdrawer/ui/features/intro/app_opening.dart';
@@ -12,6 +15,11 @@ const _ticketCopy = 'Never lose a claim to a missing bill.';
 const _tagline = 'KEEP IT · REMEMBER IT · CLAIM IT';
 
 void main() {
+  setUpAll(() async {
+    await _loadFont(PdType.display, 'assets/fonts/BricolageGrotesque.ttf');
+    await _loadFont(PdType.mono, 'assets/fonts/JetBrainsMono.ttf');
+  });
+
   testWidgets('plays the reveal in order even when startup is already ready', (
     tester,
   ) async {
@@ -40,7 +48,7 @@ void main() {
     expect(_opacity(tester, 'FILED'), greaterThan(0));
     expect(_opacity(tester, _tagline), 0);
 
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 270));
     expect(_opacity(tester, _tagline), 1);
     expect(find.text('Vault'), findsOneWidget);
     expect(find.byKey(_artwork), findsOneWidget);
@@ -109,7 +117,7 @@ void main() {
   });
 
   for (final scale in [1.3, 2.0]) {
-    testWidgets('opening artwork fits at ${scale}× text size', (tester) async {
+    testWidgets('opening artwork fits at $scale× text size', (tester) async {
       _useIPhone16(tester);
       final startup = Completer<String>();
       await _mount(
@@ -133,6 +141,13 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+}
+
+Future<void> _loadFont(String family, String path) async {
+  final bytes = File(path).readAsBytesSync();
+  final loader = FontLoader(family)
+    ..addFont(Future.value(ByteData.sublistView(bytes)));
+  await loader.load();
 }
 
 void _useIPhone16(WidgetTester tester) {

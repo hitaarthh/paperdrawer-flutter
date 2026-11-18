@@ -203,10 +203,14 @@ class _OpeningArtwork extends StatelessWidget {
           right: Pd.margin,
           child: Opacity(
             opacity: wordmark,
-            child: Text(
-              'PaperDrawer',
-              textAlign: TextAlign.center,
-              style: PdType.openingWordmark,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'PaperDrawer',
+                maxLines: 1,
+                softWrap: false,
+                style: PdType.openingWordmark,
+              ),
             ),
           ),
         ),

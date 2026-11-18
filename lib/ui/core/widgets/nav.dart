@@ -132,46 +132,48 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                   padding: const EdgeInsets.symmetric(horizontal: Pd.s3),
                   child: Row(
                     children: [
-                      Flexible(
-                        child: CupertinoButton(
-                          key: const ValueKey('back-button'),
-                          padding: const EdgeInsets.only(right: Pd.s2),
-                          minimumSize: const Size.square(Pd.tapMin),
-                          pressedOpacity: 0.7,
-                          focusColor: Pd.lime,
-                          onPressed:
-                              widget.onBack ??
-                              () {
-                                if (GoRouter.maybeOf(context)
-                                    case final router?) {
-                                  if (router.canPop()) router.pop();
-                                } else {
-                                  Navigator.maybePop(context);
-                                }
-                              },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                CupertinoIcons.back,
-                                color: widget.backStyle?.color ?? Pd.lime,
-                                size: Pd.iconMd,
-                              ),
-                              const SizedBox(width: Pd.s1),
-                              Flexible(
-                                child: Text(
-                                  widget.backLabel,
-                                  style:
-                                      widget.backStyle ??
-                                      PdType.navBack.copyWith(color: Pd.lime),
-                                  overflow: TextOverflow.ellipsis,
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: CupertinoButton(
+                            key: const ValueKey('back-button'),
+                            padding: const EdgeInsets.only(right: Pd.s2),
+                            minimumSize: const Size.square(Pd.tapMin),
+                            pressedOpacity: 0.7,
+                            focusColor: Pd.lime,
+                            onPressed:
+                                widget.onBack ??
+                                () {
+                                  if (GoRouter.maybeOf(context)
+                                      case final router?) {
+                                    if (router.canPop()) router.pop();
+                                  } else {
+                                    Navigator.maybePop(context);
+                                  }
+                                },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.back,
+                                  color: widget.backStyle?.color ?? Pd.lime,
+                                  size: Pd.iconMd,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: Pd.s1),
+                                Flexible(
+                                  child: Text(
+                                    widget.backLabel,
+                                    style:
+                                        widget.backStyle ??
+                                        PdType.navBack.copyWith(color: Pd.lime),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                      const Spacer(),
                       ...widget.actions,
                     ],
                   ),

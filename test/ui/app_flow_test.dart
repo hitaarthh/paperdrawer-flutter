@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/app.dart';
@@ -158,6 +159,14 @@ void main() {
     );
     await _tap(tester, 'claims-tab');
     await _tap(tester, 'claim-featured-laptop');
+    final backLabel = find.descendant(
+      of: _key('back-button'),
+      matching: find.text('CLAIMS'),
+    );
+    expect(
+      tester.renderObject<RenderParagraph>(backLabel).didExceedMaxLines,
+      isFalse,
+    );
     expect(
       find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'),
       findsOneWidget,
