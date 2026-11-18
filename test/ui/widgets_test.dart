@@ -114,16 +114,8 @@ void main() {
         scale,
       );
       expect(tester.takeException(), isNull);
-      final card = find.byType(ItemCard);
-      await tester.ensureVisible(card);
-      await tester.pumpAndSettle();
-      expect(find.bySemanticsLabel(summary.semanticLabel), findsOneWidget);
       expect(find.bySemanticsLabel('Claims, 3 need action'), findsOneWidget);
-      expect(find.bySemanticsLabel('DUE'), findsNothing);
-      await tester.tap(card);
-      expect(tapped, isTrue);
       final ticket = find.byType(CountdownTicket);
-      await tester.ensureVisible(ticket);
       await tester.timedDrag(
         ticket,
         const Offset(-300, 0),
@@ -131,6 +123,19 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(dismissed, isTrue);
+      final card = find.byType(ItemCard);
+      await tester.scrollUntilVisible(
+        card,
+        120,
+        scrollable: find.byWidgetPredicate(
+          (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(summary.semanticLabel), findsOneWidget);
+      expect(find.bySemanticsLabel('DUE'), findsNothing);
+      await tester.tap(card);
+      expect(tapped, isTrue);
       expect(tester.takeException(), isNull);
     });
     testWidgets('push, paper form, list row and sheets at $scale', (
