@@ -107,15 +107,21 @@ class Claim {
 
   String get title => '$itemLabel ${type.noun} claim';
 
-  /// The day the waiting clock started: the last reply or the step change.
+  /// The last reply, sent message or step change, whichever is later.
   DateTime get waitingSince {
     final heard = lastHeardOn;
-    return heard != null && heard.isAfter(stepSince) ? heard : stepSince;
+    var since = heard != null && heard.isAfter(stepSince) ? heard : stepSince;
+    for (final event in events) {
+      if (event.kind == ClaimEventKind.sent && event.on.isAfter(since)) {
+        since = event.on;
+      }
+    }
+    return since;
   }
 
   ClaimStatus status(DateTime today) {
     if (!isOpen) return ClaimStatus.settled;
-    return daysBetween(waitingSince, today) >= nudgeDays
+    return nudgeDays > 0 && daysBetween(waitingSince, today) >= nudgeDays
         ? ClaimStatus.escalate
         : ClaimStatus.waiting;
   }
