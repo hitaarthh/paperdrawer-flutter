@@ -34,7 +34,7 @@ class VaultSearchField extends StatefulWidget {
   const VaultSearchField({
     required this.controller,
     required this.onChanged,
-    required this.count,
+    this.count,
     super.key,
   });
 
@@ -42,7 +42,7 @@ class VaultSearchField extends StatefulWidget {
   final ValueChanged<String> onChanged;
 
   /// Active items, shown as "10 OF 25".
-  final int count;
+  final int? count;
 
   @override
   State<VaultSearchField> createState() => _VaultSearchFieldState();
@@ -86,7 +86,7 @@ class _VaultSearchFieldState extends State<VaultSearchField> {
         padding: EdgeInsets.only(left: Pd.s3),
         child: Icon(LucideIcons.search, size: Pd.iconSm, color: Pd.placeholder),
       ),
-      suffix: Padding(
+      suffix: widget.count == null ? null : Padding(
         padding: const EdgeInsets.only(right: Pd.s3),
         child: Text(
           '${widget.count} OF $baseItemLimit',

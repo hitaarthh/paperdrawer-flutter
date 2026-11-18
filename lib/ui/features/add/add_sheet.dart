@@ -26,20 +26,29 @@ class AddSheetChoice {
 Future<AddSheetChoice?> showAddSheet(
   BuildContext context, {
   required int used,
+  bool shared = false,
+  bool onBasePlan = true,
 }) => showPdCustomSheet<AddSheetChoice>(
   context,
   semanticLabel: 'Scan or add',
-  builder: (context) => AddSheet(used: used),
+  builder: (context) => AddSheet(used: used, shared: shared, onBasePlan: onBasePlan),
 );
 
 /// The Add sheet's content. Shown inside [showPdCustomSheet], which owns the
 /// surface and grabber; the chosen action pops the sheet with an
 /// [AddSheetChoice].
 class AddSheet extends StatefulWidget {
-  const AddSheet({required this.used, super.key});
+  const AddSheet({
+    required this.used,
+    this.shared = false,
+    this.onBasePlan = true,
+    super.key,
+  });
 
   /// Active items in the drawer, shown against [baseItemLimit].
   final int used;
+  final bool shared;
+  final bool onBasePlan;
 
   @override
   State<AddSheet> createState() => _AddSheetState();
@@ -63,13 +72,20 @@ class _AddSheetState extends State<AddSheet> {
         spacing: Pd.s2,
         children: [
           Text(
-            'SCAN OR ADD · ${widget.used} OF $baseItemLimit ITEMS USED',
+            widget.onBasePlan
+                ? 'SCAN OR ADD · ${widget.used} OF $baseItemLimit ITEMS USED'
+                : 'SCAN OR ADD',
             style: PdType.label.copyWith(color: Pd.textMuted),
           ),
           Semantics(
             header: true,
             child: Text('What are you adding?', style: PdType.title1),
           ),
+          if (widget.shared)
+            Text(
+              'Continue on PaperDrawer web to save to your shared vault.',
+              style: PdType.footnote.copyWith(color: Pd.textMuted),
+            ),
         ],
       ),
       _KindGrid(

@@ -162,10 +162,15 @@ class SharedClaimEvent {
 }
 
 class SharedVault {
-  const SharedVault({required this.items, required this.claims});
+  const SharedVault({
+    required this.items,
+    required this.claims,
+    this.onBasePlan = true,
+  });
 
   final List<SharedItem> items;
   final List<SharedClaim> claims;
+  final bool onBasePlan;
 }
 
 String _text(Object? value) => value as String? ?? '';

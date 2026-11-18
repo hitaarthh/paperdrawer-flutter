@@ -14,6 +14,7 @@ class SharedVaultService {
   static const _files = 'attachments(file_name,storage_path,mime_type)';
 
   Future<SharedVault> fetch(String userId) async {
+    final profile = _client.from('profiles').select('plan').eq('id', userId).maybeSingle();
     final rows = await Future.wait([
       _page(
         'bills',
@@ -35,6 +36,7 @@ class SharedVaultService {
         ...rows[1].map(SharedItem.document),
       ],
       claims: rows[2].map(SharedClaim.fromRow).toList(),
+      onBasePlan: (await profile)?['plan'] != 'pro',
     );
   }
 

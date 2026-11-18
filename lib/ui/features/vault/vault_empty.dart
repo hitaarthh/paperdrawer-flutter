@@ -9,10 +9,16 @@ import '../../core/widgets/paper.dart';
 /// The first-run vault: a welcome receipt that leads to the camera, then
 /// three other kinds of paper to start with.
 class VaultEmpty extends StatelessWidget {
-  const VaultEmpty({required this.onScan, required this.onStart, super.key});
+  const VaultEmpty({
+    required this.onScan,
+    required this.onStart,
+    this.shared = false,
+    super.key,
+  });
 
   final VoidCallback onScan;
   final ValueChanged<ItemKind> onStart;
+  final bool shared;
 
   static const _starts = [
     (
@@ -40,7 +46,7 @@ class VaultEmpty extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     spacing: Pd.s6,
     children: [
-      _WelcomeReceipt(onScan: onScan),
+      _WelcomeReceipt(onScan: onScan, shared: shared),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -69,9 +75,10 @@ class VaultEmpty extends StatelessWidget {
 }
 
 class _WelcomeReceipt extends StatelessWidget {
-  const _WelcomeReceipt({required this.onScan});
+  const _WelcomeReceipt({required this.onScan, required this.shared});
 
   final VoidCallback onScan;
+  final bool shared;
 
   @override
   Widget build(BuildContext context) {
@@ -109,15 +116,17 @@ class _WelcomeReceipt extends StatelessWidget {
             ),
           ),
           Text(
-            'Snap its bill. We’ll read it, set the return and warranty '
-            'dates, and remind you before they pass. Takes under a minute.',
+            shared
+                ? 'Take a photo or upload a bill on PaperDrawer web. After you save it, it will be here on your phone.'
+                : 'Snap its bill. We’ll read it, set the return and warranty '
+                  'dates, and remind you before they pass. Takes under a minute.',
             style: PdType.callout.copyWith(color: Pd.ink2),
           ),
           Padding(
             padding: const EdgeInsets.only(top: Pd.s1),
             child: _InkButton(
               key: const ValueKey('scan-first-bill'),
-              label: 'Scan your first bill',
+              label: shared ? 'Add your first bill' : 'Scan your first bill',
               onPressed: onScan,
             ),
           ),

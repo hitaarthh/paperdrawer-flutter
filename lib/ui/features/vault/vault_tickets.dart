@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
 import '../../../domain/models/claim.dart';
+import '../../../domain/models/shared_vault.dart';
 import '../../core/widgets/vault_ticket.dart';
 
 export '../../core/widgets/vault_ticket.dart' show VaultTicketTone;
@@ -61,6 +62,19 @@ class VaultTicketData {
       claimId: claim.id,
     );
   }
+
+  factory VaultTicketData.sharedClaim(SharedClaim claim, DateTime today) =>
+      VaultTicketData._(
+        key: '${isoDate(today)}/shared-claim/${claim.id}',
+        number: daysBetween(claim.opened, today).clamp(0, 999).toString().padLeft(2, '0'),
+        unit: 'CLAIM DAY',
+        kicker: 'CLAIM · ${claim.statusLabel.toUpperCase()}',
+        title: claim.title,
+        body: 'Open the claim to see what comes next.',
+        tone: VaultTicketTone.lime,
+        semanticLabel: '${claim.title}, ${claim.statusLabel}.',
+        claimId: claim.id,
+      );
 
   /// Dismissal key; carries today's date so a hidden ticket returns tomorrow.
   final String key;
