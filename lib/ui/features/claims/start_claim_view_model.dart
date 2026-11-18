@@ -7,7 +7,9 @@ import '../../../domain/models/item.dart';
 
 class StartClaimViewModel extends ChangeNotifier {
   StartClaimViewModel(this.item, this._claims, this._today)
-    : _type = item.kind == ItemKind.policy ? ClaimType.insurance : ClaimType.repair,
+    : _type = item.kind == ItemKind.policy
+          ? ClaimType.insurance
+          : ClaimType.repair,
       _noticedOn = _today.value {
     _want = wants.first;
   }
@@ -34,7 +36,11 @@ class StartClaimViewModel extends ChangeNotifier {
   Claim? get existing => _claims.openFor(item.id);
 
   List<ClaimWant> get wants => switch (_type) {
-    ClaimType.repair => const [ClaimWant.repair, ClaimWant.replacement, ClaimWant.refund],
+    ClaimType.repair => const [
+      ClaimWant.repair,
+      ClaimWant.replacement,
+      ClaimWant.refund,
+    ],
     ClaimType.refund => const [ClaimWant.refund, ClaimWant.replacement],
     ClaimType.insurance => const [ClaimWant.payout],
   };

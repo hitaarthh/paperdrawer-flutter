@@ -26,7 +26,9 @@ class StartClaimScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final item = context.select<ItemRepository, Item?>((items) => items.byId(itemId));
+    final item = context.select<ItemRepository, Item?>(
+      (items) => items.byId(itemId),
+    );
     if (item == null) {
       return PdPushedScaffold(
         backLabel: 'Vault',
@@ -160,9 +162,8 @@ class _StartClaimFormState extends State<_StartClaimForm> {
             help: 'This goes into the message we draft for you.',
             onChanged: _model.describe,
             enabled: !_model.busy,
-            validator: (value) => value.trim().isEmpty
-                ? 'Describe what happened.'
-                : null,
+            validator: (value) =>
+                value.trim().isEmpty ? 'Describe what happened.' : null,
             maxLines: 4,
           ),
           const SizedBox(height: Pd.s4),
@@ -212,7 +213,10 @@ class _StartClaimFormState extends State<_StartClaimForm> {
             const SizedBox(height: Pd.s3),
             Semantics(
               liveRegion: true,
-              child: Text(error, style: PdType.footnote.copyWith(color: Pd.signal)),
+              child: Text(
+                error,
+                style: PdType.footnote.copyWith(color: Pd.signal),
+              ),
             ),
           ],
         ],
@@ -242,12 +246,18 @@ class _ClaimItem extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('ITEM IN YOUR VAULT', style: PdType.label.copyWith(color: Pd.inkMuted)),
+        Text(
+          'ITEM IN YOUR VAULT',
+          style: PdType.label.copyWith(color: Pd.inkMuted),
+        ),
         const SizedBox(height: Pd.s2),
         Text(item.name, style: PdType.cardTitle.copyWith(color: Pd.ink)),
         if (item.draft.source.isNotEmpty) ...[
           const SizedBox(height: Pd.s1),
-          Text(item.draft.source, style: PdType.callout.copyWith(color: Pd.ink2)),
+          Text(
+            item.draft.source,
+            style: PdType.callout.copyWith(color: Pd.ink2),
+          ),
         ],
       ],
     ),

@@ -53,8 +53,7 @@ ClaimMessage draftMessage({
   final paragraphs = [
     'Hello,',
     'I’m writing about my ${claim.type.noun} claim for $name.',
-    if (claim.step > 0)
-      _followUp(claim, today, previousContact),
+    if (claim.step > 0) _followUp(claim, today, previousContact),
     if (facts.isNotEmpty) facts.join('\n'),
     if (claim.problem.trim().isNotEmpty) claim.problem.trim(),
     if (noticed != null) 'I first noticed the issue on ${longDate(noticed)}.',
@@ -63,9 +62,7 @@ ClaimMessage draftMessage({
   ];
   return ClaimMessage(
     to: ladderFor(claim.type)[claim.step].recipient,
-    subject: claim.step == 0
-        ? claim.title
-        : 'Follow-up on my ${claim.title}',
+    subject: claim.step == 0 ? claim.title : 'Follow-up on my ${claim.title}',
     body: paragraphs.join('\n\n'),
   );
 }

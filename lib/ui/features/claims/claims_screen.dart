@@ -93,21 +93,14 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              Pd.margin,
-              Pd.s3,
-              Pd.margin,
-              0,
-            ),
+            padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s3, Pd.margin, 0),
             sliver: claims.isEmpty
                 ? SliverToBoxAdapter(
                     child: DashedTile(
                       title: settled
                           ? 'No settled claims yet'
                           : 'No open claims',
-                      body: settled
-                          ? 'Settled claims will appear here.'
-                          : 'Start a claim from a bill or policy in your vault.',
+                      body: settled ? 'Settled claims will appear here.' : 'Start a claim from a bill or policy in your vault.',
                       action: settled
                           ? null
                           : PdButton.primary(

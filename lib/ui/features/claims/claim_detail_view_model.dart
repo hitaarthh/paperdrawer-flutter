@@ -10,7 +10,13 @@ import '../../../domain/ladders.dart';
 import '../../../domain/models/claim.dart';
 
 class ClaimDetailViewModel extends ChangeNotifier {
-  ClaimDetailViewModel(this.id, this._claims, this._items, this._today, this._actions) {
+  ClaimDetailViewModel(
+    this.id,
+    this._claims,
+    this._items,
+    this._today,
+    this._actions,
+  ) {
     _claims.addListener(notifyListeners);
     _items.addListener(notifyListeners);
     _today.addListener(notifyListeners);
@@ -43,7 +49,9 @@ class ClaimDetailViewModel extends ChangeNotifier {
 
   String? nextStepTitle(Claim claim) {
     final next = claim.step + 1;
-    return next < ladderFor(claim.type).length ? stepTitle(claim.type, next) : null;
+    return next < ladderFor(claim.type).length
+        ? stepTitle(claim.type, next)
+        : null;
   }
 
   bool canAdvance(Claim claim) =>
@@ -52,10 +60,15 @@ class ClaimDetailViewModel extends ChangeNotifier {
       (claim.status(today) == ClaimStatus.escalate ||
           _hasCurrentEvent(claim, ClaimEventKind.reply));
 
-  bool hasLoggedSent(Claim claim) => _hasCurrentEvent(claim, ClaimEventKind.sent);
+  bool hasLoggedSent(Claim claim) =>
+      _hasCurrentEvent(claim, ClaimEventKind.sent);
 
   bool _hasCurrentEvent(Claim claim, ClaimEventKind kind) => claim.events
-      .takeWhile((event) => event.kind != ClaimEventKind.step && event.kind != ClaimEventKind.reopened)
+      .takeWhile(
+        (event) =>
+            event.kind != ClaimEventKind.step &&
+            event.kind != ClaimEventKind.reopened,
+      )
       .any((event) => event.kind == kind);
 
   Future<bool> logSent() => _perform(() => _claims.logSent(id, today));

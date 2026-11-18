@@ -48,10 +48,7 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
     super.dispose();
   }
 
-  Future<void> _run(
-    Future<bool> Function() intent, {
-    String? success,
-  }) async {
+  Future<void> _run(Future<bool> Function() intent, {String? success}) async {
     final done = await intent();
     if (!mounted) return;
     final message = done ? success : _model.error;
@@ -132,7 +129,8 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
     final confirmed = await showPdConfirm(
       context,
       title: 'Delete this claim?',
-      message: 'This removes the claim and its log. Your item stays in the vault.',
+      message:
+          'This removes the claim and its log. Your item stays in the vault.',
       confirmLabel: 'Delete claim',
       destructive: true,
     );
@@ -208,7 +206,10 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
             runSpacing: Pd.s2,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Semantics(label: status.word.toLowerCase(), child: PdStamp(status, angleDegrees: 0)),
+              Semantics(
+                label: status.word.toLowerCase(),
+                child: PdStamp(status, angleDegrees: 0),
+              ),
               Text(
                 'DAY $day',
                 style: PdType.dataStrong.copyWith(
@@ -249,17 +250,19 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
               PdButton.secondary(
                 label: 'Call $phone',
                 icon: const Icon(LucideIcons.phone, size: Pd.iconSm),
-                onPressed: _model.busy ? null : () => _run(
-                  () => _model.openLink(Uri(scheme: 'tel', path: phone)),
-                ),
+                onPressed: _model.busy
+                    ? null
+                    : () => _run(
+                        () => _model.openLink(Uri(scheme: 'tel', path: phone)),
+                      ),
               ),
             if (portal != null)
               PdButton.secondary(
                 label: step.urlLabel ?? 'Open website',
                 icon: const Icon(LucideIcons.externalLink, size: Pd.iconSm),
-                onPressed: _model.busy ? null : () => _run(
-                  () => _model.openLink(Uri.parse(portal)),
-                ),
+                onPressed: _model.busy
+                    ? null
+                    : () => _run(() => _model.openLink(Uri.parse(portal))),
               ),
           ],
         ),
@@ -284,10 +287,10 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
         builder: (context) => ClaimDraftCard(
           heading: 'Write to ${stepTitle(claim.type, claim.step)}',
           message: message,
-          onCopy: _model.busy ? null : () => _run(
-            () => _model.copy(message),
-            success: 'Message copied',
-          ),
+          onCopy: _model.busy
+              ? null
+              : () =>
+                    _run(() => _model.copy(message), success: 'Message copied'),
           onShare: _model.busy ? null : () => _share(context, message),
           shareIcon: const Icon(CupertinoIcons.share, size: Pd.iconSm),
         ),
@@ -298,10 +301,9 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
         label: _model.hasLoggedSent(claim)
             ? 'Log another sent message'
             : 'I’ve sent it',
-        onPressed: _model.busy ? null : () => _run(
-          _model.logSent,
-          success: 'Sent message logged',
-        ),
+        onPressed: _model.busy
+            ? null
+            : () => _run(_model.logSent, success: 'Sent message logged'),
       ),
     ];
   }
