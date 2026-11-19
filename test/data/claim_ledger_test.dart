@@ -6,6 +6,7 @@ import 'package:paperdrawer/data/services/app_database.dart';
 import 'package:paperdrawer/data/services/file_store.dart';
 import 'package:paperdrawer/data/services/ledger_pdf.dart';
 import 'package:paperdrawer/data/services/reminder_scheduler.dart';
+import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/domain/models/ledger.dart';
 import 'package:path/path.dart' as p;
@@ -144,6 +145,25 @@ void main() {
       expect(await input.exists(), isTrue);
     },
   );
+
+  test('legacy claims only notify when a follow-up is explicitly set', () {
+    final opened = DateTime(2026, 11, 19);
+    final claim = Claim(
+      id: 'legacy',
+      type: ClaimType.repair,
+      want: ClaimWant.repair,
+      itemLabel: 'Cooler',
+      problem: 'The motor stopped.',
+      openedOn: opened,
+      step: 0,
+      stepSince: opened,
+    );
+
+    expect(
+      planReminders(items: [], claims: [claim], leadDays: 7, now: opened),
+      isEmpty,
+    );
+  });
 
   test('exports a paginated PDF with references and file names', () async {
     final now = DateTime(2026, 11, 18);

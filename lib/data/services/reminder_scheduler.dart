@@ -8,7 +8,6 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/formats.dart';
 import '../../domain/item_status.dart';
-import '../../domain/ladders.dart';
 import '../../domain/models/claim.dart';
 import '../../domain/models/item.dart';
 import '../repositories/claim_repository.dart';
@@ -71,30 +70,10 @@ List<PlannedReminder> planReminders({
     }
   }
   for (final claim in claims) {
-    if (!claim.isOpen) continue;
-    if (claim.followUp case final followUp?) {
-      if (followUp.isAfter(now)) {
-        plans.add(claimFollowUp(claim.id, claim.title, followUp));
-      }
-      continue;
+    final followUp = claim.followUp;
+    if (claim.isOpen && followUp != null && followUp.isAfter(now)) {
+      plans.add(claimFollowUp(claim.id, claim.title, followUp));
     }
-    final next = claim.step + 1;
-    if (claim.nudgeDays <= 0 || next >= ladderFor(claim.type).length) {
-      continue;
-    }
-    final morning = localMorning(claim.nudgeOn);
-    if (!morning.isAfter(now)) continue;
-    plans.add(
-      PlannedReminder(
-        key: 'claim/${claim.id}',
-        at: morning,
-        title:
-            '${claim.itemLabel} claim: no reply in ${daysWord(claim.nudgeDays)}',
-        body:
-            'You can write to ${stepTitle(claim.type, next)}. Your message is drafted.',
-        location: '/claims/${claim.id}',
-      ),
-    );
   }
   plans.sort((a, b) {
     final time = a.at.compareTo(b.at);
