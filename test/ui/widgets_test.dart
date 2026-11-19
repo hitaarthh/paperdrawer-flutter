@@ -92,12 +92,17 @@ void main() {
     expect(controls.width, lessThanOrEqualTo(440));
     expect(controls.center.dx, 400);
 
+    final addControl = tester.element(scan);
     tester.view.viewInsets = const FakeViewPadding(bottom: 864);
     await tester.pumpAndSettle();
     expect(scan, findsNothing);
+    expect(
+      find.byKey(const ValueKey('scan-or-add'), skipOffstage: false),
+      findsOneWidget,
+    );
     tester.view.viewInsets = FakeViewPadding.zero;
     await tester.pumpAndSettle();
-    expect(scan, findsOneWidget);
+    expect(tester.element(scan), same(addControl));
   });
 
   for (final scale in [1.0, 1.3, 2.0]) {

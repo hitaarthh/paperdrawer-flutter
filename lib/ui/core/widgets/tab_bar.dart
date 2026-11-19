@@ -47,54 +47,56 @@ class PdTabBar extends StatelessWidget {
     label: 'Add',
     icon: NativeLiquidGlassIcon.sfSymbol('plus'),
   );
+  static final _nativeTheme = legacy.ThemeData.dark();
 
   int get _selectedSlot => currentIndex == 2 ? 3 : currentIndex;
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
-      return const SizedBox.shrink();
-    }
-    final isNativeDevice = NativeLiquidGlassUtils.supportsLiquidGlass;
-    final dock = pdNativeGlassVisible(context)
-        ? legacy.Theme(
-            data: legacy.ThemeData.dark(),
-            child: LiquidGlassTabBar(
-              items: _nativeTabs,
-              iosActionButton: onScan == null ? null : _nativeAdd,
-              currentIndex: currentIndex,
-              onTabSelected: onTap,
-              onActionButtonPressed: onScan,
-              height: Pd.dockControlHeight,
-              selectedItemColor: Pd.lime,
+    return Visibility(
+      visible: MediaQuery.viewInsetsOf(context).bottom == 0,
+      maintainState: true,
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.symmetric(horizontal: Pd.s4),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: Pd.s2),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: Pd.dockMaxWidth),
+              child: NativeLiquidGlassUtils.supportsLiquidGlass
+                  ? _nativeDock(context)
+                  : _flutterDock(context),
             ),
-          )
-        : _flutterDock(context);
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.symmetric(horizontal: Pd.s4),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: Pd.s2),
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Pd.dockMaxWidth),
-            child: isNativeDevice
-                ? SizedBox(
-                    // The plugin reserves 20 points above the bar for its
-                    // glass to spill into. Keep that space on animated routes.
-                    height: Pd.dockControlHeight + Pd.s5,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: dock,
-                    ),
-                  )
-                : dock,
           ),
         ),
       ),
     );
   }
+
+  Widget _nativeDock(BuildContext context) => SizedBox(
+    // Keep the scroll inset steady, including the plugin's glass overflow.
+    height: Pd.dockControlHeight + Pd.s5,
+    child: Visibility(
+      // Keep the same UIKit view ready for the return from a covered route.
+      // Offstage keeps it out of Flutter's moving render surface.
+      visible: pdNativeGlassVisible(context),
+      maintainState: true,
+      child: legacy.Theme(
+        data: _nativeTheme,
+        child: LiquidGlassTabBar(
+          items: _nativeTabs,
+          iosActionButton: onScan == null ? null : _nativeAdd,
+          currentIndex: currentIndex,
+          onTabSelected: onTap,
+          onActionButtonPressed: onScan,
+          height: Pd.dockControlHeight,
+          selectedItemColor: Pd.lime,
+        ),
+      ),
+    ),
+  );
 
   Widget _flutterDock(BuildContext context) => DecoratedBox(
     decoration: const BoxDecoration(
