@@ -190,8 +190,10 @@ class _VaultViewState extends State<_VaultView> {
                       if (empty)
                         _inset(
                           VaultEmpty(
-                            onScan: () => AddFlow.camera(context, kind: ItemKind.bill),
-                            onStart: (kind) => AddFlow.start(context, kind: kind),
+                            onScan: () =>
+                                AddFlow.camera(context, kind: ItemKind.bill),
+                            onStart: (kind) =>
+                                AddFlow.start(context, kind: kind),
                           ),
                           top: Pd.s6,
                         )

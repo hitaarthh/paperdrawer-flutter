@@ -18,9 +18,13 @@ class ItemFormViewModel extends ChangeNotifier {
       returnUntil: saved?.returnUntil,
       warrantyMonths: _kind == ItemKind.bill ? reading?.warrantyMonths : null,
       componentWarrantyUntil: saved?.componentWarrantyUntil,
-      componentWarrantyName: saved?.componentWarrantyName ??
-          (_kind == ItemKind.bill ? reading?.componentWarrantyName : null) ?? '',
-      componentWarrantyMonths: _kind == ItemKind.bill ? reading?.componentWarrantyMonths : null,
+      componentWarrantyName:
+          saved?.componentWarrantyName ??
+          (_kind == ItemKind.bill ? reading?.componentWarrantyName : null) ??
+          '',
+      componentWarrantyMonths: _kind == ItemKind.bill
+          ? reading?.componentWarrantyMonths
+          : null,
     );
     _remind = saved?.remind ?? true;
     _added.addAll(initial?.files ?? const []);
@@ -254,10 +258,13 @@ class ItemFormViewModel extends ChangeNotifier {
       startsOn: startsOn,
       returnUntil: kind == ItemKind.bill ? returnUntil : null,
       coverUntil: coverUntil,
-      componentWarrantyUntil: kind == ItemKind.bill ? componentWarrantyUntil : null,
-      componentWarrantyName: kind == ItemKind.bill && componentWarrantyUntil != null
+      componentWarrantyUntil: kind == ItemKind.bill
+          ? componentWarrantyUntil
+          : null,
+      componentWarrantyName:
+          kind == ItemKind.bill && componentWarrantyUntil != null
           ? componentWarrantyName.trim()
-          : '', 
+          : '',
       remind: remind,
     );
     _busy = true;
@@ -287,7 +294,8 @@ class ItemFormViewModel extends ChangeNotifier {
 
   String? _validateDates() {
     final start = startsOn;
-    if ((warrantyMonths != null || componentWarrantyMonths != null) && start == null) {
+    if ((warrantyMonths != null || componentWarrantyMonths != null) &&
+        start == null) {
       return 'Add the purchase date to work out when the warranty ends.';
     }
     if (_active.returnDays != null && start == null) {

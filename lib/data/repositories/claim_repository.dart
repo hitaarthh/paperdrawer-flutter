@@ -88,24 +88,30 @@ class ClaimRepository extends ChangeNotifier {
 
   Attachment? _photo(Map<String, Object?> row) {
     final path = row['rel_path'] as String?;
-    return path == null ? null : Attachment(
-      id: row['id']! as String,
-      path: _files.absolute(path),
-      name: row['photo_name']! as String,
-      bytes: row['bytes']! as int,
-    );
+    return path == null
+        ? null
+        : Attachment(
+            id: row['id']! as String,
+            path: _files.absolute(path),
+            name: row['photo_name']! as String,
+            bytes: row['bytes']! as int,
+          );
   }
 
   Future<Claim> openLedger(Item item, DateTime today) => _write((txn) async {
     if (openFor(item.id) case final existing?) return existing.id;
-    final type = item.kind == ItemKind.policy ? ClaimType.insurance : ClaimType.repair;
+    final type = item.kind == ItemKind.policy
+        ? ClaimType.insurance
+        : ClaimType.repair;
     final id = const Uuid().v4();
     await txn.insert('claims', {
       'id': id,
       'item_id': item.id,
       'item_label': item.name,
       'type': type.name,
-      'want': (type == ClaimType.insurance ? ClaimWant.payout : ClaimWant.repair).name,
+      'want':
+          (type == ClaimType.insurance ? ClaimWant.payout : ClaimWant.repair)
+              .name,
       'opened_on': isoDate(today),
       'step_since': isoDate(today),
       'nudge_days': 0,
@@ -119,13 +125,18 @@ class ClaimRepository extends ChangeNotifier {
         _getOpen(id);
         entry.validate(now);
         final picked = entry.photo;
-        final photo = picked == null ? null : await _files.import(id, picked, claimPhoto: true);
+        final photo = picked == null
+            ? null
+            : await _files.import(id, picked, claimPhoto: true);
         try {
           await _db.transaction((txn) async {
             final eventId = await _event(
-              txn, id, entry.date,
+              txn,
+              id,
+              entry.date,
               ClaimEventKind.values.byName(entry.kind.name),
-              entry.text, reference: entry.reference,
+              entry.text,
+              reference: entry.reference,
             );
             if (photo != null) {
               await txn.insert('claim_event_photos', {
@@ -136,7 +147,9 @@ class ClaimRepository extends ChangeNotifier {
               });
             }
             if (entry.followUp case final time?) {
-              await _update(txn, id, {'follow_up_at': time.millisecondsSinceEpoch});
+              await _update(txn, id, {
+                'follow_up_at': time.millisecondsSinceEpoch,
+              });
             }
           });
         } catch (_) {
@@ -150,7 +163,9 @@ class ClaimRepository extends ChangeNotifier {
       _write((txn) async {
         _getOpen(id);
         validateFollowUp(followUp, now);
-        await _update(txn, id, {'follow_up_at': followUp?.millisecondsSinceEpoch});
+        await _update(txn, id, {
+          'follow_up_at': followUp?.millisecondsSinceEpoch,
+        });
       });
 
   Future<Claim> start({
@@ -252,7 +267,10 @@ class ClaimRepository extends ChangeNotifier {
   Future<void> settle(String id, DateTime today, {String note = ''}) =>
       _write((txn) async {
         if (!_get(id).isOpen) return;
-        await _update(txn, id, {'settled_on': isoDate(today), 'follow_up_at': null});
+        await _update(txn, id, {
+          'settled_on': isoDate(today),
+          'follow_up_at': null,
+        });
         await _event(
           txn,
           id,
@@ -282,7 +300,11 @@ class ClaimRepository extends ChangeNotifier {
           for (final event in claim.events)
             if (event.photo case final photo?) photo,
     ];
-    await _db.delete('claims', where: id == null ? null : 'id = ?', whereArgs: id == null ? null : [id]);
+    await _db.delete(
+      'claims',
+      where: id == null ? null : 'id = ?',
+      whereArgs: id == null ? null : [id],
+    );
     for (final photo in photos) {
       await _files.remove(photo.path);
     }

@@ -28,6 +28,10 @@ void main() {
               item_id TEXT REFERENCES items(id) ON DELETE CASCADE
             )
           ''');
+            await db.execute('CREATE TABLE claims (id TEXT PRIMARY KEY)');
+            await db.execute('CREATE TABLE claim_events (id TEXT PRIMARY KEY)');
+            await db.insert('claims', {'id': 'existing-claim'});
+            await db.insert('claim_events', {'id': 'existing-entry'});
             await db.insert('items', {'id': 'bill', 'name': 'Air cooler'});
             await db.insert('attachments', {'id': 'photo', 'item_id': 'bill'});
           },
@@ -45,9 +49,17 @@ void main() {
         'id': 'bill',
         'name': 'Air cooler',
         'serial_number': '',
+        'component_warranty_until': null,
+        'component_warranty_name': '',
       });
       expect((await upgraded.query('attachments')).single['item_id'], 'bill');
-      await upgraded.update('items', {'serial_number': 'AQ-118/3'});
+      await upgraded.update('items', {
+        'serial_number': 'AQ-118/3',
+        'component_warranty_until': '2031-11-14',
+        'component_warranty_name': 'Compressor',
+      });
+      expect((await upgraded.query('claims')).single['follow_up_at'], isNull);
+      expect((await upgraded.query('claim_events')).single['reference'], '');
       expect(
         (await upgraded.query('items')).single['serial_number'],
         'AQ-118/3',

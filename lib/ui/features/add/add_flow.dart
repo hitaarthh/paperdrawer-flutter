@@ -19,7 +19,10 @@ enum _LimitAction { review, waitlist }
 abstract final class AddFlow {
   /// Opens the Add sheet ("Scan or add"), or the limit notice when the Base
   /// drawer is full, then routes to the camera, the pickers or the form.
-  static Future<void> start(BuildContext context, {ItemKind kind = ItemKind.bill}) async {
+  static Future<void> start(
+    BuildContext context, {
+    ItemKind kind = ItemKind.bill,
+  }) async {
     if (await _showLimitIfNeeded(context) || !context.mounted) return;
     final choice = await showAddSheet(
       context,

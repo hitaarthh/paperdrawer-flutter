@@ -246,24 +246,24 @@ class _FormCoverSectionState extends State<FormCoverSection> {
             if (isBill) ...[
               PdListRow(
                 key: const ValueKey('item-component-warranty'),
-                title: componentName.isEmpty ? 'Component warranty' : '$componentName warranty',
+                title: componentName.isEmpty
+                    ? 'Component warranty'
+                    : '$componentName warranty',
                 value: componentUntil != null
                     ? longDate(componentUntil)
                     : componentMonths != null
                     ? monthsLabel(componentMonths)
                     : 'Optional',
-                tag: !_editedComponentWarranty &&
-                    _form.readFields.contains(ReadField.componentWarranty)
+                tag:
+                    !_editedComponentWarranty &&
+                        _form.readFields.contains(ReadField.componentWarranty)
                     ? 'Read from bill'
                     : null,
                 chevron: true,
                 onTap: _form.busy ? null : _chooseComponentWarranty,
               ),
               if (componentUntil != null || componentMonths != null)
-                _ComponentWarrantyName(
-                  key: ObjectKey(_form),
-                  form: _form,
-                ),
+                _ComponentWarrantyName(key: ObjectKey(_form), form: _form),
             ],
             PdListRow(
               title: 'Reminder',
@@ -302,7 +302,9 @@ class _ComponentWarrantyName extends StatefulWidget {
 }
 
 class _ComponentWarrantyNameState extends State<_ComponentWarrantyName> {
-  late final _name = TextEditingController(text: widget.form.componentWarrantyName);
+  late final _name = TextEditingController(
+    text: widget.form.componentWarrantyName,
+  );
 
   @override
   void dispose() {

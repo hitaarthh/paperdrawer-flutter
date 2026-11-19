@@ -13,7 +13,14 @@ const baseItemLimit = 25;
 /// Show the "N items left on Base" footnote from this many items.
 const baseItemWarnAt = 20;
 
-enum WindowType { returnWindow, warranty, componentWarranty, policyYear, validity, term }
+enum WindowType {
+  returnWindow,
+  warranty,
+  componentWarranty,
+  policyYear,
+  validity,
+  term,
+}
 
 /// One period that runs out: a return window, a warranty, a policy year.
 class CoverWindow {
@@ -35,7 +42,8 @@ class CoverWindow {
   final bool renews;
   final String component;
 
-  String get _componentLabel => component.isEmpty ? 'Component warranty' : '$component warranty';
+  String get _componentLabel =>
+      component.isEmpty ? 'Component warranty' : '$component warranty';
 
   int totalDays() {
     final days = daysBetween(start, end);
@@ -122,7 +130,8 @@ class CoverWindow {
   /// What to do, on tickets and in reminders.
   String action() => switch (type) {
     WindowType.returnWindow => 'Return by ${shortDate(end)}',
-    WindowType.warranty || WindowType.componentWarranty => 'Book a service visit before ${shortDate(end)}',
+    WindowType.warranty || WindowType.componentWarranty =>
+      'Book a service visit before ${shortDate(end)}',
     WindowType.policyYear => 'Renew before ${shortDate(end)}',
     WindowType.validity => 'Renew before ${shortDate(end)}',
     WindowType.term =>

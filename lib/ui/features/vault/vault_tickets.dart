@@ -116,7 +116,8 @@ String _dayCaps(DateTime date) =>
 
 String _windowNudge(CoverWindow window) => switch (window.type) {
   WindowType.returnWindow => 'Not happy with it? Start the return now.',
-  WindowType.warranty || WindowType.componentWarranty => 'Book a service visit while it’s covered.',
+  WindowType.warranty ||
+  WindowType.componentWarranty => 'Book a service visit while it’s covered.',
   WindowType.policyYear => 'Renew before it lapses.',
   WindowType.validity => 'Renew it before it runs out.',
   WindowType.term =>

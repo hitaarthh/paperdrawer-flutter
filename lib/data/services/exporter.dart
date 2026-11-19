@@ -165,7 +165,11 @@ class Exporter {
           'text': event.text,
           'reference': event.reference,
           if (event.photo case final photo?)
-            'photo': {'name': photo.name, 'path': _claimPhotoPath(claim, photo), 'bytes': photo.bytes},
+            'photo': {
+              'name': photo.name,
+              'path': _claimPhotoPath(claim, photo),
+              'bytes': photo.bytes,
+            },
         },
     ],
   };

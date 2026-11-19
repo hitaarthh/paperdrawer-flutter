@@ -121,6 +121,25 @@ void main() {
     expect(find.text('details policy'), findsOneWidget);
   });
 
+  testWidgets(
+    'an empty Vault shortcut opens with its category picked at 130%',
+    (tester) async {
+      await _launch(
+        tester,
+        _Items.withCount(0),
+        initialKind: ItemKind.vehicle,
+        scale: 1.3,
+      );
+      await _tap(tester, 'open-add');
+
+      expect(find.text('VEHICLE · PICKED'), findsOneWidget);
+      expect(find.text('BILL · PICKED'), findsNothing);
+      await _tap(tester, 'add-sheet-manual');
+      expect(find.text('details vehicle'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('dismissing the sheet goes nowhere', (tester) async {
     await _launch(tester, _Items.withCount(0));
     await _tap(tester, 'open-add');
@@ -171,6 +190,7 @@ Future<void> _launch(
   WidgetTester tester,
   _Items items, {
   _Capture? capture,
+  ItemKind initialKind = ItemKind.bill,
   double scale = 1,
   ValueChanged<AddDetailsArgs>? onReview,
 }) async {
@@ -194,7 +214,7 @@ Future<void> _launch(
           child: Builder(
             builder: (context) => TextButton(
               key: const ValueKey('open-add'),
-              onPressed: () => AddFlow.start(context),
+              onPressed: () => AddFlow.start(context, kind: initialKind),
               child: const Text('Scan or add'),
             ),
           ),

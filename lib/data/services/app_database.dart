@@ -39,7 +39,9 @@ abstract final class AppDatabase {
 
   static Future<void> _addLedger(Transaction db) async {
     await db.execute('ALTER TABLE claims ADD COLUMN follow_up_at INTEGER');
-    await db.execute("ALTER TABLE claim_events ADD COLUMN reference TEXT NOT NULL DEFAULT ''");
+    await db.execute(
+      "ALTER TABLE claim_events ADD COLUMN reference TEXT NOT NULL DEFAULT ''",
+    );
     await db.execute('''
       CREATE TABLE claim_event_photos (
         event_id TEXT PRIMARY KEY REFERENCES claim_events(id) ON DELETE CASCADE,
@@ -51,8 +53,12 @@ abstract final class AppDatabase {
   }
 
   static Future<void> _addComponentWarranty(Transaction db) async {
-    await db.execute('ALTER TABLE items ADD COLUMN component_warranty_until TEXT');
-    await db.execute("ALTER TABLE items ADD COLUMN component_warranty_name TEXT NOT NULL DEFAULT ''");
+    await db.execute(
+      'ALTER TABLE items ADD COLUMN component_warranty_until TEXT',
+    );
+    await db.execute(
+      "ALTER TABLE items ADD COLUMN component_warranty_name TEXT NOT NULL DEFAULT ''",
+    );
   }
 
   static Future<void> _createV2(Transaction db) async {

@@ -84,13 +84,19 @@ final _warranty = RegExp(
 const _warrantyUnits = r'(years?|yrs?|months?|mos?)';
 const _components = r'(compressor|motor|battery|panel|inverter)';
 final _componentWarranty = RegExp(
-  r'\b(\d{1,2})\s*[- ]?\s*' + _warrantyUnits +
-      r'\s+(?:warranty\s+)?(?:on|for)\s+(?:the\s+)?' + _components + r'\b',
+  r'\b(\d{1,2})\s*[- ]?\s*' +
+      _warrantyUnits +
+      r'\s+(?:warranty\s+)?(?:on|for)\s+(?:the\s+)?' +
+      _components +
+      r'\b',
   caseSensitive: false,
 );
 final _namedComponentWarranty = RegExp(
-  r'\b' + _components + r'\s+(?:warranty|coverage)\s*[:\-]?\s*(\d{1,2})\s*' +
-      _warrantyUnits + r'\b',
+  r'\b' +
+      _components +
+      r'\s+(?:warranty|coverage)\s*[:\-]?\s*(\d{1,2})\s*' +
+      _warrantyUnits +
+      r'\b',
   caseSensitive: false,
 );
 final _ref = RegExp(

@@ -152,7 +152,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       leadDays: settings.leadDays,
       now: context.read<Today>().instant,
     );
-    final next = plans.where((plan) => plan.location == Routes.item(saved.id)).firstOrNull;
+    final next = plans
+        .where((plan) => plan.location == Routes.item(saved.id))
+        .firstOrNull;
     return next == null
         ? 'Saved to your drawer'
         : 'Saved. Next reminder planned for ${shortDate(next.at)}.';
