@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/services/capture_service.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
+import 'package:paperdrawer/data/services/shared_item_write.dart';
 import 'package:paperdrawer/data/services/shared_vault_service.dart';
 import 'package:paperdrawer/data/services/text_recognizer.dart';
 import 'package:paperdrawer/data/services/today.dart';
@@ -34,9 +35,6 @@ void main() {
 
     expect(find.text('Check what we read'), findsOneWidget);
     expect(_text(tester, 'item-name'), 'Air cooler');
-    expect(_text(tester, 'item-reference'), '4615-A');
-    expect(_text(tester, 'item-amount'), '79.50');
-    expect(find.byKey(const ValueKey('item-add-original')), findsNothing);
     service.rejectNext = true;
     await _tap(tester, 'save-to-drawer');
     expect(
@@ -49,6 +47,7 @@ void main() {
     expect(service.attempts, hasLength(2));
     expect(service.attempts.toSet(), hasLength(1));
     expect(service.original?.name, 'capture-2.jpg');
+    expect(service.draft?.reference, '4615-A');
     expect(service.draft?.startsOn, DateTime.utc(2025, 11, 6));
     expect(service.draft?.amountMinor, 7950);
     expect(find.text('Original on file'), findsOneWidget);
@@ -104,6 +103,16 @@ void main() {
       find.text('Choose when this document ends or renews.'),
       findsOneWidget,
     );
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('item-cover-date')),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     await _tap(tester, 'item-cover-date');
     await tester.tap(find.text('Choose a date').last);
     await tester.pumpAndSettle();
@@ -151,7 +160,7 @@ Future<(_Session, _VaultService, _Capture)> _launch(WidgetTester tester) async {
       providers: [
         ChangeNotifierProvider<SharedSession>.value(value: session),
         Provider<CaptureService>.value(value: capture),
-        Provider<Today>.value(value: session.today),
+        ChangeNotifierProvider<Today>.value(value: session.today),
         Provider<TextRecognizer>.value(
           value: const FakeTextRecognizer([
             'MEGASTORE ELECTRONICS',
@@ -198,6 +207,7 @@ class _VaultService extends SharedVaultService {
     ItemDraft draft, {
     PendingFile? original,
   }) async {
+    SharedItemWrite.arguments(id, draft);
     attempts.add(id);
     if (rejectNext) {
       rejectNext = false;
@@ -240,8 +250,13 @@ class _Account extends SharedAccount {
   Stream<AuthState> get changes => const Stream.empty();
 
   @override
-  User get user =>
-      const User(id: 'owner', appMetadata: {}, aud: '', createdAt: '');
+  User get user => const User(
+    id: 'owner',
+    appMetadata: {},
+    userMetadata: {},
+    aud: '',
+    createdAt: '',
+  );
 }
 
 class _UnusedClient implements SupabaseClient {

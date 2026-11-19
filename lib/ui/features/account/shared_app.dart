@@ -113,7 +113,7 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
       ChangeNotifierProvider.value(value: _session),
       Provider<CaptureService>.value(value: _session.capture),
       Provider<TextRecognizer>(create: (_) => PlatformTextRecognizer()),
-      Provider<Today>.value(value: _session.today),
+      ChangeNotifierProvider<Today>.value(value: _session.today),
     ],
     child: MaterialApp.router(
       title: 'Paper Drawer',
