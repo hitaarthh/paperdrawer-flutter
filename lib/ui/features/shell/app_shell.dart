@@ -55,8 +55,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       bottomNavigationBar: PdTabBar(
         currentIndex: widget.navigationShell.currentIndex,
         onTap: _select,
-        onScan: () => AddFlow.start(context),
-        onScanLongPress: () => AddFlow.camera(context),
+        onScan: () => AddFlow.manual(context),
         homeFirst: true,
       ),
     );

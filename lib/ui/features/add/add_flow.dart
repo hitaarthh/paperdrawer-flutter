@@ -17,6 +17,14 @@ enum _UploadSource { photos, files }
 enum _LimitAction { review, waitlist }
 
 abstract final class AddFlow {
+  static void manual(BuildContext context, {ItemKind kind = ItemKind.bill}) {
+    if (context.read<ItemRepository>().atLimit) {
+      showPdSnackbar(context, 'Your Base drawer is full. Archive a file to make room.');
+      return;
+    }
+    context.push(Routes.add, extra: kind);
+  }
+
   /// Opens the Add sheet ("Scan or add"), or the limit notice when the Base
   /// drawer is full, then routes to the camera, the pickers or the form.
   static Future<void> start(

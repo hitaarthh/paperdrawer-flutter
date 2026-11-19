@@ -1,9 +1,11 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart' show Scaffold;
 
 import '../theme/tokens.dart';
 import '../theme/type.dart';
+import 'glass.dart';
 import 'icons.dart';
 
 class PdLargeTitleScaffold extends StatefulWidget {
@@ -97,6 +99,8 @@ class PdPushedScaffold extends StatefulWidget {
     required this.children,
     this.bottom,
     this.onBack,
+    this.glassBack = false,
+    this.closeOnRight = false,
     super.key,
   });
 
@@ -109,6 +113,8 @@ class PdPushedScaffold extends StatefulWidget {
   final List<Widget> children;
   final Widget? bottom;
   final VoidCallback? onBack;
+  final bool glassBack;
+  final bool closeOnRight;
 
   @override
   State<PdPushedScaffold> createState() => _PdPushedScaffoldState();
@@ -136,10 +142,34 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                   padding: const EdgeInsets.symmetric(horizontal: Pd.s3),
                   child: Row(
                     children: [
+                      if (widget.closeOnRight) ...[
+                        Expanded(child: Semantics(
+                          header: true,
+                          child: Text(widget.title ?? '',
+                              style: widget.titleStyle ?? PdType.trackerTitle),
+                        )),
+                        const SizedBox(width: Pd.s3),
+                        PdGlassIcon(
+                          key: const ValueKey('close-button'),
+                          label: widget.backLabel,
+                          icon: const Icon(LucideIcons.x),
+                          onPressed: widget.onBack,
+                        ),
+                      ] else ...[
                       Expanded(
                         child: Align(
                           alignment: AlignmentDirectional.centerStart,
-                          child: CupertinoButton(
+                          child: widget.glassBack
+                              ? PdGlassIcon(
+                                  key: const ValueKey('back-button'),
+                                  icon: Transform.flip(
+                                    flipX: Directionality.of(context) == TextDirection.rtl,
+                                    child: const PdIcon(PdGlyph.back, size: Pd.s5, color: Pd.text),
+                                  ),
+                                  label: 'Back to ${widget.backLabel}',
+                                  onPressed: widget.onBack ?? () => Navigator.maybePop(context),
+                                )
+                              : CupertinoButton(
                             key: const ValueKey('back-button'),
                             padding: const EdgeInsets.only(right: Pd.s2),
                             minimumSize: const Size.square(Pd.tapMin),
@@ -184,6 +214,7 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                         ),
                       ),
                       ...widget.actions,
+                      ],
                     ],
                   ),
                 ),
@@ -216,11 +247,11 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                         ),
                         const SizedBox(height: Pd.s2),
                       ],
-                      if (widget.title case final title?) ...[
+                      if (!widget.closeOnRight && widget.title != null) ...[
                         Semantics(
                           header: true,
                           child: Text(
-                            title,
+                            widget.title!,
                             style: widget.titleStyle ?? PdType.title1,
                           ),
                         ),

@@ -1,10 +1,17 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../routing/router.dart';
 
 import '../../../domain/item_status.dart';
 import '../../../domain/models/shared_vault.dart';
 import '../../core/widgets/snackbar.dart';
 import 'add_flow.dart';
 import 'add_sheet.dart';
+
+void showSharedManualAdd(BuildContext context, SharedVault vault) {
+  if (_hasRoom(context, vault)) context.push(Routes.add);
+}
 
 Future<void> showSharedAdd(BuildContext context, SharedVault vault) async {
   if (!_hasRoom(context, vault)) return;

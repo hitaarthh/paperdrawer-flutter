@@ -78,6 +78,7 @@ class ItemRepository extends ChangeNotifier {
     ItemDraft draft, {
     List<PendingFile> addFiles = const [],
     Set<String> removeAttachmentIds = const {},
+    bool prependOriginal = false,
   }) => _enqueue(() async {
     final existing = byId(id);
     if (existing == null) {
@@ -110,7 +111,15 @@ class ItemRepository extends ChangeNotifier {
             whereArgs: [attachment.id, id],
           );
         }
-        await _insertAttachments(txn, id, copied, firstPosition: kept);
+        if (prependOriginal && copied.isNotEmpty) {
+          await txn.rawUpdate(
+            'UPDATE attachments SET position = position + ? WHERE item_id = ?',
+            [copied.length, id],
+          );
+        }
+        await _insertAttachments(txn, id, copied,
+            firstPosition: prependOriginal ? 0 : kept);
+
       });
     } catch (_) {
       await _removeFiles(copied);

@@ -62,7 +62,7 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
               ),
               onScan: vault == null
                   ? null
-                  : () => showSharedAdd(context, vault),
+                  : () => showSharedManualAdd(context, vault),
             ),
           );
         },

@@ -12,6 +12,7 @@ class ItemFormViewModel extends ChangeNotifier {
     AddDetailsArgs? initial,
     this.original,
     this.shared = false,
+    bool fileFirst = false,
   }) {
     final reading = initial?.reading;
     final saved = original?.draft;
@@ -21,6 +22,7 @@ class ItemFormViewModel extends ChangeNotifier {
       subtype: saved?.subtype ?? '',
       coverUntil: saved?.coverUntil ?? reading?.coverUntil,
       returnUntil: saved?.returnUntil,
+      coverageRenews: saved?.coverageRenews,
       warrantyMonths: _kind == ItemKind.bill ? reading?.warrantyMonths : null,
       componentWarrantyUntil: saved?.componentWarrantyUntil,
       componentWarrantyName:
@@ -31,7 +33,8 @@ class ItemFormViewModel extends ChangeNotifier {
           ? reading?.componentWarrantyMonths
           : null,
     );
-    _remind = saved?.remind ?? true;
+    _remind = saved?.remind ?? !fileFirst;
+    _reminderAt = saved?.reminderAt;
     final files = initial?.files ?? const <PendingFile>[];
     _added.addAll(shared ? files.take(1) : files);
     readFields = Set.unmodifiable(reading?.read ?? const <ReadField>{});
@@ -62,6 +65,7 @@ class ItemFormViewModel extends ChangeNotifier {
   late ItemKind _kind;
   DateTime? _startsOn;
   late bool _remind;
+  DateTime? _reminderAt;
   final _details = <ItemKind, _KindDetails>{};
   final _added = <PendingFile>[];
   final _removed = <String>{};
@@ -145,6 +149,11 @@ class ItemFormViewModel extends ChangeNotifier {
   };
 
   bool get remind => _remind;
+  DateTime? get reminderAt => _reminderAt;
+  bool get coverageRenews => _active.coverageRenews ??
+      (kind == ItemKind.policy ||
+        (kind == ItemKind.agreement && original?.kind == kind &&
+            subtype != 'Other' && subtype != 'AMC'));
   bool get busy => _busy;
   String? get error => _error;
 
@@ -214,6 +223,26 @@ class ItemFormViewModel extends ChangeNotifier {
 
   void setRemind(bool value) {
     _remind = value;
+    _change();
+  }
+
+  void setReminderAt(DateTime value) {
+    _reminderAt = value;
+    _remind = true;
+    _change();
+  }
+
+  void setCoverageRenews(bool value) {
+    _active.coverageRenews = value;
+    _change();
+  }
+
+  void replacePrimary(PendingFile file) {
+    final primary = original?.attachments.firstOrNull;
+    if (primary != null) _removed.add(primary.id);
+    _added
+      ..clear()
+      ..add(file);
     _change();
   }
 
@@ -287,6 +316,8 @@ class ItemFormViewModel extends ChangeNotifier {
           ? componentWarrantyName.trim()
           : '',
       remind: remind,
+      reminderAt: remind ? reminderAt : null,
+      coverageRenews: _active.coverageRenews,
     );
     _busy = true;
     notifyListeners();
@@ -347,6 +378,7 @@ class _KindDetails {
     this.subtype = '',
     this.coverUntil,
     this.returnUntil,
+    this.coverageRenews,
     this.warrantyMonths,
     this.componentWarrantyUntil,
     this.componentWarrantyName = '',
@@ -356,6 +388,7 @@ class _KindDetails {
   String subtype;
   DateTime? coverUntil;
   DateTime? returnUntil;
+  bool? coverageRenews;
   int? warrantyMonths;
   int? returnDays;
   DateTime? componentWarrantyUntil;

@@ -303,6 +303,7 @@ Future<DateTime?> showPdFollowUpPicker(
   BuildContext context, {
   required DateTime now,
   DateTime? initial,
+  String title = 'Follow-up reminder',
 }) {
   final earliest = DateTime(
     now.year,
@@ -314,7 +315,7 @@ Future<DateTime?> showPdFollowUpPicker(
   final tomorrow = DateTime(now.year, now.month, now.day + 1, 10);
   return _showPdDateWheel(
     context,
-    title: 'Follow-up reminder',
+    title: title,
     mode: CupertinoDatePickerMode.dateAndTime,
     initial: initial != null && !initial.isBefore(earliest)
         ? initial.toLocal()

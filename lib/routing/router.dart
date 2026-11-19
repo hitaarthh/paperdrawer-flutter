@@ -5,6 +5,7 @@ import '../domain/models/item.dart';
 import '../ui/features/add/add_details_args.dart';
 import '../ui/features/add/camera_screen.dart';
 import '../ui/features/add/item_form_screen.dart';
+import '../ui/features/add/manual_item_form.dart';
 import '../ui/features/add/reading_screen.dart';
 import '../ui/features/claims/claim_detail_screen.dart';
 import '../ui/features/claims/local_claim_ledger_screen.dart';
@@ -24,6 +25,7 @@ abstract final class Routes {
   static const claims = '/claims';
   static const settings = '/settings';
   static const archive = '/settings/archive';
+  static const add = '/add';
   static const camera = '/add/camera';
   static const reading = '/add/reading';
   static const details = '/add/details';
@@ -142,7 +144,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
       pageBuilder: (context, state) => CupertinoPage(
         key: state.pageKey,
         fullscreenDialog: true,
-        child: ItemFormScreen.edit(state.pathParameters['id']!),
+        child: ManualItemForm(id: state.pathParameters['id']!),
       ),
     ),
   ],
@@ -153,6 +155,18 @@ List<GoRoute> buildAddRoutes({
   GlobalKey<NavigatorState>? navigatorKey,
   bool shared = false,
 }) => [
+  GoRoute(
+    path: Routes.add,
+    parentNavigatorKey: navigatorKey,
+    pageBuilder: (context, state) => CupertinoPage(
+      key: state.pageKey,
+      fullscreenDialog: true,
+      child: ManualItemForm(
+        kind: state.extra is ItemKind ? state.extra! as ItemKind : ItemKind.bill,
+        shared: shared,
+      ),
+    ),
+  ),
   GoRoute(
     path: Routes.camera,
     parentNavigatorKey: navigatorKey,
