@@ -25,6 +25,9 @@ Add opens the manual Files form. Save writes through the existing `save_bill` or
 Bills require a purchase date and documents require an end date. The form uses
 USD to match the shared drawer. Each form keeps its item ID on retry.
 A confirmed save adds the item to the shared snapshot and opens its detail.
+A confirmed deletion removes the item from the shared snapshot and returns to
+the previous screen while the drawer refreshes in the background. The closing
+detail uses its own snapshot during the pop transition.
 Shared item edits open the web form. Bill edits compare the revision loaded
 by the form inside the save transaction.
 

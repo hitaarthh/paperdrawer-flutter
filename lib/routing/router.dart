@@ -156,15 +156,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
         child: const RemindersScreen(),
       ),
     ),
-    GoRoute(
-      path: '/edit/:id',
-      parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => PdPage<void>(
-        key: state.pageKey,
-        fullscreenDialog: true,
-        child: ManualItemForm(id: state.pathParameters['id']!),
-      ),
-    ),
+    buildEditRoute(navigatorKey: rootNavigatorKey),
   ],
 );
 
@@ -178,6 +170,19 @@ List<GoRoute> retiredClaimLinks() => [
   ])
     GoRoute(path: path, redirect: (context, state) => Routes.home),
 ];
+
+GoRoute buildEditRoute({
+  required GlobalKey<NavigatorState> navigatorKey,
+  bool shared = false,
+}) => GoRoute(
+  path: Routes.edit(':id'),
+  parentNavigatorKey: navigatorKey,
+  pageBuilder: (context, state) => PdPage<void>(
+    key: state.pageKey,
+    fullscreenDialog: true,
+    child: ManualItemForm(id: state.pathParameters['id']!, shared: shared),
+  ),
+);
 
 /// Capture and review cover the tab bar in both build modes.
 List<GoRoute> buildAddRoutes({

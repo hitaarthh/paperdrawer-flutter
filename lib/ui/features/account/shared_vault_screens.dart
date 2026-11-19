@@ -9,6 +9,7 @@ import '../../../data/services/drawer_actions.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
 import '../../../domain/models/shared_vault.dart';
+import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
 import '../../core/widgets/button.dart';
@@ -67,22 +68,30 @@ class SharedClaimsScreen extends StatelessWidget {
   }
 }
 
-class SharedItemScreen extends StatelessWidget {
+class SharedItemScreen extends StatefulWidget {
   const SharedItemScreen(this.id, {this.fromHome = false, super.key});
   final String id;
   final bool fromHome;
 
-  String get _backLabel => fromHome ? 'Home' : 'Drawer';
-  String get _backRoute => fromHome ? '/home' : '/vault';
+  @override
+  State<SharedItemScreen> createState() => _SharedItemScreenState();
+}
+
+class _SharedItemScreenState extends State<SharedItemScreen> {
+  // The route stays live during its pop animation, even after the drawer
+  // snapshot has removed the item. Keep its content for that transition.
+  (String, SharedItem)? _deleting;
+
+  String get _backLabel => widget.fromHome ? 'Home' : 'Drawer';
+  String get _backRoute => widget.fromHome ? '/home' : '/vault';
 
   void _back(BuildContext context) =>
       context.canPop() ? context.pop() : context.go(_backRoute);
 
-  Future<void> _delete(
-    BuildContext context,
-    SharedSession session,
-    SharedItem item,
-  ) async {
+  Future<void> _delete(SharedSession session, SharedItem item) async {
+    final owner = session.account.user?.id;
+    final route = ModalRoute.of(context);
+    if (owner == null || route == null || _deleting != null) return;
     final confirmed = await showPdConfirm(
       context,
       title: 'Delete this item?',
@@ -90,14 +99,19 @@ class SharedItemScreen extends StatelessWidget {
       confirmLabel: 'Delete item',
       destructive: true,
     );
-    if (!confirmed || !context.mounted) return;
+    if (!mounted || !confirmed || !route.isCurrent) return;
+    if (session.account.user?.id != owner) return;
+    setState(() => _deleting = (owner, item));
+    var deleted = false;
     try {
-      await session.deleteItem(item);
-      if (context.mounted) _back(context);
+      deleted = await session.deleteItem(item);
+      if (mounted && deleted && route.isCurrent) _back(context);
     } catch (_) {
-      if (context.mounted) {
+      if (mounted && route.isCurrent) {
         showPdSnackbar(context, 'Couldn’t delete this item. Try again.');
       }
+    } finally {
+      if (mounted && !deleted) setState(() => _deleting = null);
     }
   }
 
@@ -118,9 +132,16 @@ class SharedItemScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = context.watch<SharedSession>();
-    final item = session.vault?.items
-        .where((entry) => entry.item.id == id)
-        .firstOrNull;
+    final pending = _deleting;
+    final deleting =
+        pending != null &&
+        pending.$1 == session.account.user?.id &&
+        pending.$2.item.id == widget.id;
+    final item = deleting
+        ? pending.$2
+        : session.vault?.items
+              .where((entry) => entry.item.id == widget.id)
+              .firstOrNull;
     if (item == null) {
       return _missing(
         context,
@@ -142,12 +163,12 @@ class SharedItemScreen extends StatelessWidget {
       titleStyle: PdType.trackerTitle,
       actions: [
         ItemDetailActions(
-          onEdit: session.claimBusy
+          onEdit: deleting || session.claimBusy
               ? null
-              : () => _open(context, session, item.editPath),
-          onDelete: session.claimBusy
+              : () => context.push(Routes.edit(item.item.id)),
+          onDelete: deleting || session.claimBusy
               ? null
-              : () => _delete(context, session, item),
+              : () => _delete(session, item),
         ),
       ],
       bottom: original == null
@@ -155,7 +176,9 @@ class SharedItemScreen extends StatelessWidget {
           : PdButton.primary(
               label: 'Open original',
               expand: true,
-              onPressed: () => _openOriginal(context, session, original),
+              onPressed: deleting
+                  ? null
+                  : () => _openOriginal(context, session, original),
             ),
       children: [
         ItemDeadlineTicket(summary),

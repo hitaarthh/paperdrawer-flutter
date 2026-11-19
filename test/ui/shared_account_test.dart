@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -234,6 +236,85 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final (source, detail, heading) in [
+    (Routes.home, '/home/item/earbuds', 'Coming up'),
+    ('${Routes.vault}?filter=due', Routes.item('earbuds'), 'Your drawer'),
+  ]) {
+    testWidgets('shared delete returns to $source before refresh finishes', (
+      tester,
+    ) async {
+      final service = _DetailService();
+      final session = SharedSession(_SignedInAccount(), service: service);
+      await _launchDrawer(tester, session);
+      final router = GoRouter.of(tester.element(find.text('Coming up')));
+      router.go(source);
+      await tester.pumpAndSettle();
+      unawaited(router.push<void>(detail));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('item-delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete item'));
+      await tester.pumpAndSettle();
+      expect(service.deletedIds, ['earbuds']);
+      expect(find.text('Wireless earbuds'), findsOneWidget);
+
+      service.deleteReply.complete();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(session.vault!.items, isEmpty);
+      expect(session.loading, isTrue);
+      expect(find.text('Wireless earbuds'), findsOneWidget);
+      expect(
+        find.text('Record unavailable', skipOffstage: false),
+        findsNothing,
+      );
+      expect(
+        find.text('Loading your drawer…', skipOffstage: false),
+        findsNothing,
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text(heading), findsOneWidget);
+      expect(find.text('Wireless earbuds'), findsNothing);
+      expect(router.state.uri.toString(), source);
+      expect(session.loading, isTrue);
+
+      service.refreshReply.complete(service.snapshot);
+      await tester.pumpAndSettle();
+      expect(session.loading, isFalse);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('failed shared delete stays on the item and can be retried', (
+    tester,
+  ) async {
+    final service = _DetailService();
+    final session = SharedSession(_SignedInAccount(), service: service);
+    await _launchDrawer(tester, session);
+    final router = GoRouter.of(tester.element(find.text('Coming up')));
+    unawaited(router.push<void>(Routes.item('earbuds')));
+    await tester.pumpAndSettle();
+
+    final delete = find.byKey(const ValueKey('item-delete'));
+    await tester.tap(delete);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete item'));
+    await tester.pumpAndSettle();
+    service.deleteReply.completeError(StateError('Offline'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Couldn’t delete this item. Try again.'), findsOneWidget);
+    expect(find.text('Wireless earbuds'), findsOneWidget);
+    expect(session.vault!.items.single.item.id, 'earbuds');
+    await tester.tap(delete);
+    await tester.pumpAndSettle();
+    expect(find.text('Delete this item?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+  });
+
   testWidgets(
     'the legacy claim widget can still render saved data in isolation',
     (tester) async {
@@ -415,20 +496,25 @@ class _DetailService extends SharedVaultService {
   _DetailService() : super(_UnusedClient());
 
   final writes = <(String, String, String)>[];
+  final deletedIds = <String>[];
+  final deleteReply = Completer<void>();
+  final refreshReply = Completer<SharedVault>();
   bool rejectWrite = false;
+  bool _deleted = false;
   String? _outcome;
 
   SharedVault get snapshot => SharedVault(
     items: [
-      SharedItem.bill({
-        'id': 'earbuds',
-        'name': 'Wireless earbuds',
-        'store': 'Online order',
-        'created_at': '2026-11-10T00:00:00Z',
-        'purchased_on': '2026-11-10',
-        'return_days': 10,
-        'warranty_months': 12,
-      }),
+      if (!_deleted)
+        SharedItem.bill({
+          'id': 'earbuds',
+          'name': 'Wireless earbuds',
+          'store': 'Online order',
+          'created_at': '2026-11-10T00:00:00Z',
+          'purchased_on': '2026-11-10',
+          'return_days': 10,
+          'warranty_months': 12,
+        }),
     ],
     claims: [
       SharedClaim.fromRow({
@@ -453,7 +539,15 @@ class _DetailService extends SharedVaultService {
   );
 
   @override
-  Future<SharedVault> fetch(String userId) async => snapshot;
+  Future<SharedVault> fetch(String userId) async =>
+      _deleted ? refreshReply.future : snapshot;
+
+  @override
+  Future<void> deleteItem(String userId, SharedItem item) async {
+    deletedIds.add(item.item.id);
+    await deleteReply.future;
+    _deleted = true;
+  }
 
   @override
   Future<DateTime> settleClaim(String userId, String id, String outcome) async {

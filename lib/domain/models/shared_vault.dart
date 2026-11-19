@@ -29,6 +29,7 @@ class SharedItem {
     this.details, {
     this.ref,
     this.reminderLeadDays,
+    this.updatedAt,
   });
 
   final Item item;
@@ -36,11 +37,10 @@ class SharedItem {
   final List<(String, String)> details;
   final String? ref;
   final int? reminderLeadDays;
+  final String? updatedAt;
 
   String get webPath =>
       '/${item.kind == ItemKind.bill ? 'bills' : 'documents'}/${item.id}';
-  String get editPath =>
-      '/${item.kind == ItemKind.bill ? 'bills' : 'documents'}/new?edit=${Uri.encodeQueryComponent(ref ?? item.id)}';
   String get startClaimPath =>
       '/claims/new?item=${Uri.encodeQueryComponent(ref ?? item.id)}';
 
@@ -81,6 +81,7 @@ class SharedItem {
           (_text(part['name']), monthsLabel((part['years'] as int) * 12)),
       ],
       ref: row['ref'] as String?,
+      updatedAt: row['updated_at'] as String?,
     );
   }
 
@@ -120,6 +121,7 @@ class SharedItem {
     ],
     ref: row['ref'] as String?,
     reminderLeadDays: row['remind_days'] as int?,
+    updatedAt: row['updated_at'] as String?,
   );
 }
 

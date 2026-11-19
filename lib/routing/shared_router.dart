@@ -152,6 +152,7 @@ GoRouter buildSharedRouter(SharedSession session) {
       ),
       ...retiredClaimLinks(),
       ...buildAddRoutes(navigatorKey: navigatorKey, shared: true),
+      buildEditRoute(navigatorKey: navigatorKey, shared: true),
     ],
   );
 }

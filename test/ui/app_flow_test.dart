@@ -160,6 +160,9 @@ void main() {
     expect(items.active.single.attachments, hasLength(1));
     await _tap(tester, 'item-delete');
     await tester.tap(find.text('Delete item'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(find.text('Item unavailable', skipOffstage: false), findsNothing);
     await tester.pumpAndSettle();
     expect(items.active, isEmpty);
     expect(_key('drawer-notifications'), findsOneWidget);

@@ -10,6 +10,7 @@ import '../../../data/services/reminder_scheduler.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/models/item.dart';
+import '../../../domain/models/shared_vault.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -43,6 +44,7 @@ class ManualItemForm extends StatefulWidget {
 
 class _ManualItemFormState extends State<ManualItemForm> {
   ItemFormViewModel? _form;
+  SharedItem? _sharedItem;
   final _title = TextEditingController();
   final _scroll = ScrollController();
   final _fileField = GlobalKey();
@@ -52,21 +54,26 @@ class _ManualItemFormState extends State<ManualItemForm> {
   String? _fileError;
 
   bool get _editing => widget.id != null;
+  bool get _sharedEdit => _editing && widget.shared;
   String get _heading => _editing ? 'Edit item' : 'Add a file';
   bool get _blocked => _picking || _saving;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_form != null) return;
+    final session = widget.shared ? context.watch<SharedSession>() : null;
     final items = widget.shared ? null : context.read<ItemRepository>();
-    final original = widget.id == null ? null : items?.byId(widget.id!);
+    final id = widget.id;
+    final sharedItem = _sharedItem = id == null ? null : session?.itemById(id);
+    final original = id == null ? null : sharedItem?.item ?? items?.byId(id);
     if (_editing && original == null) return;
-    final createShared = widget.shared
-        ? context.read<SharedSession>().itemCreator()
-        : null;
+    final saveShared = sharedItem == null
+        ? session?.itemCreator()
+        : session!.itemEditor(sharedItem);
     final form = _form = ItemFormViewModel(
       (draft, files, removed) {
-        if (createShared != null) return createShared(draft, files.single);
+        if (saveShared != null) return saveShared(draft, files.firstOrNull);
         if (original == null) return items!.create(draft, files: files);
         return items!.update(
           original.id,
@@ -256,21 +263,32 @@ class _ManualItemFormState extends State<ManualItemForm> {
   Widget build(BuildContext context) {
     final form = _form;
     if (form == null) {
+      final session = widget.shared ? context.watch<SharedSession>() : null;
       return PdPushedScaffold(
         title: _heading,
         backLabel: 'Cancel',
         onBack: _close,
         closeOnRight: true,
-        children: const [
-          DashedTile(title: 'Item unavailable', body: 'Return to your drawer.'),
+        children: [
+          if (session?.loading == true)
+            Text('Loading your item…', style: PdType.callout)
+          else if (session?.failed == true)
+            DashedTile(
+              title: 'Couldn’t load this item',
+              body: 'Check your connection and try again.',
+              action: PdButton.text(label: 'Try again', onPressed: session!.refresh),
+            )
+          else
+            const DashedTile(title: 'Item unavailable', body: 'Return to your drawer.'),
         ],
       );
     }
     return ListenableBuilder(
       listenable: form,
       builder: (context, _) {
-        final name =
-            form.added.firstOrNull?.name ?? form.retained.firstOrNull?.name;
+        final picked = form.added.firstOrNull;
+        final existing = _sharedItem?.originals.firstOrNull?.name;
+        final name = picked?.name ?? existing ?? form.retained.firstOrNull?.name;
         final allowsMeaning =
             !widget.shared &&
             (form.kind == ItemKind.policy || form.kind == ItemKind.agreement);
@@ -299,6 +317,11 @@ class _ManualItemFormState extends State<ManualItemForm> {
                   if (!_blocked) _pick(form);
                 },
               ),
+              if (_sharedEdit && picked != null)
+                PdButton.text(
+                  label: existing == null ? 'Remove selected file' : 'Keep current file',
+                  onPressed: _blocked ? null : () => form.removeAdded(picked),
+                ),
               if (_fileError case final error?)
                 KeyedSubtree(key: _fileField, child: _inlineError(error))
               else if (name == null)
@@ -323,7 +346,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 key: const ValueKey('item-kind-picker'),
                 label: 'Type',
                 value: _kindLabel(form.kind),
-                onTap: () {
+                onTap: _sharedEdit ? null : () {
                   if (!_blocked) _chooseKind(form);
                 },
               ),

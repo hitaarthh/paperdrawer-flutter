@@ -20,10 +20,13 @@ class ItemDetailViewModel extends ChangeNotifier {
   final Today _today;
   final DrawerActions _actions;
   bool _disposed = false;
+  Item? _deletingItem;
   bool busy = false;
   String? error;
 
-  Item? get item => _items.byId(id);
+  bool get deleting => _deletingItem != null;
+
+  Item? get item => _deletingItem ?? _items.byId(id);
   ItemSummary? get summary {
     final item = this.item;
     return item == null ? null : ItemSummary.of(item, _today.value);
@@ -34,8 +37,22 @@ class ItemDetailViewModel extends ChangeNotifier {
     'The archive couldn’t be updated.',
   );
 
-  Future<bool> delete() =>
-      _run(() => _items.delete(id), 'This item couldn’t be deleted.');
+  Future<bool> delete() async {
+    if (busy || deleting) return false;
+    final current = item;
+    if (current == null) return false;
+    // Keep the detail visible while the route animates back to the drawer.
+    _deletingItem = current;
+    final deleted = await _run(
+      () => _items.delete(id),
+      'This item couldn’t be deleted.',
+    );
+    if (!deleted) {
+      _deletingItem = null;
+      if (!_disposed) notifyListeners();
+    }
+    return deleted;
+  }
 
   Future<bool> shareOriginals(Item item, Rect? origin) => _run(() async {
     final files = [

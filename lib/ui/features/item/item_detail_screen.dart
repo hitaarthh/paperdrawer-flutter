@@ -60,7 +60,10 @@ class _ItemDetailView extends StatelessWidget {
     bool pop = false,
   }) async {
     final saved = await operation;
-    if (!context.mounted) return;
+    if (!context.mounted ||
+        (pop && ModalRoute.of(context)?.isCurrent != true)) {
+      return;
+    }
     if (saved) {
       if (success != null) showPdSnackbar(context, success, success: true);
       if (pop) _back(context);
@@ -77,7 +80,11 @@ class _ItemDetailView extends StatelessWidget {
       confirmLabel: 'Delete item',
       destructive: true,
     );
-    if (!context.mounted || !confirmed) return;
+    if (!context.mounted ||
+        !confirmed ||
+        ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
     await _perform(
       context,
       model,
@@ -114,8 +121,9 @@ class _ItemDetailView extends StatelessWidget {
       );
     }
     final item = summary.item;
+    final busy = model.busy || model.deleting;
     final original = item.attachments.firstOrNull;
-    final openOriginal = original == null || model.busy
+    final openOriginal = original == null || busy
         ? null
         : () => _perform(context, model, model.open(original));
     final remind = item.draft.remind && !item.isArchived;
@@ -137,8 +145,8 @@ class _ItemDetailView extends StatelessWidget {
       titleStyle: PdType.trackerTitle,
       actions: [
         ItemDetailActions(
-          onEdit: model.busy ? null : () => context.push(Routes.edit(item.id)),
-          onDelete: model.busy ? null : () => _delete(context, model),
+          onEdit: busy ? null : () => context.push(Routes.edit(item.id)),
+          onDelete: busy ? null : () => _delete(context, model),
         ),
       ],
       bottom: original == null
@@ -172,7 +180,7 @@ class _ItemDetailView extends StatelessWidget {
             key: ValueKey('attachment-${attachment.id}'),
             title: attachment.name,
             chevron: true,
-            onTap: model.busy
+            onTap: busy
                 ? null
                 : () => _perform(context, model, model.open(attachment)),
           ),
@@ -205,7 +213,7 @@ class _ItemDetailView extends StatelessWidget {
                 builder: (anchor) => PdListRow(
                   key: const ValueKey('item-share'),
                   title: 'Share originals',
-                  onTap: model.busy
+                  onTap: busy
                       ? null
                       : () => _perform(
                           context,
@@ -217,7 +225,7 @@ class _ItemDetailView extends StatelessWidget {
             PdListRow(
               key: ValueKey(item.isArchived ? 'item-restore' : 'item-archive'),
               title: item.isArchived ? 'Restore to drawer' : 'Move to archive',
-              onTap: model.busy
+              onTap: busy
                   ? null
                   : () => _perform(
                       context,
