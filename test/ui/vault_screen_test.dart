@@ -185,7 +185,7 @@ void main() {
         await _tap(tester, 'home-ticket-earbuds/returnWindow');
         expect(_key('item-claim'), findsOneWidget);
         await _tap(tester, 'back-button');
-        expect(find.text('Coming up'), findsOneWidget);
+        expect(_key('coming-up-list'), findsOneWidget);
 
         await tester.scrollUntilVisible(
           _key('home-claim-claim-1').hitTestable(),

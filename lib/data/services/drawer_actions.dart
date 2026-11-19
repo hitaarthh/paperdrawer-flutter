@@ -8,6 +8,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/models/item.dart';
 
+/// An in-memory attachment whose name is preserved by the native share sheet.
+class NamedShareData extends XFile {
+  NamedShareData(Uint8List bytes, {required this.name, required String mimeType})
+    : super.fromData(bytes, mimeType: mimeType);
+
+  @override
+  final String name;
+}
+
 /// OS actions invoked only in response to a user's tap.
 class DrawerActions {
   const DrawerActions();

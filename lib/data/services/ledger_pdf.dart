@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../domain/formats.dart';
 import '../../domain/models/ledger.dart';
+import 'drawer_actions.dart';
 
 Future<XFile> buildLedgerPdf({
   required String title,
@@ -65,8 +66,10 @@ Future<XFile> buildLedgerPdf({
       ],
     ),
   );
-  final safeTitle = title.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-');
-  return XFile.fromData(
+  final safeTitle = String.fromCharCodes(
+    title.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-').runes.take(56),
+  );
+  return NamedShareData(
     await document.save(),
     name: '$safeTitle-ledger.pdf',
     mimeType: 'application/pdf',

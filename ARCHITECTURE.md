@@ -18,17 +18,19 @@ uses the existing web callback and password reset uses the web sign-in flow.
 
 `SharedVaultService` reads bills, bill parts, documents, claims, events and
 originals with the current user's session and owner RLS. The shared router gates
-`/vault`, `/claims` and `/settings` behind `/account`. Shared records can be
-viewed on the phone, and the Vault shares the local design's search, filters,
-countdown tickets, empty state, and Add sheet. Shared records are added or
-edited in the web app. An open shared claim can be marked settled in the app
-with an optional outcome using the owner-scoped `settle_claim` RPC. The
-acknowledged settlement updates the snapshot before the claim log refreshes.
+`/home`, `/vault`, `/claims` and `/settings` behind `/account`. Shared vault items
+are added or edited in the web app. On iPhone, an item opens its claim ledger
+through `open_claim_ledger`. The `add_claim_ledger_entry` RPC commits the entry,
+photo metadata and any follow-up together. The iPhone uploads photos to the
+owner's private Vault folder and keeps the same event ID on retry. The
+`set_claim_follow_up` and `settle_claim` RPCs update an open ledger. A confirmed
+write updates the shared snapshot. These RPCs require migration `20261118000014`.
 `SharedSettingsScreen` reads the signed-in user's profile
 and plan usage from the shared vault snapshot. It saves email reminder timing
 (30, 7 or 2 days) and delivery preferences to the owner's `profiles` row.
-The iOS notification permission flow belongs to the device-only vault. Shared
-vault exports and account deletion open the existing web flows. Originals are downloaded
+The iPhone asks for notification permission when the user sets a follow-up.
+Shared follow-ups schedule local notifications and clear on settlement or sign-out.
+Shared vault exports and account deletion open the existing web flows. Originals are downloaded
 into the temporary directory as needed. The shared build does not open the
 SQLite database or transfer existing device-only originals. The unconfigured
 build uses the on-device repositories and routes below.
@@ -105,8 +107,9 @@ with currency `USD`; `archived_at` kept), each `attachment_key` → one
 Version 3 adds an optional serial number. Version 4 adds the ledger’s follow-up instant, entry reference and photo table while retaining earlier events. Version 5 adds an optional component warranty date and name.
 
 ### `FileStore` (`data/services/file_store.dart`)
-`FileStore(Directory root)`; `Future<Attachment> import(String itemId, PendingFile file)`
+`FileStore(Directory root)`; `Future<Attachment> import(String itemId, PendingFile file, {bool claimPhoto = false})`
 copies into `root/attachments/<itemId>-<uuid><ext>`; accepts `.pdf .jpg .jpeg .png .heic .heif .webp`, 1 byte–20 MB, else `FormatException('Choose a photo or PDF up to 20 MB.')`.
+Claim photos accept the same image types and live in `root/claim-photos/`.
 `String absolute(String relPath)`, `String relative(String absPath)`, `Future<void> remove(String absPath)` (ignores missing), `Future<void> removeAll()`.
 
 ### `ItemRepository`
@@ -138,14 +141,15 @@ copies into `root/attachments/<itemId>-<uuid><ext>`; accepts `.pdf .jpg .jpeg .p
 - `Future<void> setRemindersOn(bool)`, `setLeadDays(int)`, `dismissTicket(String key)`, `eraseAll()`
 
 ### `Today` (`data/services/today.dart`)
-`class Today extends ChangeNotifier { Today([DateTime Function()? now]); DateTime get value; void refresh(); }` — civil date; the shell calls `refresh()` on app resume.
+`class Today extends ChangeNotifier { Today([DateTime Function()? now]); DateTime get value; DateTime get instant; void refresh(); }` provides a civil date and a current instant. The shell refreshes the civil date on resume.
 
 ### Services
 - `TextRecognizer` (abstract): `Future<List<String>> recognize(String path)`; `PlatformTextRecognizer` uses MethodChannel `app.paperdrawer.mobile/text`, method `recognize`, args `{'path': String}` → `List<String>` lines (Apple Vision; PDFs: first 3 pages via PDFKit). Never throws: returns `[]` on failure.
-- `CaptureService.inspect(PendingFile)` reads the original's size and provides preview bytes for a supported image. Its camera session supports capture and torch control.
+- `CaptureService.inspect(PendingFile)` reads the original's size and provides preview bytes for a supported image. `pickLedgerPhoto()` picks one image from the device photo library. The camera session supports capture and torch control.
 - `ScanReading readBill(List<String> lines, {required DateTime today})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and separate comprehensive and component warranty durations. `ScanReading.read` identifies populated fields.
 - `ReminderScheduler`: `ReminderScheduler({required NotificationGateway gateway, required ItemRepository items, required ClaimRepository claims, required SettingsRepository settings, required Today today})`; `void start()` (listens to the repositories, debounced reschedule); `Future<bool> requestPermission()`; `Stream<String> get taps` (go_router locations); `Future<String?> launchLocation()`. Pure planner `List<PlannedReminder> planReminders({items, claims, leadDays, now})` is unit-tested. Title/body copy: see design/mobile-system/screens.md "Notifications". Payload = location: `/vault/item/<id>` or `/claims/<id>`.
 - `Exporter`: `Future<File> exportEverything({required List<Item> items, required List<Claim> claims})` → zip (`paperdrawer-export-<yyyy-mm-dd>.zip` with `paperdrawer.json`, `originals/` and any `claim-photos/`); `Future<List<XFile>> claimKit(Item item, {Claim? claim})` → originals + `<name>-claim-kit.txt` summary.
+- `buildLedgerPdf` generates an on-device PDF with the entries, references, serial number and names of the files on record. Originals remain available through the claim kit and attachment controls.
 
 ## Routes (`routing/router.dart`)
 

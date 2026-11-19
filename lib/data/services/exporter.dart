@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../domain/formats.dart';
 import '../../domain/models/claim.dart';
 import '../../domain/models/item.dart';
+import 'drawer_actions.dart';
 import 'file_store.dart';
 import 'today.dart';
 
@@ -96,7 +97,7 @@ class Exporter {
       ],
     ].join('\n');
     final name = '${_safeName(item.name)}-claim-kit.txt';
-    return XFile.fromData(
+    return NamedShareData(
       Uint8List.fromList(utf8.encode(summary)),
       name: name,
       mimeType: 'text/plain',

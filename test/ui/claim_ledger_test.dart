@@ -112,6 +112,7 @@ void main() {
 
     await tap(key('mark-claim-settled'));
     await tester.enterText(key('claim-log-text'), 'Refund confirmed.');
+    await tester.pumpAndSettle();
     await tap(key('save-claim-log'));
     expect(outcome, 'Refund confirmed.');
     expect(find.text('SETTLED'), findsOneWidget);
