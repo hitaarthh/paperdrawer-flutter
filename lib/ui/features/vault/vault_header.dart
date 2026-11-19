@@ -12,11 +12,11 @@ class VaultHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     header: true,
-    child: Text('The vault', style: PdType.heroTitle),
+    child: Text('Your drawer', style: PdType.heroTitle),
   );
 }
 
-/// "Search your vault", with how much of the Base plan is used on the right.
+/// Drawer search with an optional file count.
 class VaultSearchField extends StatefulWidget {
   const VaultSearchField({
     required this.controller,
@@ -28,7 +28,7 @@ class VaultSearchField extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
 
-  /// Active items, shown as "10 OF 25".
+  /// Number of active files.
   final int? count;
 
   @override
@@ -62,7 +62,7 @@ class _VaultSearchFieldState extends State<VaultSearchField> {
       controller: widget.controller,
       focusNode: _focus,
       onChanged: widget.onChanged,
-      placeholder: 'Search your vault',
+      placeholder: 'Search your drawer',
       placeholderStyle: PdType.body.copyWith(color: Pd.placeholder),
       style: PdType.body,
       cursorColor: Pd.lime,
@@ -78,9 +78,8 @@ class _VaultSearchFieldState extends State<VaultSearchField> {
           : Padding(
               padding: const EdgeInsets.only(right: Pd.s3),
               child: Text(
-                '${widget.count} OF $baseItemLimit',
-                semanticsLabel:
-                    '${widget.count} of $baseItemLimit items on Base',
+                '${widget.count} ${widget.count == 1 ? 'FILE' : 'FILES'}',
+                semanticsLabel: '${widget.count} files',
                 style: PdType.label.copyWith(
                   color: Pd.textMuted,
                   fontWeight: FontWeight.w400,
@@ -118,13 +117,20 @@ class VaultFilterTabs extends StatelessWidget {
     VaultFilter.due => 'DUE SOON',
     VaultFilter.inClaim => 'IN CLAIM',
     VaultFilter.covered => 'COVERED',
-    VaultFilter.expired => 'ENDED',
+    VaultFilter.expired => 'EXPIRED',
+    VaultFilter.undated => 'NO DATE',
   };
 
   @override
   Widget build(BuildContext context) => PdFilterTabs(
     children: [
-      for (final filter in VaultFilter.values)
+      for (final filter in const [
+        VaultFilter.all,
+        VaultFilter.due,
+        VaultFilter.covered,
+        VaultFilter.expired,
+        VaultFilter.undated,
+      ])
         PdFilterTab(
           key: ValueKey('vault-filter-${filter.name}'),
           label: label(filter),

@@ -163,6 +163,7 @@ class _OpeningArtwork extends StatelessWidget {
     );
     return Semantics(
       label: 'PaperDrawer is opening',
+      textDirection: TextDirection.ltr,
       excludeSemantics: true,
       child: ColoredBox(
         color: Pd.bg,

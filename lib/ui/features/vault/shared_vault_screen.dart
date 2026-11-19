@@ -115,7 +115,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                           ),
                         ),
                       if (vault != null && summaries.isNotEmpty)
-                        ..._full(vault, summaries),
+                        ..._full(summaries),
                       SliverToBoxAdapter(
                         child: SizedBox(
                           height: Pd.s12 + MediaQuery.paddingOf(context).bottom,
@@ -132,7 +132,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
     );
   }
 
-  List<Widget> _full(SharedVault vault, List<ItemSummary> summaries) {
+  List<Widget> _full(List<ItemSummary> summaries) {
     final words = _search.text
         .toLowerCase()
         .split(RegExp(r'\s+'))
@@ -153,7 +153,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
       _inset(
         VaultSearchField(
           controller: _search,
-          count: vault.onBasePlan ? summaries.length : null,
+          count: summaries.length,
           onChanged: (_) => setState(() {}),
         ),
       ),

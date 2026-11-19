@@ -409,7 +409,8 @@ enum VaultFilter {
   due('DUE'),
   inClaim('IN CLAIM'),
   covered('COVERED'),
-  expired('EXPIRED');
+  expired('EXPIRED'),
+  undated('NO DATE');
 
   const VaultFilter(this.label);
   final String label;
@@ -420,6 +421,7 @@ enum VaultFilter {
     VaultFilter.inClaim => s.status == ItemStatus.inClaim,
     VaultFilter.covered => s.status == ItemStatus.covered,
     VaultFilter.expired => s.status == ItemStatus.expired,
+    VaultFilter.undated => s.windows.isEmpty,
   };
 }
 

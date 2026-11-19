@@ -1,9 +1,8 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../theme/tokens.dart';
 import '../theme/type.dart';
+import 'glass.dart';
 import 'icons.dart';
 
 class PdTabBar extends StatelessWidget {
@@ -24,11 +23,7 @@ class PdTabBar extends StatelessWidget {
   final int claimsBadge;
   final bool homeFirst;
 
-  static final _blur = ImageFilter.blur(
-    sigmaX: Pd.dockBlur,
-    sigmaY: Pd.dockBlur,
-  );
-  static const _radius = BorderRadius.all(Radius.circular(Pd.rPill));
+  static const _radius = PdGlassSurface.radius;
   static const _originalTabs = [
     ('Vault', PdGlyph.vault),
     ('Claims', PdGlyph.claims),
@@ -36,7 +31,7 @@ class PdTabBar extends StatelessWidget {
   ];
   static const _homeTabs = [
     ('Home', PdGlyph.home),
-    ('Vault', PdGlyph.vault),
+    ('Drawer', PdGlyph.vault),
     ('Settings', PdGlyph.settings),
   ];
 
@@ -48,7 +43,6 @@ class PdTabBar extends StatelessWidget {
     if (MediaQuery.viewInsetsOf(context).bottom > 0) {
       return const SizedBox.shrink();
     }
-    final highContrast = MediaQuery.highContrastOf(context);
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.symmetric(horizontal: Pd.s4),
@@ -63,35 +57,14 @@ class PdTabBar extends StatelessWidget {
                 borderRadius: _radius,
                 boxShadow: Pd.shadowFab,
               ),
-              child: ClipRRect(
-                borderRadius: _radius,
-                child: BackdropFilter(
-                  enabled: !highContrast,
-                  filter: _blur,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: highContrast ? Pd.surface1 : null,
-                      gradient: highContrast
-                          ? null
-                          : const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Pd.dockGlassTop, Pd.dockGlassBottom],
-                            ),
-                      borderRadius: _radius,
-                    ),
-                    child: CustomPaint(
-                      foregroundPainter: _DockRim(highContrast),
-                      child: Padding(
-                        padding: const EdgeInsets.all(Pd.s1),
-                        child: Stack(
-                          children: [
-                            Positioned.fill(child: _selection(context)),
-                            _controls(),
-                          ],
-                        ),
-                      ),
-                    ),
+              child: PdGlassSurface(
+                child: Padding(
+                  padding: const EdgeInsets.all(Pd.s1),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(child: _selection(context)),
+                      _controls(),
+                    ],
                   ),
                 ),
               ),
@@ -128,7 +101,7 @@ class PdTabBar extends StatelessWidget {
           if (homeFirst && index == 2) _add(),
           Expanded(
             child: _DockButton(
-              key: ValueKey('${title.toLowerCase()}-tab'),
+              key: ValueKey(glyph == PdGlyph.vault ? 'vault-tab' : '${title.toLowerCase()}-tab'),
               title: title,
               glyph: glyph,
               selected: index == currentIndex,
@@ -252,34 +225,3 @@ class _DockButton extends StatelessWidget {
   }
 }
 
-class _DockRim extends CustomPainter {
-  const _DockRim(this.highContrast);
-
-  final bool highContrast;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..color = Pd.line;
-    if (!highContrast) {
-      paint.shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Pd.dockRimLight, Pd.dockRimShade, Pd.dockRimLight],
-      ).createShader(rect);
-    }
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect,
-        const Radius.circular(Pd.rPill),
-      ).scaleRadii().deflate(paint.strokeWidth / 2),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_DockRim oldDelegate) =>
-      oldDelegate.highContrast != highContrast;
-}
