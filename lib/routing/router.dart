@@ -125,47 +125,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
         ),
       ],
     ),
-    // Flows cover the tab bar and slide up like a modal.
-    GoRoute(
-      path: Routes.camera,
-      parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => CupertinoPage(
-        key: state.pageKey,
-        fullscreenDialog: true,
-        child: CameraScreen(
-          kind: state.extra is ItemKind ? state.extra! as ItemKind : null,
-        ),
-      ),
-    ),
-    GoRoute(
-      path: Routes.reading,
-      parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => CupertinoPage(
-        key: state.pageKey,
-        fullscreenDialog: true,
-        child: switch (state.extra) {
-          final CaptureReadingArgs args => ReadingScreen(
-            files: args.files,
-            kind: args.kind,
-          ),
-          final List<PendingFile> files => ReadingScreen(files: files),
-          _ => const ReadingScreen(files: []),
-        },
-      ),
-    ),
-    GoRoute(
-      path: Routes.details,
-      parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => CupertinoPage(
-        key: state.pageKey,
-        fullscreenDialog: true,
-        child: ItemFormScreen.create(
-          state.extra is AddDetailsArgs
-              ? state.extra! as AddDetailsArgs
-              : const AddDetailsArgs(),
-        ),
-      ),
-    ),
+    ...buildAddRoutes(navigatorKey: rootNavigatorKey),
     // The one-time "Turn on reminders" offer, pushed after a first save.
     GoRoute(
       path: Routes.reminders,
@@ -187,3 +147,56 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
     ),
   ],
 );
+
+/// Capture and review cover the tab bar in both build modes.
+List<GoRoute> buildAddRoutes({
+  GlobalKey<NavigatorState>? navigatorKey,
+  bool shared = false,
+}) => [
+  GoRoute(
+    path: Routes.camera,
+    parentNavigatorKey: navigatorKey,
+    pageBuilder: (context, state) => CupertinoPage(
+      key: state.pageKey,
+      fullscreenDialog: true,
+      child: CameraScreen(
+        kind: state.extra is ItemKind ? state.extra! as ItemKind : null,
+        singleOriginal: shared,
+      ),
+    ),
+  ),
+  GoRoute(
+    path: Routes.reading,
+    parentNavigatorKey: navigatorKey,
+    pageBuilder: (context, state) => CupertinoPage(
+      key: state.pageKey,
+      fullscreenDialog: true,
+      child: switch (state.extra) {
+        final CaptureReadingArgs args => ReadingScreen(
+          files: args.files,
+          kind: args.kind,
+          shared: shared,
+        ),
+        final List<PendingFile> files => ReadingScreen(
+          files: files,
+          shared: shared,
+        ),
+        _ => ReadingScreen(files: const [], shared: shared),
+      },
+    ),
+  ),
+  GoRoute(
+    path: Routes.details,
+    parentNavigatorKey: navigatorKey,
+    pageBuilder: (context, state) => CupertinoPage(
+      key: state.pageKey,
+      fullscreenDialog: true,
+      child: ItemFormScreen.create(
+        state.extra is AddDetailsArgs
+            ? state.extra! as AddDetailsArgs
+            : const AddDetailsArgs(),
+        shared: shared,
+      ),
+    ),
+  ),
+];

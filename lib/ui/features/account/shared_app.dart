@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../../data/services/capture_service.dart';
 import '../../../data/services/shared_account.dart';
+import '../../../data/services/text_recognizer.dart';
+import '../../../data/services/today.dart';
 import '../../../routing/shared_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/tokens.dart';
@@ -105,8 +108,13 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => ChangeNotifierProvider.value(
-    value: _session,
+  Widget build(BuildContext context) => MultiProvider(
+    providers: [
+      ChangeNotifierProvider.value(value: _session),
+      Provider<CaptureService>.value(value: _session.capture),
+      Provider<TextRecognizer>(create: (_) => PlatformTextRecognizer()),
+      Provider<Today>.value(value: _session.today),
+    ],
     child: MaterialApp.router(
       title: 'Paper Drawer',
       theme: pdTheme(),

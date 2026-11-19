@@ -96,16 +96,24 @@ class _FormCoverSectionState extends State<FormCoverSection> {
 
   Future<void> _chooseComponentWarranty() async {
     final initial = _form.componentWarrantyUntil;
-    final action = await showPdActions<_WindowAction>(
+    final action = await showPdActions<Object>(
       context,
       title: 'Component warranty',
       actions: [
+        if (_form.shared)
+          for (final years in const [1, 2, 3, 5, 10])
+            PdAction(label: monthsLabel(years * 12), value: years),
         const PdAction(label: 'Choose an end date', value: _WindowAction.exact),
         if (initial != null || _form.componentWarrantyMonths != null)
           const PdAction(label: 'Clear', value: _WindowAction.clear),
       ],
     );
     if (!mounted || action == null || _form.busy) return;
+    if (action is int) {
+      setState(() => _editedComponentWarranty = true);
+      _form.setComponentWarrantyMonths(action * 12);
+      return;
+    }
     if (action == _WindowAction.clear) {
       setState(() => _editedComponentWarranty = true);
       _form.setComponentWarrantyUntil(null);
@@ -149,7 +157,7 @@ class _FormCoverSectionState extends State<FormCoverSection> {
     final date = _form.coverUntil;
     final months = _form.warrantyMonths;
     final returnUntil = _form.returnUntil;
-    final settings = context.watch<SettingsRepository>();
+    final settings = _form.shared ? null : context.watch<SettingsRepository>();
     final componentUntil = _form.componentWarrantyUntil;
     final componentName = _form.componentWarrantyName;
     final componentMonths = _form.componentWarrantyMonths;
@@ -225,7 +233,11 @@ class _FormCoverSectionState extends State<FormCoverSection> {
               title: _form.coverLabel,
               value: date != null
                   ? longDate(date)
-                  : (months == null ? 'Optional' : monthsLabel(months)),
+                  : months != null
+                  ? monthsLabel(months)
+                  : _form.shared && !isBill
+                  ? 'Required'
+                  : 'Optional',
               tag:
                   !_editedCover &&
                       (_form.readFields.contains(ReadField.coverUntil) ||
@@ -265,18 +277,19 @@ class _FormCoverSectionState extends State<FormCoverSection> {
               if (componentUntil != null || componentMonths != null)
                 _ComponentWarrantyName(key: ObjectKey(_form), form: _form),
             ],
-            PdListRow(
-              title: 'Reminder',
-              trailing: Semantics(
-                label: 'Reminder for this item',
-                child: PdSwitch(
-                  key: const ValueKey('item-reminder'),
-                  value: _form.remind,
-                  onChanged: _form.busy ? null : _form.setRemind,
+            if (settings != null)
+              PdListRow(
+                title: 'Reminder',
+                trailing: Semantics(
+                  label: 'Reminder for this item',
+                  child: PdSwitch(
+                    key: const ValueKey('item-reminder'),
+                    value: _form.remind,
+                    onChanged: _form.busy ? null : _form.setRemind,
+                  ),
                 ),
               ),
-            ),
-            if (dates > 0)
+            if (settings != null && dates > 0)
               PdListRow(
                 title: '$dates ${dates == 1 ? 'date' : 'dates'} watched',
                 value: _form.remind
@@ -473,7 +486,7 @@ class FormOriginalsSection extends StatelessWidget {
   final ItemFormViewModel form;
 
   Future<void> _pick(BuildContext context) async {
-    final files = await AddFlow.chooseOriginals(context);
+    final files = await AddFlow.chooseOriginals(context, single: form.shared);
     if (context.mounted && files.isNotEmpty && !form.busy) form.addFiles(files);
   }
 
@@ -516,12 +529,13 @@ class FormOriginalsSection extends StatelessWidget {
               ? null
               : () => _remove(context, file.name, () => form.removeAdded(file)),
         ),
-      PdListRow(
-        key: const ValueKey('item-add-original'),
-        title: 'Add a photo or PDF',
-        actionIcon: LucideIcons.plus,
-        onTap: form.busy ? null : () => _pick(context),
-      ),
+      if (!form.shared || form.added.isEmpty)
+        PdListRow(
+          key: const ValueKey('item-add-original'),
+          title: 'Add a photo or PDF',
+          actionIcon: LucideIcons.plus,
+          onTap: form.busy ? null : () => _pick(context),
+        ),
     ],
   );
 }

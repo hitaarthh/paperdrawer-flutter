@@ -323,10 +323,10 @@ class _Capture implements CaptureService {
       const CaptureOriginal(size: 1024);
 
   @override
-  Future<List<PendingFile>> pickPhotos() async => files;
+  Future<List<PendingFile>> pickPhotos({bool single = false}) async => files;
 
   @override
-  Future<List<PendingFile>> pickFiles() async {
+  Future<List<PendingFile>> pickFiles({bool single = false}) async {
     filesOpened = true;
     return files;
   }

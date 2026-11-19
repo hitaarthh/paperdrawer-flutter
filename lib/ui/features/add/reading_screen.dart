@@ -68,6 +68,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   .expand((file) => pages[file.path] ?? const <String>[])
                   .toList(),
               today: today,
+              currency: widget.shared ? 'USD' : 'INR',
             ),
           );
         } catch (_) {
@@ -206,13 +207,12 @@ class _ReadingScreenState extends State<ReadingScreen> {
           reading?.startsOn == null ? null : monoDate(reading!.startsOn!),
         ),
         _ReadingRow('Product', reading?.name),
-        if (!widget.shared)
-          _ReadingRow(
-            'Total',
-            reading?.amountMinor == null
-                ? null
-                : money(reading!.amountMinor!, 'INR'),
-          ),
+        _ReadingRow(
+          'Total',
+          reading?.amountMinor == null
+              ? null
+              : money(reading!.amountMinor!, widget.shared ? 'USD' : 'INR'),
+        ),
         _ReadingRow(
           'Warranty',
           reading?.warrantyMonths == null

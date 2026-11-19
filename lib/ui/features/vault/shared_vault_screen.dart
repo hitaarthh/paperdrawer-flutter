@@ -13,6 +13,7 @@ import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/item_card.dart';
 import '../account/shared_session.dart';
+import '../add/add_sheet.dart';
 import '../add/shared_add_flow.dart';
 import 'vault_empty.dart';
 import 'vault_header.dart';
@@ -98,13 +99,18 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         _inset(
                           VaultEmpty(
                             shared: true,
-                            onScan: () =>
-                                openSharedAdd(context, session, ItemKind.bill),
+                            onScan: () => openSharedAdd(
+                              context,
+                              vault,
+                              const AddSheetChoice(
+                                AddSheetAction.camera,
+                                ItemKind.bill,
+                              ),
+                            ),
                             onStart: (kind) => openSharedAdd(
                               context,
-                              session,
-                              kind,
-                              manual: true,
+                              vault,
+                              AddSheetChoice(AddSheetAction.manual, kind),
                             ),
                           ),
                         ),

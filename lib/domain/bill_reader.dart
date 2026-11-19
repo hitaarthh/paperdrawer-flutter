@@ -77,6 +77,10 @@ final _rupees = RegExp(
   r'(?:₹|\bRs\.?|\bINR)\s*([\d,]+(?:\.\d{1,2})?)',
   caseSensitive: false,
 );
+final _dollars = RegExp(
+  r'(?:\$|\bUSD)\s*([\d,]+(?:\.\d{1,2})?)',
+  caseSensitive: false,
+);
 final _warranty = RegExp(
   r'(?:\bwarranty\s*[:\-]\s*(\d{1,2})\s*(years?|yrs?|months?|mos?)\b)|(?:\b(\d{1,2})\s*[- ]?\s*(years?|yrs?|months?|mos?)\s+warranty\b)',
   caseSensitive: false,
@@ -148,7 +152,11 @@ const _months = [
 
 /// Suggests facts from clearly labelled receipt lines. The form keeps every
 /// suggestion editable and leaves ambiguous values blank.
-ScanReading readBill(List<String> lines, {required DateTime today}) {
+ScanReading readBill(
+  List<String> lines, {
+  required DateTime today,
+  String currency = 'INR',
+}) {
   final clean = lines
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
@@ -186,7 +194,8 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
     }
 
     if (_totalLabel.hasMatch(line)) {
-      for (final match in _rupees.allMatches(line)) {
+      final pattern = currency == 'USD' ? _dollars : _rupees;
+      for (final match in pattern.allMatches(line)) {
         final raw = match.group(1)!;
         if (raw.replaceAll(',', '').split('.').first.length > 10) continue;
         final candidate = parseMoney(raw);
@@ -246,7 +255,8 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
           RegExp(r'[a-z]{2}', caseSensitive: false).hasMatch(line) &&
           !_nonSource.hasMatch(line) &&
           !_totalLabel.hasMatch(line) &&
-          !_rupees.hasMatch(line);
+          !_rupees.hasMatch(line) &&
+          !_dollars.hasMatch(line);
     }).firstOrNull;
   }
 

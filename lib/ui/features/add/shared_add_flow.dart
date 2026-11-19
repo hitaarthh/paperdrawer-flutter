@@ -6,10 +6,7 @@ import '../../core/widgets/snackbar.dart';
 import 'add_flow.dart';
 import 'add_sheet.dart';
 
-Future<void> showSharedAdd(
-  BuildContext context,
-  SharedVault vault,
-) async {
+Future<void> showSharedAdd(BuildContext context, SharedVault vault) async {
   if (!_hasRoom(context, vault)) return;
   final choice = await showAddSheet(
     context,

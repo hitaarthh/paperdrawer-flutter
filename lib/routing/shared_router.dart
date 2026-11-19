@@ -12,6 +12,7 @@ import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/intro/intro_flow.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
+import 'router.dart';
 
 GoRouter buildSharedRouter(SharedSession session) => GoRouter(
   initialLocation: '/home',
@@ -61,7 +62,7 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
               ),
               onScan: vault == null
                   ? null
-                  : () => showSharedAdd(context, session, vault),
+                  : () => showSharedAdd(context, vault),
             ),
           );
         },
@@ -131,5 +132,6 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
         ),
       ],
     ),
+    ...buildAddRoutes(shared: true),
   ],
 );

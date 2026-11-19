@@ -59,7 +59,11 @@ class SharedSession extends ChangeNotifier {
   bool savingLedger = false;
   bool _savingItem = false;
   bool get claimBusy =>
-      loading || savingReminders || settlingClaim || savingLedger || _savingItem;
+      loading ||
+      savingReminders ||
+      settlingClaim ||
+      savingLedger ||
+      _savingItem;
   bool _disposed = false;
 
   Future<void> refresh() async {
@@ -180,7 +184,9 @@ class SharedSession extends ChangeNotifier {
       }
       final snapshot = vault;
       if (snapshot == null || claimBusy) {
-        throw const FormatException('The vault is busy. Try again in a moment.');
+        throw const FormatException(
+          'The vault is busy. Try again in a moment.',
+        );
       }
       _savingItem = true;
       notifyListeners();

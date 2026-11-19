@@ -32,21 +32,21 @@ class ItemFormViewModel extends ChangeNotifier {
           : null,
     );
     _remind = saved?.remind ?? true;
-    _added.addAll(initial?.files ?? const []);
-    final fields = {...?reading?.read};
-    if (shared) fields.remove(ReadField.amount);
-    readFields = Set.unmodifiable(fields);
+    final files = initial?.files ?? const <PendingFile>[];
+    _added.addAll(shared ? files.take(1) : files);
+    readFields = Set.unmodifiable(reading?.read ?? const <ReadField>{});
     currency = shared ? 'USD' : saved?.currency ?? 'INR';
     initialName = saved?.name ?? reading?.name ?? '';
     initialSource = saved?.source ?? reading?.source ?? '';
     initialReference = saved?.reference ?? reading?.reference ?? '';
     initialSerial = saved?.serialNumber ?? reading?.serialNumber ?? '';
     initialNotes = saved?.notes ?? '';
-    final amount = shared ? null : saved?.amountMinor ?? reading?.amountMinor;
+    final amount = saved?.amountMinor ?? reading?.amountMinor;
     initialAmount = amount == null ? '' : editableMoney(amount);
   }
 
-  final Future<Item> Function(ItemDraft, List<PendingFile>, Set<String>) _persist;
+  final Future<Item> Function(ItemDraft, List<PendingFile>, Set<String>)
+  _persist;
   final Item? original;
   final bool shared;
 
@@ -257,11 +257,9 @@ class ItemFormViewModel extends ChangeNotifier {
     required String notes,
   }) async {
     if (_busy) return null;
-    _error = validateName(name) ??
-        validateAmount(amount) ??
-        _validateDates();
-    if (shared && RegExp(r'₹|^\s*(?:rs\.?|inr)', caseSensitive: false)
-        .hasMatch(amount)) {
+    _error = validateName(name) ?? validateAmount(amount) ?? _validateDates();
+    if (shared &&
+        RegExp(r'₹|^\s*(?:rs\.?|inr)', caseSensitive: false).hasMatch(amount)) {
       _error = 'Enter an amount in US dollars.';
     }
     if (_error != null) {

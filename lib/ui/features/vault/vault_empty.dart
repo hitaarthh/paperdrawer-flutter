@@ -117,7 +117,7 @@ class _WelcomeReceipt extends StatelessWidget {
           ),
           Text(
             shared
-                ? 'Take a photo or upload a bill on Paper Drawer web. After you save it, it will be here on your phone.'
+                ? 'Take a photo of the bill, then check the details and save it to your vault.'
                 : 'Snap its bill. We’ll read it, set the return and warranty '
                       'dates, and remind you before they pass. Takes under a minute.',
             style: PdType.callout.copyWith(color: Pd.ink2),
@@ -126,7 +126,7 @@ class _WelcomeReceipt extends StatelessWidget {
             padding: const EdgeInsets.only(top: Pd.s1),
             child: _InkButton(
               key: const ValueKey('scan-first-bill'),
-              label: shared ? 'Add your first bill' : 'Scan your first bill',
+              label: 'Scan your first bill',
               onPressed: onScan,
             ),
           ),

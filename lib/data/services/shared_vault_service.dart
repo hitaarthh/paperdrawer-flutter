@@ -27,12 +27,7 @@ class SharedVaultService {
 
   Future<SharedVault> fetch(String userId) async {
     final (bills, documents, claims, profile) = await (
-      _page(
-        'bills',
-        _billFields,
-        userId,
-        'purchased_on',
-      ),
+      _page('bills', _billFields, userId, 'purchased_on'),
       _page('documents', _documentFields, userId, 'end_on'),
       _page('claims', _claimFields, userId, 'opened_on'),
       _fetchProfile(userId),
@@ -56,7 +51,8 @@ class SharedVaultService {
     final bill = draft.kind == ItemKind.bill;
     // Retry with the form's original ID. Check both tables because the item
     // type may have changed since a previous attempt lost its response.
-    final saved = await _fetchItem(userId, id, bill: bill) ??
+    final saved =
+        await _fetchItem(userId, id, bill: bill) ??
         await _fetchItem(userId, id, bill: !bill);
     if (saved != null) return saved;
     await SharedItemWrite(_client).save(userId, id, draft, original: original);

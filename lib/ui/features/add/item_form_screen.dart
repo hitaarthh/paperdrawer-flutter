@@ -65,7 +65,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         : null;
     final form = ItemFormViewModel(
       (draft, files, removed) {
-        if (createShared != null) return createShared(draft, files.singleOrNull);
+        if (createShared != null) {
+          return createShared(draft, files.singleOrNull);
+        }
         if (id == null) return _items.create(draft, files: files);
         return _items.update(
           id,
@@ -256,152 +258,152 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         final initial = widget.initial?.files.firstOrNull;
         final original = form.added.contains(initial) ? initial : null;
         return PopScope(
-        canPop: !form.busy,
-        child: PdPushedScaffold(
-          backLabel: 'Cancel',
-          onBack: _close,
-          kicker: original == null
-              ? null
-              : 'NEW ${form.kind.chip} · ${form.reviewedFieldCount} '
-                    '${form.reviewedFieldCount == 1 ? 'FIELD' : 'FIELDS'} READ',
-          title: widget.id != null
-              ? 'Edit details'
-              : original == null
-              ? 'Check the details'
-              : 'Check what we read',
-          bottom: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (form.error case final error?)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Pd.s2),
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      error,
-                      style: PdType.footnote.copyWith(color: Pd.signal),
+          canPop: !form.busy,
+          child: PdPushedScaffold(
+            backLabel: 'Cancel',
+            onBack: _close,
+            kicker: original == null
+                ? null
+                : 'NEW ${form.kind.chip} · ${form.reviewedFieldCount} '
+                      '${form.reviewedFieldCount == 1 ? 'FIELD' : 'FIELDS'} READ',
+            title: widget.id != null
+                ? 'Edit details'
+                : original == null
+                ? 'Check the details'
+                : 'Check what we read',
+            bottom: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (form.error case final error?)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: Pd.s2),
+                    child: Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        error,
+                        style: PdType.footnote.copyWith(color: Pd.signal),
+                      ),
                     ),
                   ),
+                PdButton.primary(
+                  key: const ValueKey('save-to-drawer'),
+                  label: widget.id == null ? 'Save to vault' : 'Save changes',
+                  expand: true,
+                  busy: form.busy,
+                  onPressed: form.busy ? null : () => _save(form),
                 ),
-              PdButton.primary(
-                key: const ValueKey('save-to-drawer'),
-                label: widget.id == null ? 'Save to vault' : 'Save changes',
-                expand: true,
-                busy: form.busy,
-                onPressed: form.busy ? null : () => _save(form),
+              ],
+            ),
+            children: [
+              if (original != null) ...[
+                FormReviewOriginal(
+                  key: ValueKey(original.path),
+                  original: original,
+                  onRetake: form.busy ? null : () => _retake(form),
+                ),
+                const SizedBox(height: Pd.s4),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Pd.s5),
+                  child: Text(
+                    'Check the fields marked Read from bill. Add details we couldn’t read.',
+                    style: PdType.callout.copyWith(color: Pd.textMuted),
+                  ),
+                ),
+              ],
+              PdTextField(
+                fieldKey: const ValueKey('item-name'),
+                label: form.kind.nameLabel,
+                hint: form.kind.nameHint,
+                controller: _name,
+                validator: ItemFormViewModel.validateName,
+                readFromBill: _read(form, ReadField.name),
+                enabled: !form.busy,
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => _edit(ReadField.name),
+              ),
+              const SizedBox(height: Pd.s4),
+              PdTextField(
+                fieldKey: const ValueKey('item-source'),
+                label: form.kind.sourceLabel,
+                hint: form.kind.sourceHint,
+                controller: _source,
+                readFromBill: _read(form, ReadField.source),
+                enabled: !form.busy,
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => _edit(ReadField.source),
+              ),
+              const SizedBox(height: Pd.s4),
+              PdTextField(
+                fieldKey: const ValueKey('item-amount'),
+                label: form.kind.amountLabel,
+                hint: 'e.g. 2,999.50',
+                controller: _amount,
+                prefixText: form.currencyPrefix,
+                validator: ItemFormViewModel.validateAmount,
+                readFromBill: _read(form, ReadField.amount),
+                enabled: !form.busy,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: (_) => _edit(ReadField.amount),
+              ),
+              const SizedBox(height: Pd.s4),
+              PdFieldButton(
+                key: const ValueKey('item-start-date'),
+                label: form.startsLabel,
+                value: form.startsOn == null ? '' : longDate(form.startsOn!),
+                hint: form.shared && form.kind == ItemKind.bill
+                    ? 'Required'
+                    : 'Choose a date',
+                readFromBill: _read(form, ReadField.startsOn),
+                onTap: () {
+                  if (!form.busy) _chooseStart(form);
+                },
+              ),
+              const SizedBox(height: Pd.s4),
+              PdTextField(
+                fieldKey: const ValueKey('item-reference'),
+                label: form.kind.referenceLabel,
+                controller: _reference,
+                textCapitalization: TextCapitalization.characters,
+                readFromBill: _read(form, ReadField.reference),
+                enabled: !form.busy,
+                onChanged: (_) => _edit(ReadField.reference),
+              ),
+              if (form.kind == ItemKind.bill) ...[
+                const SizedBox(height: Pd.s4),
+                PdTextField(
+                  fieldKey: const ValueKey('item-serial-number'),
+                  label: 'Serial no.',
+                  hint: 'Optional',
+                  help:
+                      original != null &&
+                          !form.readFields.contains(ReadField.serialNumber)
+                      ? 'Couldn’t read the serial number from the original.'
+                      : null,
+                  controller: _serial,
+                  textCapitalization: TextCapitalization.characters,
+                  readFromBill: _read(form, ReadField.serialNumber),
+                  enabled: !form.busy,
+                  onChanged: (_) => _edit(ReadField.serialNumber),
+                ),
+              ],
+              const SizedBox(height: Pd.s6),
+              FormCoverSection(form: form),
+              const SizedBox(height: Pd.s6),
+              FormOriginalsSection(form: form),
+              const SizedBox(height: Pd.s6),
+              PdTextField(
+                fieldKey: const ValueKey('item-notes'),
+                label: 'Notes',
+                hint: 'Anything you want to remember',
+                controller: _notes,
+                maxLines: 3,
+                enabled: !form.busy,
               ),
             ],
           ),
-          children: [
-            if (original != null) ...[
-              FormReviewOriginal(
-                key: ValueKey(original.path),
-                original: original,
-                onRetake: form.busy ? null : () => _retake(form),
-              ),
-              const SizedBox(height: Pd.s4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: Pd.s5),
-                child: Text(
-                  'Check the fields marked Read from bill. Add details we couldn’t read.',
-                  style: PdType.callout.copyWith(color: Pd.textMuted),
-                ),
-              ),
-            ],
-            PdTextField(
-              fieldKey: const ValueKey('item-name'),
-              label: form.kind.nameLabel,
-              hint: form.kind.nameHint,
-              controller: _name,
-              validator: ItemFormViewModel.validateName,
-              readFromBill: _read(form, ReadField.name),
-              enabled: !form.busy,
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => _edit(ReadField.name),
-            ),
-            const SizedBox(height: Pd.s4),
-            PdTextField(
-              fieldKey: const ValueKey('item-source'),
-              label: form.kind.sourceLabel,
-              hint: form.kind.sourceHint,
-              controller: _source,
-              readFromBill: _read(form, ReadField.source),
-              enabled: !form.busy,
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => _edit(ReadField.source),
-            ),
-            const SizedBox(height: Pd.s4),
-            PdTextField(
-              fieldKey: const ValueKey('item-amount'),
-              label: form.kind.amountLabel,
-              hint: 'e.g. 2,999.50',
-              controller: _amount,
-              prefixText: form.currencyPrefix,
-              validator: ItemFormViewModel.validateAmount,
-              readFromBill: _read(form, ReadField.amount),
-              enabled: !form.busy,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => _edit(ReadField.amount),
-            ),
-            const SizedBox(height: Pd.s4),
-            PdFieldButton(
-              key: const ValueKey('item-start-date'),
-              label: form.startsLabel,
-              value: form.startsOn == null ? '' : longDate(form.startsOn!),
-              hint: form.shared && form.kind == ItemKind.bill
-                  ? 'Required'
-                  : 'Choose a date',
-              readFromBill: _read(form, ReadField.startsOn),
-              onTap: () {
-                if (!form.busy) _chooseStart(form);
-              },
-            ),
-            const SizedBox(height: Pd.s4),
-            PdTextField(
-              fieldKey: const ValueKey('item-reference'),
-              label: form.kind.referenceLabel,
-              controller: _reference,
-              textCapitalization: TextCapitalization.characters,
-              readFromBill: _read(form, ReadField.reference),
-              enabled: !form.busy,
-              onChanged: (_) => _edit(ReadField.reference),
-            ),
-            if (form.kind == ItemKind.bill) ...[
-              const SizedBox(height: Pd.s4),
-              PdTextField(
-                fieldKey: const ValueKey('item-serial-number'),
-                label: 'Serial no.',
-                hint: 'Optional',
-                help:
-                    original != null &&
-                        !form.readFields.contains(ReadField.serialNumber)
-                    ? 'Couldn’t read the serial number from the original.'
-                    : null,
-                controller: _serial,
-                textCapitalization: TextCapitalization.characters,
-                readFromBill: _read(form, ReadField.serialNumber),
-                enabled: !form.busy,
-                onChanged: (_) => _edit(ReadField.serialNumber),
-              ),
-            ],
-            const SizedBox(height: Pd.s6),
-            FormCoverSection(form: form),
-            const SizedBox(height: Pd.s6),
-            FormOriginalsSection(form: form),
-            const SizedBox(height: Pd.s6),
-            PdTextField(
-              fieldKey: const ValueKey('item-notes'),
-              label: 'Notes',
-              hint: 'Anything you want to remember',
-              controller: _notes,
-              maxLines: 3,
-              enabled: !form.busy,
-            ),
-          ],
-        ),
         );
       },
     );

@@ -77,14 +77,12 @@ class SharedItemWrite {
         (draft.currency != 'USD' || amount < 0 || amount > 999999999999)) {
       throw const FormatException('Enter an amount in US dollars.');
     }
-    final common = {
-      'p_id': id,
-      'p_name': name,
-      'p_notes': draft.notes,
-    };
+    final common = {'p_id': id, 'p_name': name, 'p_notes': draft.notes};
     if (!bill) {
       if (end == null) {
-        throw const FormatException('Choose when this document ends or renews.');
+        throw const FormatException(
+          'Choose when this document ends or renews.',
+        );
       }
       return {
         ...common,
@@ -170,9 +168,13 @@ class SharedItemWrite {
     };
     final file = File(original.path);
     final size = await file.exists() ? await file.length() : 0;
-    if (mime == null || name.runes.length > 255 ||
-        size == 0 || size > maxAttachmentBytes) {
-      throw const FormatException('Choose a readable photo or PDF up to 20 MB.');
+    if (mime == null ||
+        name.runes.length > 255 ||
+        size == 0 ||
+        size > maxAttachmentBytes) {
+      throw const FormatException(
+        'Choose a readable photo or PDF up to 20 MB.',
+      );
     }
     final fileId = const Uuid().v5(Namespace.url.value, '$id:${original.path}');
     final path = '$owner/mobile-items/$fileId$extension';
