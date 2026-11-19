@@ -94,54 +94,60 @@ class PdListRow extends StatelessWidget {
     final row = Container(
       constraints: const BoxConstraints(minHeight: Pd.s12 + Pd.s2),
       padding: const EdgeInsets.symmetric(horizontal: Pd.s4, vertical: Pd.s2),
-      child: Row(
-        spacing: Pd.s2,
-        children: [
-          if (leadingIcon case final icon?)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: Pd.s1),
-              child: Icon(
-                icon,
-                size: Pd.iconMd,
-                color: destructive ? Pd.signal : Pd.text2,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          spacing: Pd.s2,
+          children: [
+            if (leadingIcon case final icon?)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: Pd.s1),
+                child: Icon(
+                  icon,
+                  size: Pd.iconMd,
+                  color: destructive ? Pd.signal : Pd.text2,
+                ),
+              ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                spacing: Pd.s1,
+                children: [
+                  if (tag == null)
+                    text
+                  else
+                    Wrap(
+                      spacing: Pd.s2,
+                      runSpacing: Pd.s1,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        text,
+                        Text(
+                          tag!.toUpperCase(),
+                          style: PdType.label.copyWith(color: Pd.lime),
+                        ),
+                      ],
+                    ),
+                  if (stackValue) valueLabel!,
+                ],
               ),
             ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              spacing: Pd.s1,
-              children: [
-                if (tag == null)
-                  text
-                else
-                  Wrap(
-                    spacing: Pd.s2,
-                    runSpacing: Pd.s1,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      text,
-                      Text(
-                        tag!.toUpperCase(),
-                        style: PdType.label.copyWith(color: Pd.lime),
-                      ),
-                    ],
-                  ),
-                if (stackValue) valueLabel!,
-              ],
-            ),
-          ),
-          if (valueLabel != null && !stackValue) Flexible(child: valueLabel),
-          ?trailing,
-          if (actionIcon case final icon?)
-            Icon(icon, size: Pd.iconSm, color: Pd.textSubtle),
-          if (chevron)
-            const Icon(
-              LucideIcons.chevronRight,
-              size: Pd.iconSm,
-              color: Pd.textSubtle,
-            ),
-        ],
+            if (valueLabel != null && !stackValue)
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: constraints.maxWidth / 3),
+                child: valueLabel,
+              ),
+            ?trailing,
+            if (actionIcon case final icon?)
+              Icon(icon, size: Pd.iconSm, color: Pd.textSubtle),
+            if (chevron)
+              const Icon(
+                LucideIcons.chevronRight,
+                size: Pd.iconSm,
+                color: Pd.textSubtle,
+              ),
+          ],
+        ),
       ),
     );
     final tap = onTap;
