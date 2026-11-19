@@ -337,7 +337,7 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_error case final error?)
       Text(error, style: PdType.callout.copyWith(color: Pd.signal)),
     if (_resent)
-      const Text(
+      Text(
         'A new confirmation link was requested.',
         style: PdType.callout,
       ),

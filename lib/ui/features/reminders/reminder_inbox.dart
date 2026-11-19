@@ -128,8 +128,9 @@ class ReminderInbox extends StatelessWidget {
                 chevron: true,
                 onTap: () async {
                   try {
-                    if (!await inbox.open(notification) || !context.mounted)
+                    if (!await inbox.open(notification) || !context.mounted) {
                       return;
+                    }
                     context.push(Routes.item(notification.itemId));
                   } catch (_) {
                     if (!context.mounted) return;

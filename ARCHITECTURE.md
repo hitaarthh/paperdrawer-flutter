@@ -13,8 +13,9 @@ Region: India first (₹, Indian grouping, 1915 / IRDAI ladders). All money is m
 When `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are configured, `main.dart`
 opens `SharedBootstrap`. `SharedAccount` uses the same Supabase Auth backend as
 the web app. iOS session data is stored in the app's Keychain. Signup verification
-uses the existing web callback and password reset uses the web sign-in flow.
-`SharedSession` resets the in-memory vault on account changes.
+uses the existing web callback. The confirmation link can be requested again
+in the app, and password reset uses the web sign-in flow.
+`SharedSession` resets the in-memory vault and inbox on account changes.
 
 `SharedVaultService` reads bills, bill parts, documents, originals and account
 settings with the current user's session and owner RLS. The shared router gates
@@ -24,8 +25,17 @@ Add opens the manual Files form. Save writes through the existing `save_bill` or
 Bills require a purchase date and documents require an end date. The form uses
 USD to match the shared drawer. Each form keeps its item ID on retry.
 A confirmed save adds the item to the shared snapshot and opens its detail.
-Shared item edits open the web form. Account settings save email reminder
-timing (30, 7 or 2 days) and delivery preferences to the owner's `profiles` row.
+Shared item edits open the web form. Bill edits compare the revision loaded
+by the form inside the save transaction.
+
+Both clients subscribe to the account’s private Supabase Realtime channel.
+Events contain resource names and trigger authenticated reads. Flutter refreshes
+on resume and rejoin and queues invalidations that arrive during a vault write.
+`SharedInboxRepository` holds the account’s in-app reminders and read state. The
+server derives due reminders from drawer dates and the account timezone. Bill
+lead time comes from `profiles` (30, 7 or 2 days), and document lead time comes
+from the document. Opening a reminder records its read state in Supabase and
+opens its item. The foreground inbox refreshes once a minute for date changes.
 The shared build clears pending claim notifications left by earlier versions at launch.
 Shared vault exports and account deletion open the existing web flows. Originals are downloaded
 into the temporary directory as needed. The shared build does not open the
@@ -150,11 +160,11 @@ Claim photos accept the same image types and live in `root/claim-photos/`.
 
 ## Routes (`routing/router.dart`)
 
-The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders for on-device items. The signed-in build explains how to manage account email reminders. Item details and Settings subpages cover the dock.
+The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders for on-device items. In the signed-in build, this is the account inbox with a shared unread indicator. Item details and Settings subpages cover the dock.
 
 `PdPage` uses live 250 ms Cupertino transitions. The pushed page moves over the stationary page below it. Back navigation reveals the existing list at its previous scroll position.
 
-Add opens the manual, Files-first form at `/add`. Local `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. The signed-in build uses its existing server contract, account email reminders, and web editor. Settings opens with an Account card and navigation rows for Plan, Reminders & notifications, Your data, and Legal. Account, Plan, and Your data have their own Settings routes at `/settings/account`, `/settings/plan`, and `/settings/data`. Notices and legal documents are available under `/settings/notifications` and `/settings/legal`. Local Archive is linked from Your data. Legal opens the canonical `www.paperdrawer.app` pages.
+Add opens the manual, Files-first form at `/add`. Local `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. The signed-in build uses the shared server contract, in-app reminders, and web editor. Settings opens with an Account card and navigation rows for Plan, Reminders & notifications, Your data, and Legal. Account, Plan, and Your data have their own Settings routes at `/settings/account`, `/settings/plan`, and `/settings/data`. Notices and legal documents are available under `/settings/notifications` and `/settings/legal`. Local Archive is linked from Your data. Legal opens the canonical `www.paperdrawer.app` pages.
 
 Old claim links redirect to Home in both builds. Phase 1 leaves saved legacy claim records intact and retains them in complete backups. The older camera, reading, and review screens remain reachable at `/add/camera`, `/add/reading`, and `/add/details`. `CaptureReadingArgs` carries the originals and chosen kind. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill. Both routers use `buildAddRoutes`.
 
