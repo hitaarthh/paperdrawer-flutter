@@ -125,9 +125,6 @@ class _ManualItemFormState extends State<ManualItemForm> {
     );
     if (!mounted || _blocked || kind == null || kind == form.kind) return;
     form.setKind(kind);
-    if (!widget.shared && kind == ItemKind.agreement) {
-      form.setCoverageRenews(false);
-    }
   }
 
   Future<void> _chooseMeaning(ItemFormViewModel form) async {

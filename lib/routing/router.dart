@@ -13,6 +13,7 @@ import '../ui/features/claims/start_claim_screen.dart';
 import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/item/item_detail_screen.dart';
 import '../ui/features/reminders/reminders_screen.dart';
+import '../ui/features/reminders/reminder_inbox.dart';
 import '../ui/features/settings/archive_screen.dart';
 import '../ui/features/settings/settings_screen.dart';
 import '../ui/features/shell/app_shell.dart';
@@ -30,6 +31,7 @@ abstract final class Routes {
   static const reading = '/add/reading';
   static const details = '/add/details';
   static const reminders = '/reminders';
+  static const notifications = '/notifications';
 
   static String item(String id) => '/vault/item/$id';
   static String homeItem(String id) => '/home/item/$id';
@@ -58,6 +60,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
               routes: [
                 GoRoute(
                   path: 'item/:id',
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) => ItemDetailScreen(
                     id: state.pathParameters['id']!,
                     fromHome: true,
@@ -97,6 +100,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
               routes: [
                 GoRoute(
                   path: 'item/:id',
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) =>
                       ItemDetailScreen(id: state.pathParameters['id']!),
                   routes: [
@@ -126,6 +130,13 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: Routes.notifications,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => ReminderInbox(
+        fromDrawer: state.extra == true,
+      ),
     ),
     ...buildAddRoutes(navigatorKey: rootNavigatorKey),
     // The one-time "Turn on reminders" offer, pushed after a first save.

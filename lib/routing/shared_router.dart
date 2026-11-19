@@ -10,11 +10,15 @@ import '../ui/features/add/shared_add_flow.dart';
 import '../ui/features/claims/shared_claim_ledger_screen.dart';
 import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/intro/intro_flow.dart';
+import '../ui/features/reminders/reminder_inbox.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
 import 'router.dart';
 
-GoRouter buildSharedRouter(SharedSession session) => GoRouter(
+GoRouter buildSharedRouter(SharedSession session) {
+  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shared root');
+  return GoRouter(
+  navigatorKey: navigatorKey,
   initialLocation: '/home',
   refreshListenable: session,
   redirect: (context, state) {
@@ -77,6 +81,7 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
               routes: [
                 GoRoute(
                   path: 'item/:id',
+                  parentNavigatorKey: navigatorKey,
                   builder: (context, state) => SharedItemScreen(
                     state.pathParameters['id']!,
                     fromHome: true,
@@ -115,6 +120,7 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
               routes: [
                 GoRoute(
                   path: 'item/:id',
+                  parentNavigatorKey: navigatorKey,
                   builder: (context, state) =>
                       SharedItemScreen(state.pathParameters['id']!),
                 ),
@@ -132,6 +138,15 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
         ),
       ],
     ),
-    ...buildAddRoutes(shared: true),
+    GoRoute(
+      path: Routes.notifications,
+      parentNavigatorKey: navigatorKey,
+      builder: (context, state) => ReminderInbox(
+        fromDrawer: state.extra == true,
+        shared: true,
+      ),
+    ),
+    ...buildAddRoutes(navigatorKey: navigatorKey, shared: true),
   ],
 );
+}

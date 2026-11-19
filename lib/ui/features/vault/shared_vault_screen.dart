@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../domain/item_status.dart';
-import '../../../domain/models/item.dart';
 import '../../../domain/models/shared_vault.dart';
 import '../../../routing/router.dart' show Routes;
 import '../../core/theme/tokens.dart';
@@ -13,8 +12,8 @@ import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/item_card.dart';
 import '../account/shared_session.dart';
-import '../add/add_sheet.dart';
 import '../add/shared_add_flow.dart';
+import '../reminders/reminder_inbox.dart';
 import 'vault_empty.dart';
 import 'vault_header.dart';
 
@@ -70,7 +69,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: Column(
             children: [
-              const PdBrandBar(),
+              const PdBrandBar(trailing: DrawerNotificationButton(fromDrawer: true)),
               Expanded(
                 child: RefreshIndicator.adaptive(
                   onRefresh: session.refresh,
@@ -97,22 +96,7 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         ),
                       if (vault != null && summaries.isEmpty)
                         _inset(
-                          VaultEmpty(
-                            shared: true,
-                            onScan: () => openSharedAdd(
-                              context,
-                              vault,
-                              const AddSheetChoice(
-                                AddSheetAction.camera,
-                                ItemKind.bill,
-                              ),
-                            ),
-                            onStart: (kind) => openSharedAdd(
-                              context,
-                              vault,
-                              AddSheetChoice(AddSheetAction.manual, kind),
-                            ),
-                          ),
+                          VaultEmpty(onAdd: () => showSharedManualAdd(context, vault)),
                         ),
                       if (vault != null && summaries.isNotEmpty)
                         ..._full(summaries),

@@ -16,6 +16,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/vault_ticket.dart';
 import '../account/shared_session.dart';
+import '../reminders/reminder_inbox.dart';
 import '../shell/tab_reselect.dart';
 import 'home_view_data.dart';
 
@@ -86,7 +87,7 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: Column(
             children: [
-              PdBrandBar(onMarkTap: () => context.go(Routes.vault)),
+              PdBrandBar(onMarkTap: () => context.go(Routes.vault), trailing: const DrawerNotificationButton()),
               Expanded(
                 child: ListView(
                   key: const ValueKey('coming-up-list'),
@@ -102,8 +103,7 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                   ),
                   children: [
                     Text(
-                      '${_weekdayDate(today)} · ${data.dueCount} DUE SOON · '
-                      '${data.openClaims.length} OPEN ${data.openClaims.length == 1 ? 'CLAIM' : 'CLAIMS'}',
+                      '${_weekdayDate(today)} · ${data.dueCount} DUE SOON',
                       style: PdType.label.copyWith(color: Pd.textMuted),
                     ),
                     const SizedBox(height: Pd.s2),
@@ -166,17 +166,11 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                                 context.go('${Routes.vault}?filter=due'),
                           ),
                         ),
-                      const SizedBox(height: Pd.s6),
-                      _SectionLabel(
-                        'Open claims · Your ledgers',
-                        count: data.openClaims.length,
-                      ),
-                      const SizedBox(height: Pd.s3),
-                      if (data.openClaims.isEmpty)
-                        const DashedTile(
-                          title: 'No open claims',
-                          body: 'You can open a claim from an item in your vault.',
-                        ),
+                      if (data.openClaims.isNotEmpty) ...[
+                        const SizedBox(height: Pd.s6),
+                        _SectionLabel('Open claims', count: data.openClaims.length),
+                        const SizedBox(height: Pd.s3),
+                      ],
                       for (final claim in data.openClaims)
                         Padding(
                           padding: const EdgeInsets.only(bottom: Pd.s3),

@@ -6,7 +6,6 @@ import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/item_status.dart';
-import '../../../domain/models/item.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -14,9 +13,8 @@ import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/item_card.dart';
-import '../../core/widgets/limit_notice.dart';
-import '../../core/widgets/sheets.dart';
 import '../add/add_flow.dart';
+import '../reminders/reminder_inbox.dart';
 import '../shell/tab_reselect.dart';
 import 'vault_empty.dart';
 import 'vault_header.dart';
@@ -153,7 +151,7 @@ class _VaultViewState extends State<_VaultView> {
                       ? const Border(bottom: BorderSide(color: Pd.hairline))
                       : null,
                 ),
-                child: PdBrandBar(onMarkTap: _toTop),
+                child: PdBrandBar(onMarkTap: _toTop, trailing: const DrawerNotificationButton(fromDrawer: true)),
               ),
               Expanded(
                 child: NotificationListener<ScrollNotification>(
@@ -191,12 +189,7 @@ class _VaultViewState extends State<_VaultView> {
                         ),
                       if (empty)
                         _inset(
-                          VaultEmpty(
-                            onScan: () =>
-                                AddFlow.camera(context, kind: ItemKind.bill),
-                            onStart: (kind) =>
-                                AddFlow.start(context, kind: kind),
-                          ),
+                          VaultEmpty(onAdd: () => AddFlow.manual(context)),
                           top: Pd.s6,
                         )
                       else
@@ -233,13 +226,12 @@ class _VaultViewState extends State<_VaultView> {
       ),
       if (model.atLimit)
         _inset(
-          LimitNotice(
-            count: model.activeCount,
-            onReview: _reviewOld,
-            onWaitlist: () => showPdSheet<void>(
-              context,
-              title: 'Paper Drawer Pro',
-              subtitle: 'The Pro waitlist is opening soon.',
+          DashedTile(
+            title: 'Drawer is full',
+            body: 'Archive an older file to make room.',
+            action: PdButton.text(
+              label: 'Review older files',
+              onPressed: _reviewOld,
             ),
           ),
           top: Pd.s4,
@@ -280,11 +272,6 @@ class _VaultViewState extends State<_VaultView> {
               );
             },
           ),
-        ),
-      if (model.activeCount >= baseItemWarnAt && !model.atLimit)
-        _inset(
-          LimitFootnote(left: baseItemLimit - model.activeCount),
-          top: Pd.s2,
         ),
     ];
   }
