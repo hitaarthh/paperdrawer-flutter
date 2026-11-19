@@ -138,7 +138,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
             }
           : null,
     );
-    _close();
+    if (creating) {
+      context.go(Routes.vaultWithRecent(saved.id));
+    } else {
+      _close();
+    }
   }
 
   String _savedMessage(Item saved) {

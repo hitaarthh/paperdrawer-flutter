@@ -2,14 +2,13 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/services/today.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/tab_bar.dart';
 import '../add/add_flow.dart';
 import 'tab_reselect.dart';
 
-/// Hosts the three tabs and the Scan or add action. Pushed screens inside a
+/// Hosts Home, Vault and Settings with the Add action. Pushed screens inside a
 /// tab keep the dock; full-screen add and edit flows cover it.
 class AppShell extends StatefulWidget {
   const AppShell({required this.navigationShell, super.key});
@@ -49,10 +48,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final today = context.watch<Today>().value;
-    final badge = context.select<ClaimRepository, int>(
-      (claims) => claims.needsAction(today),
-    );
     return Scaffold(
       backgroundColor: Pd.bg,
       extendBody: true,
@@ -62,7 +57,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         onTap: _select,
         onScan: () => AddFlow.start(context),
         onScanLongPress: () => AddFlow.camera(context),
-        claimsBadge: badge,
+        homeFirst: true,
       ),
     );
   }

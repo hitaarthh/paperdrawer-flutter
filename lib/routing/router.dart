@@ -7,9 +7,9 @@ import '../ui/features/add/camera_screen.dart';
 import '../ui/features/add/item_form_screen.dart';
 import '../ui/features/add/reading_screen.dart';
 import '../ui/features/claims/claim_detail_screen.dart';
-import '../ui/features/claims/claims_screen.dart';
 import '../ui/features/claims/local_claim_ledger_screen.dart';
 import '../ui/features/claims/start_claim_screen.dart';
+import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/item/item_detail_screen.dart';
 import '../ui/features/reminders/reminders_screen.dart';
 import '../ui/features/settings/archive_screen.dart';
@@ -19,6 +19,7 @@ import '../ui/features/vault/vault_screen.dart';
 
 /// Locations used across the app and in reminder payloads.
 abstract final class Routes {
+  static const home = '/home';
   static const vault = '/vault';
   static const claims = '/claims';
   static const settings = '/settings';
@@ -33,13 +34,15 @@ abstract final class Routes {
   static String claim(String id) => '/claims/$id';
   static String claimGuidance(String id) => '/claims/$id/guidance';
   static String edit(String id) => '/edit/$id';
+  static String vaultWithRecent(String id) =>
+      Uri(path: vault, queryParameters: {'added': id}).toString();
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 GoRouter buildRouter({String? initialLocation}) => GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: initialLocation ?? Routes.vault,
+  initialLocation: initialLocation ?? Routes.home,
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => AppShell(navigationShell: shell),
@@ -47,9 +50,19 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: Routes.home,
+              builder: (context, state) => const ComingUpScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: Routes.vault,
               builder: (context, state) => VaultScreen(
                 reviewOld: state.uri.queryParameters['review'] == 'old',
+                showDue: state.uri.queryParameters['filter'] == 'due',
+                addedId: state.uri.queryParameters['added'],
               ),
               routes: [
                 GoRoute(
@@ -71,28 +84,6 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: Routes.claims,
-              builder: (context, state) => const ClaimsScreen(),
-              routes: [
-                GoRoute(
-                  path: ':id',
-                  builder: (context, state) =>
-                      LocalClaimLedgerScreen(id: state.pathParameters['id']!),
-                  routes: [
-                    GoRoute(
-                      path: 'guidance',
-                      builder: (context, state) =>
-                          ClaimDetailScreen(id: state.pathParameters['id']!),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
               path: Routes.settings,
               builder: (context, state) => const SettingsScreen(),
               routes: [
@@ -101,6 +92,24 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                   builder: (context, state) => const ArchiveScreen(),
                 ),
               ],
+            ),
+          ],
+        ),
+      ],
+    ),
+    GoRoute(
+      path: Routes.claims,
+      builder: (context, state) => const ClaimHistoryScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          builder: (context, state) =>
+              LocalClaimLedgerScreen(id: state.pathParameters['id']!),
+          routes: [
+            GoRoute(
+              path: 'guidance',
+              builder: (context, state) =>
+                  ClaimDetailScreen(id: state.pathParameters['id']!),
             ),
           ],
         ),

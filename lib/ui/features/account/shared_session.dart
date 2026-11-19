@@ -6,7 +6,9 @@ import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart' show XFile;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../data/services/capture_service.dart';
 import '../../../data/services/drawer_actions.dart';
+import '../../../data/services/exporter.dart';
 import '../../../data/services/shared_account.dart';
 import '../../../data/services/shared_claim_reminders.dart';
 import '../../../data/services/shared_vault_service.dart';
@@ -14,10 +16,11 @@ import '../../../data/services/today.dart';
 import '../../../domain/models/shared_profile.dart';
 import '../../../domain/models/shared_vault.dart';
 import '../../../domain/models/ledger.dart';
+import '../../../domain/models/item.dart';
 
 class SharedSession extends ChangeNotifier {
-  SharedSession(this.account, {SharedVaultService? service})
-    : _service = service ?? SharedVaultService(account.client) {
+  SharedSession(this.account, {SharedVaultService? service, CaptureService capture = const CaptureService()})
+    : _service = service ?? SharedVaultService(account.client), _capture = capture {
     _subscription = account.changes.listen(
       (_) => _onAccount(),
       onError: (Object _, StackTrace _) => _onAccount(),
@@ -27,6 +30,7 @@ class SharedSession extends ChangeNotifier {
 
   final SharedAccount account;
   final SharedVaultService _service;
+  final CaptureService _capture;
   late final StreamSubscription<AuthState> _subscription;
   final Today today = Today();
   final followUps = SharedClaimReminders();
@@ -200,6 +204,22 @@ class SharedSession extends ChangeNotifier {
 
   Future<void> shareFiles(List<XFile> files, Rect? origin) =>
       _actions.shareFiles(files, origin: origin);
+
+  Future<PendingFile?> pickLedgerPhoto() => _capture.pickLedgerPhoto();
+
+  Future<void> shareClaimKit(SharedItem item, Rect? origin) async {
+    final owner = _userId;
+    if (owner == null) return;
+    final generation = _accountGeneration;
+    final files = <XFile>[];
+    for (final original in item.originals) {
+      final file = await _service.download(owner, original);
+      if (!_isCurrent(generation)) return;
+      files.add(XFile(file.path, name: original.name, mimeType: original.mime));
+    }
+    files.add(Exporter.claimKitSummary(item.item));
+    await shareFiles(files, origin);
+  }
 
   bool _isCurrent(int generation) =>
       !_disposed && _accountGeneration == generation;

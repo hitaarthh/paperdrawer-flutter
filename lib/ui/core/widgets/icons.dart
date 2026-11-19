@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/tokens.dart';
 
-enum PdGlyph { vault, claims, settings, scan, back }
+enum PdGlyph { vault, claims, settings, scan, back, home, add }
 
 class PdIcon extends StatelessWidget {
   const PdIcon(
@@ -40,6 +40,24 @@ class _GlyphPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
     switch (glyph) {
+      case PdGlyph.home:
+        canvas.drawPath(
+          Path()
+            ..moveTo(3, 10)
+            ..lineTo(12, 3)
+            ..lineTo(21, 10)
+            ..lineTo(21, 21)
+            ..lineTo(15, 21)
+            ..lineTo(15, 14)
+            ..lineTo(9, 14)
+            ..lineTo(9, 21)
+            ..lineTo(3, 21)
+            ..close(),
+          stroke,
+        );
+      case PdGlyph.add:
+        canvas.drawLine(const Offset(12, 5), const Offset(12, 19), stroke);
+        canvas.drawLine(const Offset(5, 12), const Offset(19, 12), stroke);
       case PdGlyph.vault:
         canvas.drawRRect(
           RRect.fromLTRBR(3, 3, 21, 21, const Radius.circular(2)),

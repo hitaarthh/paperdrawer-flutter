@@ -7,6 +7,7 @@ import '../ui/features/account/account_screen.dart';
 import '../ui/features/account/shared_session.dart';
 import '../ui/features/account/shared_vault_screens.dart';
 import '../ui/features/add/shared_add_flow.dart';
+import '../ui/features/claims/shared_claim_ledger_screen.dart';
 import '../ui/features/intro/intro_flow.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
@@ -91,7 +92,14 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
                 GoRoute(
                   path: ':id',
                   builder: (context, state) =>
-                      SharedClaimScreen(state.pathParameters['id']!),
+                      SharedClaimLedgerScreen(state.pathParameters['id']!),
+                  routes: [
+                    GoRoute(
+                      path: 'guidance',
+                      builder: (context, state) =>
+                          SharedClaimScreen(state.pathParameters['id']!),
+                    ),
+                  ],
                 ),
               ],
             ),

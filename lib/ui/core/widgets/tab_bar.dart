@@ -13,6 +13,7 @@ class PdTabBar extends StatelessWidget {
     required this.onScan,
     this.onScanLongPress,
     this.claimsBadge = 0,
+    this.homeFirst = false,
     super.key,
   });
 
@@ -21,17 +22,26 @@ class PdTabBar extends StatelessWidget {
   final VoidCallback? onScan;
   final VoidCallback? onScanLongPress;
   final int claimsBadge;
+  final bool homeFirst;
 
   static final _blur = ImageFilter.blur(
     sigmaX: Pd.dockBlur,
     sigmaY: Pd.dockBlur,
   );
   static const _radius = BorderRadius.all(Radius.circular(Pd.rPill));
-  static const _tabs = [
+  static const _originalTabs = [
     ('Vault', PdGlyph.vault),
     ('Claims', PdGlyph.claims),
     ('Settings', PdGlyph.settings),
   ];
+  static const _homeTabs = [
+    ('Home', PdGlyph.home),
+    ('Vault', PdGlyph.vault),
+    ('Settings', PdGlyph.settings),
+  ];
+
+  List<(String, PdGlyph)> get _tabs => homeFirst ? _homeTabs : _originalTabs;
+  int get _selectedSlot => homeFirst && currentIndex == 2 ? 3 : currentIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +103,7 @@ class PdTabBar extends StatelessWidget {
   }
 
   Widget _selection(BuildContext context) => AnimatedAlign(
-    alignment: AlignmentDirectional(-1 + 2 * currentIndex / _tabs.length, 0),
+    alignment: AlignmentDirectional(-1 + 2 * _selectedSlot / _tabs.length, 0),
     duration: MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : Pd.dockSelectionDuration,
@@ -114,7 +124,8 @@ class PdTabBar extends StatelessWidget {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (index, (title, glyph)) in _tabs.indexed)
+        for (final (index, (title, glyph)) in _tabs.indexed) ...[
+          if (homeFirst && index == 2) _add(),
           Expanded(
             child: _DockButton(
               key: ValueKey('${title.toLowerCase()}-tab'),
@@ -125,16 +136,19 @@ class PdTabBar extends StatelessWidget {
               onTap: () => onTap(index),
             ),
           ),
-        Expanded(
-          child: _DockButton(
-            key: const ValueKey('scan-or-add'),
-            title: 'Scan or add',
-            glyph: PdGlyph.scan,
-            onTap: onScan,
-            onLongPress: onScanLongPress,
-          ),
-        ),
+        ],
+        if (!homeFirst) _add(),
       ],
+    ),
+  );
+
+  Widget _add() => Expanded(
+    child: _DockButton(
+      key: const ValueKey('scan-or-add'),
+      title: homeFirst ? 'Add' : 'Scan or add',
+      glyph: homeFirst ? PdGlyph.add : PdGlyph.scan,
+      onTap: onScan,
+      onLongPress: onScanLongPress,
     ),
   );
 }
@@ -160,7 +174,8 @@ class _DockButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scan = glyph == PdGlyph.scan;
-    final accent = selected == true || (scan && onTap != null);
+    final add = glyph == PdGlyph.add && onTap != null;
+    final accent = selected == true || ((scan || add) && onTap != null);
     return Semantics(
       label: badge > 0 ? '$title, $badge need action' : title,
       selected: selected,
@@ -186,7 +201,22 @@ class _DockButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             spacing: Pd.s1,
             children: [
-              PdIcon(glyph, color: accent ? Pd.lime : Pd.text2),
+              if (add)
+                const SizedBox(
+                  width: Pd.s8,
+                  height: Pd.iconMd,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Pd.lime,
+                      borderRadius: PdTabBar._radius,
+                    ),
+                    child: Center(
+                      child: PdIcon(PdGlyph.add, size: Pd.iconSm, color: Pd.onLime),
+                    ),
+                  ),
+                )
+              else
+                PdIcon(glyph, color: accent ? Pd.lime : Pd.text2),
               Text.rich(
                 TextSpan(
                   text: scan ? title : title.toUpperCase(),
@@ -200,7 +230,7 @@ class _DockButton extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
                 style: PdType.tabLabel.copyWith(
-                  color: scan && accent
+                  color: (scan || add) && accent
                       ? Pd.lime
                       : onTap == null
                       ? Pd.textSubtle

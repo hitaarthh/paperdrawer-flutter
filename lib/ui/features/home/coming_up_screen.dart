@@ -185,7 +185,7 @@ class ClaimHistoryScreen extends StatelessWidget {
     return PdPushedScaffold(
       title: 'Claim history',
       backLabel: 'Home',
-      onBack: () => context.canPop() ? context.pop() : context.go('/home'),
+      onBack: () => context.canPop() ? context.pop() : context.go(Routes.home),
       children: [
         if (claims.isEmpty)
           const DashedTile(

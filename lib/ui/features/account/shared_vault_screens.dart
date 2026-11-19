@@ -58,10 +58,10 @@ class SharedClaimsScreen extends StatelessWidget {
               title: filter == ClaimsFilter.open
                   ? 'No open claims'
                   : 'No claims yet',
-              body: 'Claims you start on the web will appear here.',
+              body: 'Open a claim from an item in your vault.',
               action: PdButton.primary(
-                label: 'Open claims on web',
-                onPressed: () => _open(context, session, '/claims'),
+                label: 'Open vault',
+                onPressed: () => context.go('/vault'),
               ),
             ),
     );
@@ -71,6 +71,27 @@ class SharedClaimsScreen extends StatelessWidget {
 class SharedItemScreen extends StatelessWidget {
   const SharedItemScreen(this.id, {super.key});
   final String id;
+
+  Future<void> _openLedger(BuildContext context, SharedSession session, SharedItem item, SharedClaim? existing) async {
+    try {
+      final claim = existing ?? await session.openLedger(item);
+      if (context.mounted) context.push('/claims/${claim.id}');
+    } on FormatException catch (error) {
+      if (context.mounted) showPdSnackbar(context, error.message);
+    } catch (_) {
+      if (context.mounted) showPdSnackbar(context, 'The claim ledger couldn’t open. Try again.');
+    }
+  }
+
+  Future<void> _shareKit(BuildContext context, SharedSession session, SharedItem item) async {
+    final box = context.findRenderObject();
+    final origin = box is RenderBox && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+    try {
+      await session.shareClaimKit(item, origin);
+    } catch (_) {
+      if (context.mounted) showPdSnackbar(context, 'The claim kit couldn’t be shared. Try again.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,28 +143,28 @@ class SharedItemScreen extends StatelessWidget {
         ],
         ItemCoverage(summary),
         ItemClaimKit(
-          description:
-              'Open Paper Drawer web to manage this record and its claim kit.',
+          description: item.originals.isEmpty
+              ? 'Share your saved details and coverage dates.'
+              : 'Share your saved details, coverage dates, and original documents.',
           actions: [
-            if (activeClaim == null)
-              PdButton.primary(
-                label: 'Start a claim on web',
-                onPressed: () => _open(context, session, item.startClaimPath),
-              )
-            else
-              PdButton.primary(
-                label: 'View claim',
-                onPressed: () => context.push('/claims/${activeClaim.id}'),
+            PdButton.primary(
+              key: const ValueKey('shared-item-claim'),
+              label: activeClaim == null ? 'Open a claim' : 'View claim ledger',
+              expand: true,
+              onPressed: session.claimBusy ? null : () => _openLedger(context, session, item, activeClaim),
+            ),
+            Builder(
+              builder: (anchor) => PdButton.secondary(
+                label: 'Share claim kit',
+                expand: true,
+                onPressed: () => _shareKit(anchor, session, item),
               ),
-            PdButton.secondary(
-              label: 'Open on web',
-              onPressed: () => _open(context, session, item.webPath),
             ),
           ],
         ),
         if (linkedClaims.isNotEmpty) ...[
           PdListGroup(
-            header: 'Claims',
+            header: 'Claims on this item',
             children: [
               for (final claim in linkedClaims)
                 PdListRow(
@@ -155,7 +176,8 @@ class SharedItemScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Pd.s6),
-        ],
+        ] else
+          const ItemClaimHistoryEmpty(),
         ItemRecord([
           ...itemRecord(summary),
           for (final detail in item.details)
