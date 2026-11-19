@@ -211,7 +211,11 @@ class _DockButton extends StatelessWidget {
                       borderRadius: PdTabBar._radius,
                     ),
                     child: Center(
-                      child: PdIcon(PdGlyph.add, size: Pd.iconSm, color: Pd.onLime),
+                      child: PdIcon(
+                        PdGlyph.add,
+                        size: Pd.iconSm,
+                        color: Pd.onLime,
+                      ),
                     ),
                   ),
                 )

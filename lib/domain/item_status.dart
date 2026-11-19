@@ -416,7 +416,7 @@ enum VaultFilter {
 
   bool matches(ItemSummary s) => switch (this) {
     VaultFilter.all => true,
-    VaultFilter.due => s.status == ItemStatus.due,
+    VaultFilter.due => s.next?.isDue(s.today) ?? false,
     VaultFilter.inClaim => s.status == ItemStatus.inClaim,
     VaultFilter.covered => s.status == ItemStatus.covered,
     VaultFilter.expired => s.status == ItemStatus.expired,

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
-import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/item_status.dart';
 import '../../../domain/models/item.dart';
@@ -17,35 +16,45 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/item_card.dart';
 import '../../core/widgets/limit_notice.dart';
 import '../../core/widgets/sheets.dart';
-import '../../core/widgets/snackbar.dart';
 import '../add/add_flow.dart';
 import '../shell/tab_reselect.dart';
-import 'vault_due_next.dart';
 import 'vault_empty.dart';
 import 'vault_header.dart';
 import 'vault_view_model.dart';
 
 class VaultScreen extends StatelessWidget {
-  const VaultScreen({this.reviewOld = false, super.key});
+  const VaultScreen({
+    this.reviewOld = false,
+    this.showDue = false,
+    this.addedId,
+    super.key,
+  });
 
   final bool reviewOld;
+  final bool showDue;
+  final String? addedId;
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
     create: (context) => VaultViewModel(
       context.read<ItemRepository>(),
       context.read<ClaimRepository>(),
-      context.read<SettingsRepository>(),
       context.read<Today>(),
     ),
-    child: _VaultView(reviewOld: reviewOld),
+    child: _VaultView(reviewOld: reviewOld, showDue: showDue, addedId: addedId),
   );
 }
 
 class _VaultView extends StatefulWidget {
-  const _VaultView({required this.reviewOld});
+  const _VaultView({
+    required this.reviewOld,
+    required this.showDue,
+    required this.addedId,
+  });
 
   final bool reviewOld;
+  final bool showDue;
+  final String? addedId;
 
   @override
   State<_VaultView> createState() => _VaultViewState();
@@ -61,19 +70,36 @@ class _VaultViewState extends State<_VaultView> {
   void initState() {
     super.initState();
     _reselect.addListener(_onTabReselect);
-    if (widget.reviewOld) _reviewOnNextFrame();
+    _applyDestinationOnNextFrame();
   }
 
   @override
   void didUpdateWidget(covariant _VaultView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.reviewOld && !oldWidget.reviewOld) _reviewOnNextFrame();
+    if (widget.reviewOld != oldWidget.reviewOld ||
+        widget.showDue != oldWidget.showDue ||
+        widget.addedId != oldWidget.addedId) {
+      _applyDestinationOnNextFrame();
+    }
   }
 
-  void _reviewOnNextFrame() =>
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _reviewOld();
-      });
+  void _applyDestinationOnNextFrame() {
+    if (!widget.reviewOld && !widget.showDue && widget.addedId == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final model = context.read<VaultViewModel>();
+      if (widget.reviewOld) {
+        _reviewOld();
+      } else if (widget.showDue) {
+        _clearSearch(model);
+        model.choose(VaultFilter.due);
+      } else if (widget.addedId case final id?) {
+        _clearSearch(model);
+        model.showRecent(id);
+      }
+      _toTop();
+    });
+  }
 
   void _reviewOld() {
     _search.clear();
@@ -81,7 +107,7 @@ class _VaultViewState extends State<_VaultView> {
   }
 
   void _onTabReselect() {
-    if (_reselect.index == 0) _toTop();
+    if (_reselect.index == 1) _toTop();
   }
 
   void _toTop() {
@@ -108,30 +134,6 @@ class _VaultViewState extends State<_VaultView> {
     _scroll.dispose();
     _search.dispose();
     super.dispose();
-  }
-
-  void _open(VaultTicketData ticket) {
-    if (ticket.itemId case final id?) {
-      context.push(Routes.item(id));
-    } else if (ticket.claimId case final id?) {
-      context.go(Routes.claim(id));
-    }
-  }
-
-  Future<void> _hide(VaultViewModel model, VaultTicketData ticket) async {
-    final hide = await showPdActions<bool>(
-      context,
-      title: ticket.title,
-      message: 'It comes back tomorrow if it still needs you.',
-      actions: const [PdAction(label: 'Hide for today', value: true)],
-    );
-    if (hide != true || !mounted) return;
-    try {
-      await model.dismissTicket(ticket.key);
-    } catch (_) {
-      if (!mounted) return;
-      showPdSnackbar(context, 'The countdown couldn’t be hidden. Try again.');
-    }
   }
 
   @override
@@ -216,9 +218,6 @@ class _VaultViewState extends State<_VaultView> {
   }
 
   List<Widget> _full(VaultViewModel model) {
-    final tickets = model.query.isEmpty
-        ? model.tickets
-        : const <VaultTicketData>[];
     final recent = model.justAdded?.item.id;
     final visible = model.visible
         .where((item) => item.item.id != recent)
@@ -244,17 +243,6 @@ class _VaultViewState extends State<_VaultView> {
             ),
           ),
           top: Pd.s4,
-        ),
-      if (tickets.isNotEmpty)
-        SliverPadding(
-          padding: const EdgeInsets.only(top: Pd.s6),
-          sliver: SliverToBoxAdapter(
-            child: VaultDueNext(
-              tickets: tickets,
-              onOpen: _open,
-              onHide: (ticket) => _hide(model, ticket),
-            ),
-          ),
         ),
       SliverPadding(
         padding: const EdgeInsets.only(top: Pd.s6),

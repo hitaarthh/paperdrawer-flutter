@@ -2,34 +2,24 @@ import 'package:flutter/foundation.dart';
 
 import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
-import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/today.dart';
-import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
-import '../../../domain/models/claim.dart';
-import 'vault_tickets.dart';
-
-export 'vault_tickets.dart';
 
 class VaultViewModel extends ChangeNotifier {
-  VaultViewModel(this._items, this._claims, this._settings, this._today)
+  VaultViewModel(this._items, this._claims, this._today)
     : _knownIds = _items.items.map((item) => item.id).toSet() {
     _items.addListener(_reload);
     _claims.addListener(_reload);
-    _settings.addListener(_reload);
     _today.addListener(_reload);
     _reload();
   }
 
   final ItemRepository _items;
   final ClaimRepository _claims;
-  final SettingsRepository _settings;
   final Today _today;
   Set<String> _knownIds;
   String? _landOn;
   String? _justAddedId;
-  String? _dismissing;
-  bool _disposed = false;
   bool _oldestFirst = false;
   VaultFilter _filter = VaultFilter.all;
   String _query = '';
@@ -71,61 +61,19 @@ class VaultViewModel extends ChangeNotifier {
     });
   }
 
-  /// The "Due next" strip: deadlines within [ticketWithinDays], soonest
-  /// first, then claims waiting on a reply long enough to escalate.
-  List<VaultTicketData> get tickets {
-    final today = _today.value;
-    final hidden = {
-      ...?_settings.ticketDismissedKey?.split(_keySeparator),
-      ?_dismissing,
-    };
-    final dated = [
-      for (final summary in _summaries)
-        if (summary.next case final window?
-            when window.daysLeft(summary.today) <= ticketWithinDays)
-          (summary, window),
-    ]..sort((a, b) => a.$2.end.compareTo(b.$2.end));
-    final result = <VaultTicketData>[
-      for (final (summary, window) in dated)
-        VaultTicketData.window(summary, window, ticketKey(summary, window)),
-      for (final claim in _claims.claims)
-        if (claim.status(today) == ClaimStatus.escalate)
-          VaultTicketData.claim(claim, today, _claimKey(claim, today)),
-    ].where((ticket) => !hidden.contains(ticket.key)).take(maxTickets).toList();
-    if (result.isNotEmpty && result.first.itemId != null) {
-      result[0] = result.first.asMostUrgent();
-    }
-    return result;
-  }
-
-  static const maxTickets = 5;
-  static const _keySeparator = '|';
-
-  String ticketKey(ItemSummary summary, CoverWindow window) =>
-      '${isoDate(summary.today)}/${summary.item.id}/${window.type.name}/${isoDate(window.end)}';
-
-  String _claimKey(Claim claim, DateTime today) =>
-      '${isoDate(today)}/claim/${claim.id}/${isoDate(claim.waitingSince)}';
-
-  /// Hides a ticket for today. Keys carry the day, so only today's are kept.
-  Future<void> dismissTicket(String key) async {
-    final day = key.split('/').first;
-    final kept = (_settings.ticketDismissedKey?.split(_keySeparator) ?? [])
-        .where((old) => old.startsWith('$day/') && old != key);
-    _dismissing = key;
-    notifyListeners();
-    try {
-      await _settings.dismissTicket([...kept, key].join(_keySeparator));
-    } finally {
-      _dismissing = null;
-      if (!_disposed) notifyListeners();
-    }
-  }
-
   bool shouldLand(String id) => _landOn == id;
 
   void landed(String id) {
     if (_landOn == id) _landOn = null;
+  }
+
+  void showRecent(String id) {
+    if (!_summaries.any((summary) => summary.item.id == id)) return;
+    _filter = VaultFilter.all;
+    _oldestFirst = false;
+    if (_justAddedId != id) _landOn = id;
+    _justAddedId = id;
+    notifyListeners();
   }
 
   void choose(VaultFilter filter) {
@@ -179,10 +127,8 @@ class VaultViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _disposed = true;
     _items.removeListener(_reload);
     _claims.removeListener(_reload);
-    _settings.removeListener(_reload);
     _today.removeListener(_reload);
     super.dispose();
   }
