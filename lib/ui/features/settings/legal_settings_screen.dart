@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show LicensePage;
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -17,8 +16,9 @@ class LegalSettingsScreen extends StatelessWidget {
     try {
       await const DrawerActions().openLink(Uri.https(_host, path));
     } catch (_) {
-      if (context.mounted)
+      if (context.mounted) {
         showPdSnackbar(context, 'Couldn’t open the link. Try again.');
+      }
     }
   }
 

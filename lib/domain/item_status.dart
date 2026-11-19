@@ -428,8 +428,8 @@ enum VaultFilter {
     VaultFilter.all => true,
     VaultFilter.due => s.next?.isDue(s.today) ?? false,
     VaultFilter.inClaim => s.status == ItemStatus.inClaim,
-    VaultFilter.covered => s.status == ItemStatus.covered,
-    VaultFilter.expired => s.status == ItemStatus.expired,
+    VaultFilter.covered => (s.next?.daysLeft(s.today) ?? 0) > dueWithinDays,
+    VaultFilter.expired => s.windows.isNotEmpty && s.next == null,
     VaultFilter.undated => s.windows.isEmpty,
   };
 }

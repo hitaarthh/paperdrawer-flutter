@@ -113,8 +113,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
       if (!mounted || file == null) return;
       form.replacePrimary(file);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _fileError = 'Couldn’t open Files. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -215,8 +216,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
           try {
             await turnOnReminders(context.read<ReminderScheduler?>(), settings);
           } catch (_) {
-            if (mounted)
+            if (mounted) {
               showPdSnackbar(context, 'Check notification access in Settings.');
+            }
           }
           if (!mounted) return;
         }

@@ -61,7 +61,7 @@ void main() {
         );
         expect(find.text('Your drawer'), findsOneWidget);
         expect(_key('vault-search'), findsOneWidget);
-        expect(find.text('5 OF 25'), findsOneWidget);
+        expect(find.text('5 FILES'), findsOneWidget);
         expect(find.text('DUE NEXT'), findsNothing);
         expect(find.byType(VaultTicket), findsNothing);
         await tester.ensureVisible(_key('vault-filter-expired'));
@@ -70,7 +70,16 @@ void main() {
         expect(find.text('SORTED BY WHAT’S DUE FIRST'), findsOneWidget);
 
         for (final id in ['earbuds', 'policy', 'puc', 'washer', 'laptop']) {
-          await tester.ensureVisible(_key('vault-item-$id'));
+          await tester.scrollUntilVisible(
+            _key('vault-item-$id'),
+            160,
+            scrollable: find
+                .byWidgetPredicate(
+                  (w) =>
+                      w is Scrollable && w.axisDirection == AxisDirection.down,
+                )
+                .first,
+          );
           await tester.pumpAndSettle();
           expect(_key('vault-item-$id'), findsOneWidget);
         }
@@ -152,8 +161,8 @@ void main() {
         expect(_key('home-ticket-puc/validity'), findsNothing);
 
         await _tap(tester, 'vault-tab');
-        await _tap(tester, 'vault-filter-due');
         expect(find.text('Your drawer'), findsOneWidget);
+        await _tap(tester, 'vault-filter-due');
         expect(find.text('DUE SOON 4'), findsOneWidget);
         expect(_key('vault-item-laptop'), findsNothing);
         expect(tester.takeException(), isNull);

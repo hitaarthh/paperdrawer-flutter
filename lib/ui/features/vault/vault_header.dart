@@ -99,7 +99,7 @@ class _VaultSearchFieldState extends State<VaultSearchField> {
   );
 }
 
-/// Underlined filter tabs: ALL 10 · DUE SOON 4 · IN CLAIM 1 · COVERED · ENDED.
+/// Underlined filters for the dates tracked in the drawer.
 class VaultFilterTabs extends StatelessWidget {
   const VaultFilterTabs({
     required this.selected,

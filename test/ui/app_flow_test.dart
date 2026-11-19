@@ -156,6 +156,11 @@ void main() {
       expect(find.text('Time to go one step up'), findsNothing);
       await _tap(tester, 'back-button');
       await _tap(tester, 'settings-tab');
+      await tester.scrollUntilVisible(
+        _key('settings-archive').hitTestable(),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await _tap(tester, 'settings-archive');
       expect(find.text('Activa PUC'), findsOneWidget);
       await _tap(tester, 'restore-item-archived');

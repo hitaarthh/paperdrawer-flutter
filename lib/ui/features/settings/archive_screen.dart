@@ -33,7 +33,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     try {
       await repository.setArchived(item.id, false);
       if (!mounted) return;
-      showPdSnackbar(context, 'Restored to vault', success: true);
+      showPdSnackbar(context, 'Restored to drawer', success: true);
     } on LimitReachedException catch (error) {
       if (!mounted) return;
       showPdSnackbar(context, error.message);
@@ -53,6 +53,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     final today = context.watch<Today>().value;
     return PdPushedScaffold(
       backLabel: 'Settings',
+      glassBack: true,
       title: 'Archive',
       onBack: () =>
           context.canPop() ? context.pop() : context.go(Routes.settings),
@@ -60,7 +61,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
         if (items.isEmpty)
           const DashedTile(
             title: 'Nothing in the archive',
-            body: 'Archive an item to free up room in your vault. You can restore it here.',
+            body: 'Archive an item to free up room in your drawer. You can restore it here.',
           )
         else ...[
           Text(
@@ -82,7 +83,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
               alignment: Alignment.centerRight,
               child: PdButton.text(
                 key: ValueKey('restore-item-${item.id}'),
-                label: 'Restore to vault',
+                label: 'Restore to drawer',
                 busy: _restoring == item.id,
                 onPressed: _restoring == null ? () => _restore(item) : null,
               ),

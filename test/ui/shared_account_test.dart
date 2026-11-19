@@ -115,7 +115,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('vault-tab')));
     await tester.pumpAndSettle();
     expect(find.text('Your drawer'), findsOneWidget);
-    expect(find.text('1 OF 25'), findsOneWidget);
+    expect(find.text('1 FILE'), findsOneWidget);
     expect(find.text('DUE NEXT'), findsNothing);
 
     expect(find.byKey(const ValueKey('shared-vault-add')), findsNothing);

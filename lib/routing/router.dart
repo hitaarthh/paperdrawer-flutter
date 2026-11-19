@@ -134,6 +134,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                 ...legalRoutes(rootNavigatorKey),
                 GoRoute(
                   path: 'archive',
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) => const ArchiveScreen(),
                 ),
               ],

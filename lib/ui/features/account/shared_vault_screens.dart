@@ -95,8 +95,9 @@ class SharedItemScreen extends StatelessWidget {
       await session.deleteItem(item);
       if (context.mounted) _back(context);
     } catch (_) {
-      if (context.mounted)
+      if (context.mounted) {
         showPdSnackbar(context, 'Couldn’t delete this item. Try again.');
+      }
     }
   }
 
@@ -108,8 +109,9 @@ class SharedItemScreen extends StatelessWidget {
     try {
       await session.openOriginal(file);
     } catch (_) {
-      if (context.mounted)
+      if (context.mounted) {
         showPdSnackbar(context, 'Couldn’t open this original. Try again.');
+      }
     }
   }
 
