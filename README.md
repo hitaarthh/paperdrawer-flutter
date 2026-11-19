@@ -66,6 +66,14 @@ optionally `PAPERDRAWER_WEB_URL` as Dart defines. The backend must allow the web
 origin's `/auth/confirm` URL as a redirect. The app accepts Supabase publishable
 and legacy anon keys. It uses the same owner-level policies as the web app.
 
+Use a separate build configuration for local development, staging, and
+production. In CI, pass the intended project's URL and publishable key as
+explicit `--dart-define` arguments. These values are compiled into the app and
+can be read from a distributed build. The authenticated session is stored in
+the iOS Keychain. Keep Supabase secret or service-role keys, database passwords,
+and SMTP credentials in the server environment. The local launcher reads only
+the two named public values from the web project's development configuration.
+
 ## Checks
 
 ```sh

@@ -126,7 +126,7 @@ class SharedItemScreen extends StatelessWidget {
     }
     final summary = ItemSummary.of(item.item, session.today.value);
     final original = item.originals.firstOrNull;
-    final rem = session.vault?.profile;
+    final leadDays = item.reminderLeadDays ?? session.vault?.profile?.leadDays;
     return PdPushedScaffold(
       backLabel: _backLabel,
       glassBack: true,
@@ -178,10 +178,8 @@ class SharedItemScreen extends StatelessWidget {
           PdListGroup(
             children: [
               PdListRow(
-                title: 'Email reminders',
-                value: (rem?.emailReminders ?? false)
-                    ? '${rem!.leadDays} days before'
-                    : 'Off',
+                title: 'In-app reminders',
+                value: leadDays == null ? null : '$leadDays days before',
               ),
             ],
           ),

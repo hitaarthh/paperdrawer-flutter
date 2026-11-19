@@ -23,12 +23,19 @@ class SharedOriginal {
 }
 
 class SharedItem {
-  const SharedItem(this.item, this.originals, this.details, {this.ref});
+  const SharedItem(
+    this.item,
+    this.originals,
+    this.details, {
+    this.ref,
+    this.reminderLeadDays,
+  });
 
   final Item item;
   final List<SharedOriginal> originals;
   final List<(String, String)> details;
   final String? ref;
+  final int? reminderLeadDays;
 
   String get webPath =>
       '/${item.kind == ItemKind.bill ? 'bills' : 'documents'}/${item.id}';
@@ -112,6 +119,7 @@ class SharedItem {
         ('Sum insured', money(insured, 'USD')),
     ],
     ref: row['ref'] as String?,
+    reminderLeadDays: row['remind_days'] as int?,
   );
 }
 

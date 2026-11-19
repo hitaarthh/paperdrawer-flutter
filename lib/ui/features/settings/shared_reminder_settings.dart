@@ -3,26 +3,19 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import '../../../domain/models/shared_profile.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
-import '../../core/widgets/list_row.dart';
 import 'shared_settings_widgets.dart';
 
 class SharedReminderSettings extends StatelessWidget {
   const SharedReminderSettings({
     required this.profile,
-    required this.email,
     required this.loading,
     required this.onLeadChanged,
-    required this.onEmailChanged,
-    required this.onOpenWeb,
     super.key,
   });
 
   final SharedProfile? profile;
-  final String? email;
   final bool loading;
   final ValueChanged<int>? onLeadChanged;
-  final ValueChanged<bool>? onEmailChanged;
-  final VoidCallback onOpenWeb;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +31,7 @@ class SharedReminderSettings extends StatelessWidget {
             child: SharedSettingsDetail(
               loading
                   ? 'Loading reminder settings…'
-                  : 'Couldn’t load your email reminder settings.',
+                  : 'Couldn’t load your reminder settings.',
             ),
           ),
         Semantics(
@@ -61,30 +54,7 @@ class SharedReminderSettings extends StatelessWidget {
             ],
           ),
         ),
-        Column(
-          children: [
-            _ReminderChannel(
-              title: 'Email',
-              detail: email,
-              control: settings == null
-                  ? null
-                  : PdSwitch(
-                      key: const ValueKey('shared-settings-email-reminders'),
-                      value: settings.emailReminders,
-                      onChanged: onEmailChanged,
-                    ),
-            ),
-          ],
-        ),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: SharedSettingsLink(
-            key: const ValueKey('shared-settings-web-reminders'),
-            label: 'More reminder options on web',
-            accent: true,
-            onPressed: onOpenWeb,
-          ),
-        ),
+        const SharedSettingsDetail('Bill reminders appear in Notifications.'),
       ],
     );
   }
@@ -142,45 +112,6 @@ class _LeadChoice extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    ),
-  );
-}
-
-class _ReminderChannel extends StatelessWidget {
-  const _ReminderChannel({
-    required this.title,
-    required this.detail,
-    this.control,
-  });
-
-  final String title;
-  final String? detail;
-  final PdSwitch? control;
-
-  @override
-  Widget build(BuildContext context) => MergeSemantics(
-    child: Container(
-      constraints: const BoxConstraints(minHeight: Pd.tapMin + Pd.s2),
-      padding: const EdgeInsets.symmetric(vertical: Pd.s1),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Pd.hairline)),
-      ),
-      child: Row(
-        spacing: Pd.s3,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: PdType.bodyStrong),
-                if (detail case final value?) SharedSettingsDetail(value),
-              ],
-            ),
-          ),
-          if (control case final widget?)
-            SizedBox(height: Pd.tapMin, child: widget),
-        ],
       ),
     ),
   );

@@ -38,14 +38,10 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
 
   Future<void> _saveReminders(
     SharedSession session, {
-    int? leadDays,
-    bool? emailReminders,
+    required int leadDays,
   }) async {
     try {
-      await session.updateReminders(
-        leadDays: leadDays,
-        emailReminders: emailReminders,
-      );
+      await session.updateReminders(leadDays: leadDays);
     } catch (_) {
       if (!mounted) return;
       showPdSnackbar(context, 'Couldn’t save reminder settings. Try again.');
@@ -120,15 +116,10 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
         children: [
           SharedReminderSettings(
             profile: profile,
-            email: session.email,
             loading: session.loading,
             onLeadChanged: canEditReminders
                 ? (days) => _saveReminders(session, leadDays: days)
                 : null,
-            onEmailChanged: canEditReminders
-                ? (enabled) => _saveReminders(session, emailReminders: enabled)
-                : null,
-            onOpenWeb: () => _openWeb(session, '/settings#reminders'),
           ),
         ],
       ),
@@ -169,7 +160,7 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
         plan: vault == null ? null : (vault.onBasePlan ? 'Base · Free' : 'Pro'),
         notifications: profile == null
             ? null
-            : (profile.emailReminders ? 'Email on' : 'Off'),
+            : 'In-app',
         version: _version,
         onRefresh: session.refresh,
       ),
