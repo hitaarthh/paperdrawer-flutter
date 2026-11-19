@@ -3,6 +3,18 @@ import 'package:paperdrawer/domain/bill_reader.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 
 void main() {
+  test('only reads a total in the currency requested by the vault', () {
+    const lines = ['TOTAL ₹8,750.50', r'TOTAL $79.50'];
+    final today = DateTime.utc(2026, 11, 19);
+
+    expect(readBill(lines, today: today).amountMinor, 875050);
+    expect(readBill(lines, today: today, currency: 'USD').amountMinor, 7950);
+    expect(
+      readBill([lines.first], today: today, currency: 'USD').amountMinor,
+      isNull,
+    );
+  });
+
   test('reads the bill reference and serial as separate fields', () {
     final reading = readBill([
       'MEGASTORE ELECTRONICS',

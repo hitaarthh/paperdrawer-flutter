@@ -55,8 +55,10 @@ server. Open local confirmation emails on the Mac.
 Sign in with your local web account or create one in the app. Local confirmation
 emails appear at `http://localhost:54324`. Confirm in the browser, then sign in
 on the phone. Create or edit bills and claims on the web, then refresh the
-mobile Vault or Claims tab. The mobile account build reads the shared vault and
-its originals. Its edit and account-management links open the existing website.
+mobile Vault or Claims tab. In the account build, Add opens the native camera,
+native file pickers, or a manual form. Review and save the record to see it in
+the same vault on phone and web. Item edit and account-management links open
+the existing website.
 Device-only bills are available via the standard `flutter run` launch.
 
 For a hosted build, supply `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and

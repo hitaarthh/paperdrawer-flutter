@@ -18,8 +18,14 @@ uses the existing web callback and password reset uses the web sign-in flow.
 
 `SharedVaultService` reads bills, bill parts, documents, claims, events and
 originals with the current user's session and owner RLS. The shared router gates
-`/home`, `/vault`, `/claims` and `/settings` behind `/account`. Shared vault items
-are added or edited in the web app. On iPhone, an item opens its claim ledger
+`/home`, `/vault`, `/claims`, `/settings` and the Add routes behind the account.
+Add uses the native camera, Photos and Files pickers, or manual entry. Text
+recognition runs on the phone. Save writes through the existing `save_bill` or
+`save_document` RPC and can attach one original in the owner's private Vault
+folder. Bills require a purchase date and documents require an end date. The
+form uses USD to match the shared vault. Each form keeps its item ID on retry.
+A confirmed save adds the item to the shared snapshot and opens its detail.
+Shared item edits open the web form. On iPhone, an item opens its claim ledger
 through `open_claim_ledger`. The `add_claim_ledger_entry` RPC commits the entry,
 photo metadata and any follow-up together. The iPhone uploads photos to the
 owner's private Vault folder and keeps the same event ID on retry. The
@@ -146,7 +152,7 @@ Claim photos accept the same image types and live in `root/claim-photos/`.
 ### Services
 - `TextRecognizer` (abstract): `Future<List<String>> recognize(String path)`; `PlatformTextRecognizer` uses MethodChannel `app.paperdrawer.mobile/text`, method `recognize`, args `{'path': String}` → `List<String>` lines (Apple Vision; PDFs: first 3 pages via PDFKit). Never throws: returns `[]` on failure.
 - `CaptureService.inspect(PendingFile)` reads the original's size and provides preview bytes for a supported image. `pickLedgerPhoto()` picks one image from the device photo library. The camera session supports capture and torch control.
-- `ScanReading readBill(List<String> lines, {required DateTime today})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and separate comprehensive and component warranty durations. `ScanReading.read` identifies populated fields.
+- `ScanReading readBill(List<String> lines, {required DateTime today, String currency = 'INR'})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and separate comprehensive and component warranty durations. The amount is read in the requested currency. `ScanReading.read` identifies populated fields.
 - `ReminderScheduler`: `ReminderScheduler({required NotificationGateway gateway, required ItemRepository items, required ClaimRepository claims, required SettingsRepository settings, required Today today})`; `void start()` (listens to the repositories, debounced reschedule); `Future<bool> requestPermission()`; `Stream<String> get taps` (go_router locations); `Future<String?> launchLocation()`. Pure planner `List<PlannedReminder> planReminders({items, claims, leadDays, now})` is unit-tested. Open claims schedule a notification when they have a future follow-up set by the user. See the Notifications section in design/mobile-system/screens.md for notification copy. Payload = location: `/vault/item/<id>` or `/claims/<id>`.
 - `Exporter`: `Future<File> exportEverything({required List<Item> items, required List<Claim> claims})` → zip (`paperdrawer-export-<yyyy-mm-dd>.zip` with `paperdrawer.json`, `originals/` and any `claim-photos/`); `Future<List<XFile>> claimKit(Item item, {Claim? claim})` → originals + `<name>-claim-kit.txt` summary.
 - `buildLedgerPdf` generates an on-device PDF with the entries, references, serial number and names of the files on record. Originals remain available through the claim kit and attachment controls.
@@ -158,7 +164,7 @@ Full-screen on the root navigator (no tab bar): `/add/camera` (optional `ItemKin
 
 Screen classes: `ComingUpScreen`, `ClaimHistoryScreen`, `LocalClaimLedgerScreen(id)`, `VaultScreen`, `ItemDetailScreen(id)`, `StartClaimScreen(itemId)`, `ClaimsScreen`, `ClaimDetailScreen(id)`, `SettingsScreen`, `ArchiveScreen`, `CameraScreen`, `ReadingScreen(files)`, `ItemFormScreen.create(AddDetailsArgs)`, `ItemFormScreen.edit(id)`.
 `CaptureReadingArgs` carries the originals and the item kind chosen when adding them. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill.
-The dock’s Add button calls `AddFlow.start(context)` in the local shell (opens the Add sheet or the limit notice). Empty Vault shortcuts supply the selected item kind. A local long press calls `AddFlow.camera(context)`. The shared shell calls `showSharedAdd` after the vault has loaded.
+The dock’s Add button calls `AddFlow.start(context)` in the local shell (opens the Add sheet or the limit notice). Empty Vault shortcuts supply the selected item kind. A local long press calls `AddFlow.camera(context)`. The shared shell calls `showSharedAdd` after the vault has loaded. Both routers use `buildAddRoutes` for camera, reading and review. The shared routes use single-original capture and save through `SharedSession`.
 
 ## UI kit (`ui/core/widgets/`)
 
