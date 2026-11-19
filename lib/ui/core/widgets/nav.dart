@@ -141,15 +141,23 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                       : null,
                 ),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: widget.glassBack || widget.closeOnRight ? Pd.margin : Pd.s3),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: widget.glassBack || widget.closeOnRight
+                        ? Pd.margin
+                        : Pd.s3,
+                  ),
                   child: Row(
                     children: [
                       if (widget.closeOnRight) ...[
-                        Expanded(child: Semantics(
-                          header: true,
-                          child: Text(widget.title ?? '',
-                              style: widget.titleStyle ?? PdType.trackerTitle),
-                        )),
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              widget.title ?? '',
+                              style: widget.titleStyle ?? PdType.trackerTitle,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: Pd.s3),
                         PdGlassIcon(
                           key: const ValueKey('close-button'),
@@ -158,64 +166,78 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                           onPressed: widget.onBack,
                         ),
                       ] else ...[
-                      Expanded(
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: widget.glassBack
-                              ? PdGlassIcon(
-                                  key: const ValueKey('back-button'),
-                                  icon: Transform.flip(
-                                    flipX: Directionality.of(context) == TextDirection.rtl,
-                                    child: const PdIcon(PdGlyph.back, size: Pd.s5, color: Pd.text),
+                        Expanded(
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: widget.glassBack
+                                ? PdGlassIcon(
+                                    key: const ValueKey('back-button'),
+                                    icon: Transform.flip(
+                                      flipX:
+                                          Directionality.of(context) ==
+                                          TextDirection.rtl,
+                                      child: const PdIcon(
+                                        PdGlyph.back,
+                                        size: Pd.s5,
+                                        color: Pd.text,
+                                      ),
+                                    ),
+                                    label: 'Back to ${widget.backLabel}',
+                                    onPressed:
+                                        widget.onBack ??
+                                        () => Navigator.maybePop(context),
+                                  )
+                                : CupertinoButton(
+                                    key: const ValueKey('back-button'),
+                                    padding: const EdgeInsets.only(
+                                      right: Pd.s2,
+                                    ),
+                                    minimumSize: const Size.square(Pd.tapMin),
+                                    pressedOpacity: 0.7,
+                                    focusColor: Pd.lime,
+                                    onPressed:
+                                        widget.onBack ??
+                                        () {
+                                          if (GoRouter.maybeOf(context)
+                                              case final router?) {
+                                            if (router.canPop()) router.pop();
+                                          } else {
+                                            Navigator.maybePop(context);
+                                          }
+                                        },
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Transform.flip(
+                                          flipX:
+                                              Directionality.of(context) ==
+                                              TextDirection.rtl,
+                                          child: PdIcon(
+                                            PdGlyph.back,
+                                            color:
+                                                widget.backStyle?.color ??
+                                                Pd.lime,
+                                            size: Pd.s5,
+                                          ),
+                                        ),
+                                        const SizedBox(width: Pd.s1),
+                                        Flexible(
+                                          child: Text(
+                                            widget.backLabel,
+                                            style:
+                                                widget.backStyle ??
+                                                PdType.navBack.copyWith(
+                                                  color: Pd.lime,
+                                                ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  label: 'Back to ${widget.backLabel}',
-                                  onPressed: widget.onBack ?? () => Navigator.maybePop(context),
-                                )
-                              : CupertinoButton(
-                            key: const ValueKey('back-button'),
-                            padding: const EdgeInsets.only(right: Pd.s2),
-                            minimumSize: const Size.square(Pd.tapMin),
-                            pressedOpacity: 0.7,
-                            focusColor: Pd.lime,
-                            onPressed:
-                                widget.onBack ??
-                                () {
-                                  if (GoRouter.maybeOf(context)
-                                      case final router?) {
-                                    if (router.canPop()) router.pop();
-                                  } else {
-                                    Navigator.maybePop(context);
-                                  }
-                                },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Transform.flip(
-                                  flipX:
-                                      Directionality.of(context) ==
-                                      TextDirection.rtl,
-                                  child: PdIcon(
-                                    PdGlyph.back,
-                                    color: widget.backStyle?.color ?? Pd.lime,
-                                    size: Pd.s5,
-                                  ),
-                                ),
-                                const SizedBox(width: Pd.s1),
-                                Flexible(
-                                  child: Text(
-                                    widget.backLabel,
-                                    style:
-                                        widget.backStyle ??
-                                        PdType.navBack.copyWith(color: Pd.lime),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
-                      ),
-                      ...widget.actions,
+                        ...widget.actions,
                       ],
                     ],
                   ),

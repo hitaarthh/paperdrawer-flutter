@@ -151,7 +151,10 @@ class _VaultViewState extends State<_VaultView> {
                       ? const Border(bottom: BorderSide(color: Pd.hairline))
                       : null,
                 ),
-                child: PdBrandBar(onMarkTap: _toTop, trailing: const DrawerNotificationButton(fromDrawer: true)),
+                child: PdBrandBar(
+                  onMarkTap: _toTop,
+                  trailing: const DrawerNotificationButton(fromDrawer: true),
+                ),
               ),
               Expanded(
                 child: NotificationListener<ScrollNotification>(

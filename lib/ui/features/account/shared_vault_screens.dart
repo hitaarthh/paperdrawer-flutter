@@ -78,7 +78,11 @@ class SharedItemScreen extends StatelessWidget {
   void _back(BuildContext context) =>
       context.canPop() ? context.pop() : context.go(_backRoute);
 
-  Future<void> _delete(BuildContext context, SharedSession session, SharedItem item) async {
+  Future<void> _delete(
+    BuildContext context,
+    SharedSession session,
+    SharedItem item,
+  ) async {
     final confirmed = await showPdConfirm(
       context,
       title: 'Delete this item?',
@@ -91,15 +95,21 @@ class SharedItemScreen extends StatelessWidget {
       await session.deleteItem(item);
       if (context.mounted) _back(context);
     } catch (_) {
-      if (context.mounted) showPdSnackbar(context, 'Couldn’t delete this item. Try again.');
+      if (context.mounted)
+        showPdSnackbar(context, 'Couldn’t delete this item. Try again.');
     }
   }
 
-  Future<void> _openOriginal(BuildContext context, SharedSession session, SharedOriginal file) async {
+  Future<void> _openOriginal(
+    BuildContext context,
+    SharedSession session,
+    SharedOriginal file,
+  ) async {
     try {
       await session.openOriginal(file);
     } catch (_) {
-      if (context.mounted) showPdSnackbar(context, 'Couldn’t open this original. Try again.');
+      if (context.mounted)
+        showPdSnackbar(context, 'Couldn’t open this original. Try again.');
     }
   }
 
@@ -151,36 +161,53 @@ class SharedItemScreen extends StatelessWidget {
       titleStyle: PdType.trackerTitle,
       actions: [
         ItemDetailActions(
-          onEdit: session.claimBusy ? null : () => _open(context, session, item.editPath),
-          onDelete: session.claimBusy ? null : () => _delete(context, session, item),
+          onEdit: session.claimBusy
+              ? null
+              : () => _open(context, session, item.editPath),
+          onDelete: session.claimBusy
+              ? null
+              : () => _delete(context, session, item),
         ),
       ],
-      bottom: original == null ? null : PdButton.primary(
-        label: 'Open original',
-        expand: true,
-        onPressed: () => _openOriginal(context, session, original),
-      ),
+      bottom: original == null
+          ? null
+          : PdButton.primary(
+              label: 'Open original',
+              expand: true,
+              onPressed: () => _openOriginal(context, session, original),
+            ),
       children: [
         ItemDeadlineTicket(summary),
         ItemOriginalPaper(
           summary,
-          fileFormat: original == null ? null : (original.mime == 'application/pdf' ? 'PDF' : 'IMAGE'),
-          original: original == null ? null : _SharedItemOriginal(file: original, session: session),
+          fileFormat: original == null
+              ? null
+              : (original.mime == 'application/pdf' ? 'PDF' : 'IMAGE'),
+          original: original == null
+              ? null
+              : _SharedItemOriginal(file: original, session: session),
           rows: [
             ...itemRecord(summary),
             for (final detail in item.details)
-              if (!const {'Invoice number', 'Serial number', 'Document number'}.contains(detail.$1))
+              if (!const {
+                'Invoice number',
+                'Serial number',
+                'Document number',
+              }.contains(detail.$1))
                 detail,
           ],
         ),
-        if (item.originals.length > 1) _Originals(item.originals.skip(1).toList(), session),
+        if (item.originals.length > 1)
+          _Originals(item.originals.skip(1).toList(), session),
         if (summary.windows.isNotEmpty) ...[
           const SizedBox(height: Pd.s5),
           PdListGroup(
             children: [
               PdListRow(
                 title: 'Email reminders',
-                value: (rem?.emailReminders ?? false) ? '${rem!.leadDays} days before' : 'Off',
+                value: (rem?.emailReminders ?? false)
+                    ? '${rem!.leadDays} days before'
+                    : 'Off',
               ),
             ],
           ),
@@ -536,13 +563,17 @@ class _SharedItemOriginalState extends State<_SharedItemOriginal> {
         Builder(
           builder: (anchor) => PdButton.onPaper(
             label: 'Share file',
-            onPressed: _busy ? null : () {
-              final box = anchor.findRenderObject();
-              final origin = box is RenderBox && box.hasSize
-                  ? box.localToGlobal(Offset.zero) & box.size
-                  : null;
-              _handle(() => widget.session.shareOriginal(file, origin: origin));
-            },
+            onPressed: _busy
+                ? null
+                : () {
+                    final box = anchor.findRenderObject();
+                    final origin = box is RenderBox && box.hasSize
+                        ? box.localToGlobal(Offset.zero) & box.size
+                        : null;
+                    _handle(
+                      () => widget.session.shareOriginal(file, origin: origin),
+                    );
+                  },
           ),
         ),
       ],

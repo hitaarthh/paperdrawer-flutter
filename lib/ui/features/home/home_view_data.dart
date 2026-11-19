@@ -55,7 +55,9 @@ class HomeViewData {
   final List<VaultTicketData> tickets;
 
   static List<VaultTicketData> _upcomingTickets(
-    List<Item> items, DateTime today, DateTime now,
+    List<Item> items,
+    DateTime today,
+    DateTime now,
   ) {
     final upcoming = <(DateTime, VaultTicketData)>[];
     for (final item in items) {
@@ -64,14 +66,21 @@ class HomeViewData {
       final window = summary.next;
       if (window != null) {
         if (window.daysLeft(today) <= ticketWithinDays) {
-          upcoming.add((window.end, VaultTicketData.window(
-            summary, window, '${item.id}/${window.type.name}',
-          )));
+          upcoming.add((
+            window.end,
+            VaultTicketData.window(
+              summary,
+              window,
+              '${item.id}/${window.type.name}',
+            ),
+          ));
         }
         continue;
       }
       final at = item.draft.reminderAt?.toLocal();
-      if (item.draft.remind && at != null && at.isAfter(now) &&
+      if (item.draft.remind &&
+          at != null &&
+          at.isAfter(now) &&
           daysBetween(today, civil(at)) <= ticketWithinDays) {
         upcoming.add((civil(at), VaultTicketData.reminder(item, at, today)));
       }

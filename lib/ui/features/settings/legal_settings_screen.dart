@@ -17,7 +17,8 @@ class LegalSettingsScreen extends StatelessWidget {
     try {
       await const DrawerActions().openLink(Uri.https(_host, path));
     } catch (_) {
-      if (context.mounted) showPdSnackbar(context, 'Couldn’t open the link. Try again.');
+      if (context.mounted)
+        showPdSnackbar(context, 'Couldn’t open the link. Try again.');
     }
   }
 
@@ -26,14 +27,31 @@ class LegalSettingsScreen extends StatelessWidget {
     title: 'Legal & about',
     backLabel: 'Settings',
     glassBack: true,
-    onBack: () => context.canPop() ? context.pop() : context.go(Routes.settings),
+    onBack: () =>
+        context.canPop() ? context.pop() : context.go(Routes.settings),
     children: [
       PdListGroup(
         children: [
-          PdListRow(title: 'Privacy Policy', chevron: true, onTap: () => _open(context, '/privacy')),
-          PdListRow(title: 'Terms of Service', chevron: true, onTap: () => _open(context, '/terms')),
-          PdListRow(title: 'Open-source licenses', chevron: true, onTap: () => context.push(Routes.licenses)),
-          PdListRow(title: 'Paper Drawer website', chevron: true, onTap: () => _open(context, '/')),
+          PdListRow(
+            title: 'Privacy Policy',
+            chevron: true,
+            onTap: () => _open(context, '/privacy'),
+          ),
+          PdListRow(
+            title: 'Terms of Service',
+            chevron: true,
+            onTap: () => _open(context, '/terms'),
+          ),
+          PdListRow(
+            title: 'Open-source licenses',
+            chevron: true,
+            onTap: () => context.push(Routes.licenses),
+          ),
+          PdListRow(
+            title: 'Paper Drawer website',
+            chevron: true,
+            onTap: () => _open(context, '/'),
+          ),
         ],
       ),
     ],
@@ -48,7 +66,8 @@ List<GoRoute> legalRoutes(GlobalKey<NavigatorState> navigatorKey) => [
     routes: [
       GoRoute(
         path: 'licenses',
-        builder: (context, state) => const LicensePage(applicationName: 'Paper Drawer'),
+        builder: (context, state) =>
+            const LicensePage(applicationName: 'Paper Drawer'),
       ),
     ],
   ),

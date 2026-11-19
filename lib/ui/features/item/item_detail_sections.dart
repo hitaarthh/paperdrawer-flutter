@@ -15,7 +15,10 @@ List<(String, String)> itemRecord(ItemSummary summary) {
   final draft = summary.d;
   return [
     if (draft.startsOn case final start?)
-      (draft.kind == ItemKind.bill ? 'PURCHASE DATE' : 'START DATE', longDate(start)),
+      (
+        draft.kind == ItemKind.bill ? 'PURCHASE DATE' : 'START DATE',
+        longDate(start),
+      ),
     if (draft.amountMinor case final amount?)
       (draft.kind.amountLabel, money(amount, draft.currency)),
     if (draft.reference.isNotEmpty)
@@ -26,7 +29,11 @@ List<(String, String)> itemRecord(ItemSummary summary) {
 }
 
 class ItemDetailActions extends StatelessWidget {
-  const ItemDetailActions({required this.onEdit, required this.onDelete, super.key});
+  const ItemDetailActions({
+    required this.onEdit,
+    required this.onDelete,
+    super.key,
+  });
 
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -84,14 +91,16 @@ class ItemDeadlineTicket extends StatelessWidget {
         tone: left >= 0 && left <= 7
             ? VaultTicketTone.signal
             : VaultTicketTone.paper,
-        semanticLabel: '${window.ticketKicker}, ${longDate(window.end)}, ${window.fact(summary.today)}',
+        semanticLabel:
+            '${window.ticketKicker}, ${longDate(window.end)}, ${window.fact(summary.today)}',
       ),
     );
   }
 }
 
 class ItemOriginalPaper extends StatelessWidget {
-  const ItemOriginalPaper(this.summary, {
+  const ItemOriginalPaper(
+    this.summary, {
     this.fileFormat,
     required this.rows,
     this.original,
@@ -106,10 +115,7 @@ class ItemOriginalPaper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final caption = PdType.label.copyWith(color: Pd.inkMuted);
-    final facts = [
-      ('TYPE', summary.item.kind.label),
-      ...rows,
-    ];
+    final facts = [('TYPE', summary.item.kind.label), ...rows];
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: Pd.s3,
@@ -117,7 +123,12 @@ class ItemOriginalPaper extends StatelessWidget {
         Row(
           spacing: Pd.s2,
           children: [
-            Expanded(child: Text(original == null ? 'ON RECORD' : 'ORIGINAL FILE', style: caption)),
+            Expanded(
+              child: Text(
+                original == null ? 'ON RECORD' : 'ORIGINAL FILE',
+                style: caption,
+              ),
+            ),
             if (fileFormat case final format?) Text(format, style: caption),
           ],
         ),
@@ -174,4 +185,3 @@ class ItemCoverage extends StatelessWidget {
     );
   }
 }
-

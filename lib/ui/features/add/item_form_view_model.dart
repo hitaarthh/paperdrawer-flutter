@@ -151,10 +151,13 @@ class ItemFormViewModel extends ChangeNotifier {
 
   bool get remind => _remind;
   DateTime? get reminderAt => _reminderAt;
-  bool get coverageRenews => _active.coverageRenews ??
+  bool get coverageRenews =>
+      _active.coverageRenews ??
       (kind == ItemKind.policy ||
-        (kind == ItemKind.agreement && original?.kind == kind &&
-            subtype != 'Other' && subtype != 'AMC'));
+          (kind == ItemKind.agreement &&
+              original?.kind == kind &&
+              subtype != 'Other' &&
+              subtype != 'AMC'));
   bool get busy => _busy;
   String? get error => _error;
 
@@ -318,7 +321,9 @@ class ItemFormViewModel extends ChangeNotifier {
           : '',
       remind: remind,
       reminderAt: remind ? reminderAt : null,
-      coverageRenews: fileFirst && !shared &&
+      coverageRenews:
+          fileFirst &&
+              !shared &&
               (kind == ItemKind.policy || kind == ItemKind.agreement)
           ? coverageRenews
           : _active.coverageRenews,

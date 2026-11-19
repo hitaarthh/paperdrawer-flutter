@@ -82,7 +82,13 @@ class _ItemDetailView extends StatelessWidget {
       destructive: true,
     );
     if (!context.mounted || !confirmed) return;
-    await _perform(context, model, model.delete(), success: 'Item deleted', pop: true);
+    await _perform(
+      context,
+      model,
+      model.delete(),
+      success: 'Item deleted',
+      pop: true,
+    );
   }
 
   Rect? _origin(BuildContext context) {
@@ -120,7 +126,9 @@ class _ItemDetailView extends StatelessWidget {
     final reminderAt = item.draft.reminderAt;
     final reminder = switch ((remind, reminderAt)) {
       (false, _) => 'None',
-      (true, final DateTime at) => DateFormat('d MMM yyyy · h:mm a').format(at.toLocal()),
+      (true, final DateTime at) => DateFormat(
+        'd MMM yyyy · h:mm a',
+      ).format(at.toLocal()),
       (true, null) => 'Automatic',
     };
     return PdPushedScaffold(
@@ -135,25 +143,31 @@ class _ItemDetailView extends StatelessWidget {
           onDelete: model.busy ? null : () => _delete(context, model),
         ),
       ],
-      bottom: original == null ? null : PdButton.primary(
-        label: 'Open original',
-        expand: true,
-        onPressed: openOriginal,
-      ),
+      bottom: original == null
+          ? null
+          : PdButton.primary(
+              label: 'Open original',
+              expand: true,
+              onPressed: openOriginal,
+            ),
       children: [
         ItemDeadlineTicket(summary),
         ItemOriginalPaper(
           summary,
           rows: itemRecord(summary),
-          fileFormat: original == null ? null : (original.isPdf ? 'PDF' : 'IMAGE'),
-          original: original == null ? null : AttachmentViewer(
-            key: ValueKey('attachment-${original.id}'),
-            attachment: original,
-            thumbnail: model.thumbnail,
-            featured: true,
-            onPaper: true,
-            onOpen: openOriginal,
-          ),
+          fileFormat: original == null
+              ? null
+              : (original.isPdf ? 'PDF' : 'IMAGE'),
+          original: original == null
+              ? null
+              : AttachmentViewer(
+                  key: ValueKey('attachment-${original.id}'),
+                  attachment: original,
+                  thumbnail: model.thumbnail,
+                  featured: true,
+                  onPaper: true,
+                  onOpen: openOriginal,
+                ),
         ),
         for (final attachment in item.attachments.skip(1))
           PdListRow(
@@ -169,7 +183,9 @@ class _ItemDetailView extends StatelessWidget {
           children: [
             PdListRow(
               title: 'Reminder',
-              value: remind && !settings.remindersOn ? '$reminder · Paused' : reminder,
+              value: remind && !settings.remindersOn
+                  ? '$reminder · Paused'
+                  : reminder,
             ),
           ],
         ),
@@ -200,9 +216,13 @@ class _ItemDetailView extends StatelessWidget {
                 builder: (anchor) => PdListRow(
                   key: const ValueKey('item-export-kit'),
                   title: 'Share claim kit',
-                  onTap: model.busy ? null : () => _perform(
-                    context, model, model.exportKit(item, _origin(anchor)),
-                  ),
+                  onTap: model.busy
+                      ? null
+                      : () => _perform(
+                          context,
+                          model,
+                          model.exportKit(item, _origin(anchor)),
+                        ),
                 ),
               ),
             ],
@@ -216,19 +236,29 @@ class _ItemDetailView extends StatelessWidget {
                 builder: (anchor) => PdListRow(
                   key: const ValueKey('item-share'),
                   title: 'Share originals',
-                  onTap: model.busy ? null : () => _perform(
-                    context, model, model.shareOriginals(item, _origin(anchor)),
-                  ),
+                  onTap: model.busy
+                      ? null
+                      : () => _perform(
+                          context,
+                          model,
+                          model.shareOriginals(item, _origin(anchor)),
+                        ),
                 ),
               ),
             PdListRow(
               key: ValueKey(item.isArchived ? 'item-restore' : 'item-archive'),
               title: item.isArchived ? 'Restore to drawer' : 'Move to archive',
-              onTap: model.busy ? null : () => _perform(
-                context, model, model.archive(!item.isArchived),
-                success: item.isArchived ? 'Restored to drawer' : 'Moved to archive',
-                pop: !item.isArchived,
-              ),
+              onTap: model.busy
+                  ? null
+                  : () => _perform(
+                      context,
+                      model,
+                      model.archive(!item.isArchived),
+                      success: item.isArchived
+                          ? 'Restored to drawer'
+                          : 'Moved to archive',
+                      pop: !item.isArchived,
+                    ),
             ),
           ],
         ),

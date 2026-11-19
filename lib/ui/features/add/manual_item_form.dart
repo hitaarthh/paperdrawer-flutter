@@ -107,12 +107,14 @@ class _ManualItemFormState extends State<ManualItemForm> {
       _fileError = null;
     });
     try {
-      final file = (await context.read<CaptureService>().pickFiles(single: true))
-          .firstOrNull;
+      final file = (await context.read<CaptureService>().pickFiles(
+        single: true,
+      )).firstOrNull;
       if (!mounted || file == null) return;
       form.replacePrimary(file);
     } catch (_) {
-      if (mounted) setState(() => _fileError = 'Couldn’t open Files. Try again.');
+      if (mounted)
+        setState(() => _fileError = 'Couldn’t open Files. Try again.');
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -146,7 +148,10 @@ class _ManualItemFormState extends State<ManualItemForm> {
     if (mounted && !_blocked && renews != null) form.setCoverageRenews(renews);
   }
 
-  Future<void> _chooseDate(ItemFormViewModel form, {bool purchase = false}) async {
+  Future<void> _chooseDate(
+    ItemFormViewModel form, {
+    bool purchase = false,
+  }) async {
     final label = purchase ? 'Purchase date' : _dateLabel(form.kind);
     final current = purchase ? form.startsOn : form.coverUntil;
     final actions = current == null
@@ -210,12 +215,17 @@ class _ManualItemFormState extends State<ManualItemForm> {
           try {
             await turnOnReminders(context.read<ReminderScheduler?>(), settings);
           } catch (_) {
-            if (mounted) showPdSnackbar(context, 'Check notification access in Settings.');
+            if (mounted)
+              showPdSnackbar(context, 'Check notification access in Settings.');
           }
           if (!mounted) return;
         }
       }
-      showPdSnackbar(context, _editing ? 'Changes saved' : 'Saved to drawer', success: true);
+      showPdSnackbar(
+        context,
+        _editing ? 'Changes saved' : 'Saved to drawer',
+        success: true,
+      );
       if (_editing && context.canPop()) {
         context.pop();
       } else {
@@ -233,7 +243,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
       if (target != null) {
         Scrollable.ensureVisible(target, alignment: .15);
       } else {
-        _scroll.jumpTo(field == _fileField ? 0 : _scroll.position.maxScrollExtent);
+        _scroll.jumpTo(
+          field == _fileField ? 0 : _scroll.position.maxScrollExtent,
+        );
       }
     });
   }
@@ -255,8 +267,10 @@ class _ManualItemFormState extends State<ManualItemForm> {
     return ListenableBuilder(
       listenable: form,
       builder: (context, _) {
-        final name = form.added.firstOrNull?.name ?? form.retained.firstOrNull?.name;
-        final allowsMeaning = !widget.shared &&
+        final name =
+            form.added.firstOrNull?.name ?? form.retained.firstOrNull?.name;
+        final allowsMeaning =
+            !widget.shared &&
             (form.kind == ItemKind.policy || form.kind == ItemKind.agreement);
         return PopScope(
           canPop: !_blocked,
@@ -279,14 +293,19 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 label: 'Original file',
                 value: name ?? '',
                 hint: 'Choose from Files',
-                onTap: () { if (!_blocked) _pick(form); },
+                onTap: () {
+                  if (!_blocked) _pick(form);
+                },
               ),
               if (_fileError case final error?)
                 KeyedSubtree(key: _fileField, child: _inlineError(error))
               else if (name == null)
                 Padding(
                   padding: const EdgeInsets.only(top: Pd.s1),
-                  child: Text('PDF or image', style: PdType.footnote.copyWith(color: Pd.textMuted)),
+                  child: Text(
+                    'PDF or image',
+                    style: PdType.footnote.copyWith(color: Pd.textMuted),
+                  ),
                 ),
               const SizedBox(height: Pd.s4),
               PdTextField(
@@ -302,7 +321,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 key: const ValueKey('item-kind-picker'),
                 label: 'Type',
                 value: _kindLabel(form.kind),
-                onTap: () { if (!_blocked) _chooseKind(form); },
+                onTap: () {
+                  if (!_blocked) _chooseKind(form);
+                },
               ),
               if (widget.shared && form.kind == ItemKind.bill) ...[
                 const SizedBox(height: Pd.s4),
@@ -311,7 +332,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
                   label: 'Purchase date',
                   value: form.startsOn == null ? '' : longDate(form.startsOn!),
                   hint: 'Required',
-                  onTap: () { if (!_blocked) _chooseDate(form, purchase: true); },
+                  onTap: () {
+                    if (!_blocked) _chooseDate(form, purchase: true);
+                  },
                 ),
               ],
               const SizedBox(height: Pd.s4),
@@ -319,17 +342,27 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 PdFieldButton(
                   key: const ValueKey('coverage-date-kind'),
                   label: 'Date type',
-                  value: form.coverageRenews ? 'Renewal' : (form.kind == ItemKind.policy ? 'Expiry' : 'End date'),
-                  onTap: () { if (!_blocked) _chooseMeaning(form); },
+                  value: form.coverageRenews
+                      ? 'Renewal'
+                      : (form.kind == ItemKind.policy ? 'Expiry' : 'End date'),
+                  onTap: () {
+                    if (!_blocked) _chooseMeaning(form);
+                  },
                 ),
                 const SizedBox(height: Pd.s3),
               ],
               PdFieldButton(
                 key: const ValueKey('coverage-date'),
                 label: _dateLabel(form.kind),
-                value: form.coverUntil == null ? '' : longDate(form.coverUntil!),
-                hint: widget.shared && form.kind != ItemKind.bill ? 'Required' : 'Optional',
-                onTap: () { if (!_blocked) _chooseDate(form); },
+                value: form.coverUntil == null
+                    ? ''
+                    : longDate(form.coverUntil!),
+                hint: widget.shared && form.kind != ItemKind.bill
+                    ? 'Required'
+                    : 'Optional',
+                onTap: () {
+                  if (!_blocked) _chooseDate(form);
+                },
               ),
               if (!widget.shared) ...[
                 const SizedBox(height: Pd.s4),
@@ -338,21 +371,28 @@ class _ManualItemFormState extends State<ManualItemForm> {
                   trailing: PdSwitch(
                     key: const ValueKey('item-reminder-switch'),
                     value: form.remind,
-                    onChanged: _blocked ? null : (enabled) {
-                      if (!enabled) {
-                        form.setRemind(false);
-                      } else {
-                        _chooseReminder(form);
-                      }
-                    },
+                    onChanged: _blocked
+                        ? null
+                        : (enabled) {
+                            if (!enabled) {
+                              form.setRemind(false);
+                            } else {
+                              _chooseReminder(form);
+                            }
+                          },
                   ),
                 ),
                 if (form.remind)
                   PdFieldButton(
                     key: const ValueKey('item-reminder-date'),
                     label: 'Reminder date and time',
-                    value: form.reminderAt == null ? 'Automatic' : DateFormat('d MMM yyyy, h:mm a').format(form.reminderAt!.toLocal()),
-                    onTap: () { if (!_blocked) _chooseReminder(form); },
+                    value: form.reminderAt == null
+                        ? 'Automatic'
+                        : DateFormat('d MMM yyyy, h:mm a')
+                              .format(form.reminderAt!.toLocal()),
+                    onTap: () {
+                      if (!_blocked) _chooseReminder(form);
+                    },
                   ),
               ],
               if (form.error case final error?)
@@ -366,7 +406,10 @@ class _ManualItemFormState extends State<ManualItemForm> {
 
   Widget _inlineError(String message) => Padding(
     padding: const EdgeInsets.only(top: Pd.s2),
-    child: Semantics(liveRegion: true, child: Text(message, style: PdType.footnote.copyWith(color: Pd.signal))),
+    child: Semantics(
+      liveRegion: true,
+      child: Text(message, style: PdType.footnote.copyWith(color: Pd.signal)),
+    ),
   );
 
   String _dateLabel(ItemKind kind) => switch (kind) {
@@ -376,5 +419,6 @@ class _ManualItemFormState extends State<ManualItemForm> {
     ItemKind.agreement => 'Agreement date',
   };
 
-  String _kindLabel(ItemKind kind) => kind == ItemKind.vehicle ? 'Vehicle papers' : kind.label;
+  String _kindLabel(ItemKind kind) =>
+      kind == ItemKind.vehicle ? 'Vehicle papers' : kind.label;
 }

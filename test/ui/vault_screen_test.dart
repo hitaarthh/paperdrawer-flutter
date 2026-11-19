@@ -28,32 +28,24 @@ void main() {
         await _launch(tester, _Items([]), scale: scale);
 
         expect(find.text('000 ITEMS · NOTHING DUE'), findsNothing);
-        expect(find.text('The vault'), findsOneWidget);
-        expect(find.text('Add the last thing you bought.'), findsOneWidget);
-        expect(_key('scan-first-bill'), findsOneWidget);
+        expect(find.text('Your drawer'), findsOneWidget);
+        expect(find.text('Add your first file.'), findsOneWidget);
+        expect(_key('drawer-add-first-file'), findsOneWidget);
         expect(_key('vault-search'), findsNothing);
-        for (final kind in ['policy', 'vehicle', 'agreement']) {
-          await tester.ensureVisible(_key('vault-start-$kind'));
-          expect(_key('vault-start-$kind'), findsOneWidget);
-        }
+        expect(_key('drawer-notifications'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }
 
-    testWidgets('start rows and Scan or add open the add sheet', (
+    testWidgets('empty Drawer and dock open the same Files form', (
       tester,
     ) async {
       await _launch(tester, _Items([]));
-
-      await _tap(tester, 'vault-start-policy');
-      expect(_key('add-sheet'), findsOneWidget);
-      await tester.tapAt(const Offset(20, 120));
-      await tester.pumpAndSettle();
-      expect(_key('add-sheet'), findsNothing);
-
-      expect(_key('vault-scan'), findsNothing);
+      await _tap(tester, 'drawer-add-first-file');
+      expect(find.text('Choose from Files'), findsOneWidget);
+      await _tap(tester, 'close-button');
       await _tap(tester, 'scan-or-add');
-      expect(_key('add-sheet'), findsOneWidget);
+      expect(find.text('Choose from Files'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -67,14 +59,14 @@ void main() {
           find.text('005 ITEMS · 4 DUE SOON · 1 OPEN CLAIM'),
           findsNothing,
         );
-        expect(find.text('The vault'), findsOneWidget);
+        expect(find.text('Your drawer'), findsOneWidget);
         expect(_key('vault-search'), findsOneWidget);
         expect(find.text('5 OF 25'), findsOneWidget);
         expect(find.text('DUE NEXT'), findsNothing);
         expect(find.byType(VaultTicket), findsNothing);
         await tester.ensureVisible(_key('vault-filter-expired'));
         await tester.pumpAndSettle();
-        expect(find.text('ENDED 0'), findsOneWidget);
+        expect(find.text('EXPIRED 0'), findsOneWidget);
         expect(find.text('SORTED BY WHAT’S DUE FIRST'), findsOneWidget);
 
         for (final id in ['earbuds', 'policy', 'puc', 'washer', 'laptop']) {
@@ -115,7 +107,7 @@ void main() {
         await _tap(tester, 'vault-item-fan');
 
         expect(find.text('Ceiling fan'), findsOneWidget);
-        expect(find.text('Return by 20 Nov'), findsOneWidget);
+        expect(find.text('20 Nov 2026'), findsOneWidget);
         final verticalScroll = find
             .byWidgetPredicate(
               (widget) =>
@@ -123,12 +115,7 @@ void main() {
                   widget.axisDirection == AxisDirection.down,
             )
             .first;
-        for (final section in [
-          'Original on file',
-          'Coverage',
-          'Claim kit',
-          'FAN-230',
-        ]) {
+        for (final section in ['ORIGINAL FILE', 'FAN-230', 'Coverage']) {
           await tester.scrollUntilVisible(
             find.text(section),
             170,
@@ -141,7 +128,7 @@ void main() {
     );
 
     testWidgets(
-      'Home shows two deadline tickets and opens the Due soon filter',
+      'Home shows the next dates within two weeks and Drawer keeps its Due soon filter',
       (tester) async {
         await _launch(
           tester,
@@ -164,8 +151,9 @@ void main() {
         expect(second.number, '12');
         expect(_key('home-ticket-puc/validity'), findsNothing);
 
-        await _tap(tester, 'home-more-due');
-        expect(find.text('The vault'), findsOneWidget);
+        await _tap(tester, 'vault-tab');
+        await _tap(tester, 'vault-filter-due');
+        expect(find.text('Your drawer'), findsOneWidget);
         expect(find.text('DUE SOON 4'), findsOneWidget);
         expect(_key('vault-item-laptop'), findsNothing);
         expect(tester.takeException(), isNull);
@@ -183,7 +171,8 @@ void main() {
         );
 
         await _tap(tester, 'home-ticket-earbuds/returnWindow');
-        expect(_key('item-claim'), findsOneWidget);
+        expect(_key('item-edit'), findsOneWidget);
+        expect(_key('drawer-notifications'), findsNothing);
         await _tap(tester, 'back-button');
         expect(_key('coming-up-list'), findsOneWidget);
 
@@ -249,11 +238,11 @@ void main() {
     testWidgets('filter tabs and search narrow the list', (tester) async {
       await _launch(tester, _fullItems(), claims: _claims());
 
-      await _tap(tester, 'vault-filter-inClaim');
-      expect(_key('vault-item-laptop'), findsOneWidget);
+      await _tap(tester, 'vault-filter-undated');
+      expect(find.text('Every file has a tracked date'), findsOneWidget);
       expect(_key('vault-item-earbuds'), findsNothing);
       await _tap(tester, 'vault-filter-expired');
-      expect(find.text('Nothing has ended'), findsOneWidget);
+      expect(find.text('No expired files'), findsOneWidget);
       await _tap(tester, 'vault-filter-all');
 
       await tester.scrollUntilVisible(

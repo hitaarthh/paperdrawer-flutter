@@ -18,10 +18,7 @@ import '../../core/widgets/nav.dart';
 import '../account/shared_session.dart';
 
 class DrawerNotificationButton extends StatelessWidget {
-  const DrawerNotificationButton({
-    this.fromDrawer = false,
-    super.key,
-  });
+  const DrawerNotificationButton({this.fromDrawer = false, super.key});
 
   final bool fromDrawer;
 
@@ -35,7 +32,11 @@ class DrawerNotificationButton extends StatelessWidget {
 }
 
 class ReminderInbox extends StatelessWidget {
-  const ReminderInbox({this.fromDrawer = false, this.shared = false, super.key});
+  const ReminderInbox({
+    this.fromDrawer = false,
+    this.shared = false,
+    super.key,
+  });
 
   final bool fromDrawer;
   final bool shared;
@@ -76,7 +77,9 @@ class ReminderInbox extends StatelessWidget {
       title: 'Notifications',
       backLabel: fromDrawer ? 'Drawer' : 'Home',
       glassBack: true,
-      onBack: () => context.canPop() ? context.pop() : context.go(fromDrawer ? Routes.vault : Routes.home),
+      onBack: () => context.canPop()
+          ? context.pop()
+          : context.go(fromDrawer ? Routes.vault : Routes.home),
       children: [
         if (reminders.isEmpty)
           DashedTile(title: emptyTitle, body: emptyBody)

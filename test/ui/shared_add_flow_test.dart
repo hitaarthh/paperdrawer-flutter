@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/services/capture_service.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
@@ -12,10 +13,10 @@ import 'package:paperdrawer/data/services/text_recognizer.dart';
 import 'package:paperdrawer/data/services/today.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/domain/models/shared_vault.dart';
+import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/features/account/shared_session.dart';
-import 'package:paperdrawer/ui/features/add/reading_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -24,8 +25,9 @@ void main() {
     tester,
   ) async {
     final (session, service, capture) = await _launch(tester);
-    await _tap(tester, 'scan-or-add');
-    await _tap(tester, 'add-sheet-camera');
+    final router = GoRouter.of(tester.element(find.text('Coming up')));
+    router.push(Routes.camera);
+    await tester.pumpAndSettle();
     expect(capture.cameraOpens, 1);
     await _tap(tester, 'capture-shutter');
     await _tap(tester, 'capture-shutter');
@@ -50,37 +52,24 @@ void main() {
     expect(service.draft?.reference, '4615-A');
     expect(service.draft?.startsOn, DateTime.utc(2025, 11, 6));
     expect(service.draft?.amountMinor, 7950);
-    expect(find.text('Original on file'), findsOneWidget);
+    expect(find.text('ORIGINAL FILE'), findsOneWidget);
     expect(session.vault?.items.single.item.name, 'Air cooler');
     expect(session.webOpens, 0);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('shared Add opens native pickers and handles cancellation', (
+  testWidgets('shared Add uses Files and stays open after cancellation', (
     tester,
   ) async {
     final (session, service, capture) = await _launch(tester);
+    capture.cancelFile = true;
     await _tap(tester, 'scan-or-add');
-    await _tap(tester, 'add-kind-policy');
-    await _tap(tester, 'add-sheet-upload');
-    await tester.tap(find.text('Choose from Photos'));
-    await tester.pumpAndSettle();
-    expect(capture.singlePhoto, isTrue);
-    expect(find.byKey(const ValueKey('scan-or-add')), findsOneWidget);
-
-    await _tap(tester, 'scan-or-add');
-    await _tap(tester, 'add-kind-policy');
-    await _tap(tester, 'add-sheet-upload');
-    await tester.tap(find.text('Browse Files'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 450));
+    await _tap(tester, 'choose-original');
     expect(capture.singleFile, isTrue);
-    final reading = tester.widget<ReadingScreen>(find.byType(ReadingScreen));
-    expect(reading.kind, ItemKind.policy);
-    expect(reading.files.single.name, 'policy.pdf');
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
-    expect(find.text('Check what we read'), findsOneWidget);
+    expect(find.text('Choose from Files'), findsOneWidget);
+    capture.cancelFile = false;
+    await _tap(tester, 'choose-original');
+    expect(find.text('policy.pdf'), findsOneWidget);
     expect(service.attempts, isEmpty);
     expect(session.webOpens, 0);
     expect(tester.takeException(), isNull);
@@ -91,9 +80,11 @@ void main() {
   ) async {
     final (session, service, _) = await _launch(tester);
     await _tap(tester, 'scan-or-add');
-    await _tap(tester, 'add-kind-agreement');
-    await _tap(tester, 'add-sheet-manual');
-    expect(find.text('Check the details'), findsOneWidget);
+    await _tap(tester, 'choose-original');
+    await _tap(tester, 'item-kind-picker');
+    await tester.tap(find.text('Agreement'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add a file'), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('item-name')),
       'Studio lease',
@@ -104,7 +95,7 @@ void main() {
       findsOneWidget,
     );
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('item-cover-date')),
+      find.byKey(const ValueKey('coverage-date')),
       250,
       scrollable: find
           .descendant(
@@ -113,16 +104,14 @@ void main() {
           )
           .first,
     );
-    await _tap(tester, 'item-cover-date');
-    await tester.tap(find.text('Choose a date').last);
-    await tester.pumpAndSettle();
+    await _tap(tester, 'coverage-date');
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     await _tap(tester, 'save-to-drawer');
 
     expect(service.draft?.kind, ItemKind.agreement);
     expect(service.draft?.coverUntil, isNotNull);
-    expect(service.original, isNull);
+    expect(service.original?.name, 'policy.pdf');
     expect(session.vault?.items.single.item.name, 'Studio lease');
     expect(session.webOpens, 0);
     expect(tester.takeException(), isNull);
@@ -267,7 +256,7 @@ class _UnusedClient implements SupabaseClient {
 class _Capture extends CaptureService {
   int cameraOpens = 0;
   bool singleFile = false;
-  bool singlePhoto = false;
+  bool cancelFile = false;
 
   @override
   Future<CaptureSession> openCamera() async {
@@ -282,13 +271,9 @@ class _Capture extends CaptureService {
   @override
   Future<List<PendingFile>> pickFiles({bool single = false}) async {
     singleFile = single;
-    return const [PendingFile(path: '/tmp/policy.pdf', name: 'policy.pdf')];
-  }
-
-  @override
-  Future<List<PendingFile>> pickPhotos({bool single = false}) async {
-    singlePhoto = single;
-    return const [];
+    return cancelFile
+        ? const []
+        : const [PendingFile(path: '/tmp/policy.pdf', name: 'policy.pdf')];
   }
 }
 

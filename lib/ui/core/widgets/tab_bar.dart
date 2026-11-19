@@ -101,7 +101,11 @@ class PdTabBar extends StatelessWidget {
           if (homeFirst && index == 2) _add(),
           Expanded(
             child: _DockButton(
-              key: ValueKey(glyph == PdGlyph.vault ? 'vault-tab' : '${title.toLowerCase()}-tab'),
+              key: ValueKey(
+                glyph == PdGlyph.vault
+                    ? 'vault-tab'
+                    : '${title.toLowerCase()}-tab',
+              ),
               title: title,
               glyph: glyph,
               selected: index == currentIndex,
@@ -224,4 +228,3 @@ class _DockButton extends StatelessWidget {
     );
   }
 }
-

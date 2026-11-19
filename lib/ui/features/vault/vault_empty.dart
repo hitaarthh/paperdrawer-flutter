@@ -16,13 +16,17 @@ class VaultEmpty extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: Pd.s3,
       children: [
-        Text('WELCOME TO PAPER DRAWER',
-            style: PdType.label.copyWith(color: Pd.inkMuted)),
+        Text(
+          'WELCOME TO PAPER DRAWER',
+          style: PdType.label.copyWith(color: Pd.inkMuted),
+        ),
         const DashedRule(),
         Semantics(
           header: true,
-          child: Text('Add your first file.',
-              style: PdType.title1.copyWith(color: Pd.ink)),
+          child: Text(
+            'Add your first file.',
+            style: PdType.title1.copyWith(color: Pd.ink),
+          ),
         ),
         Text(
           'Pick a bill, policy, vehicle document or agreement from Files. '
@@ -83,4 +87,3 @@ class _InkButton extends StatelessWidget {
     ),
   );
 }
-

@@ -117,9 +117,12 @@ class ItemRepository extends ChangeNotifier {
             [copied.length, id],
           );
         }
-        await _insertAttachments(txn, id, copied,
-            firstPosition: prependOriginal ? 0 : kept);
-
+        await _insertAttachments(
+          txn,
+          id,
+          copied,
+          firstPosition: prependOriginal ? 0 : kept,
+        );
       });
     } catch (_) {
       await _removeFiles(copied);
@@ -253,7 +256,11 @@ class ItemRepository extends ChangeNotifier {
         : '',
     'remind': d.remind ? 1 : 0,
     'reminder_at': d.reminderAt?.millisecondsSinceEpoch,
-    'coverage_renews': switch (d.coverageRenews) {true => 1, false => 0, null => null},
+    'coverage_renews': switch (d.coverageRenews) {
+      true => 1,
+      false => 0,
+      null => null,
+    },
   };
 
   Future<List<Item>> _readAll() async {
@@ -310,9 +317,15 @@ class ItemRepository extends ChangeNotifier {
                   row['component_warranty_name'] as String? ?? '',
               remind: (row['remind'] as int? ?? 1) == 1,
               reminderAt: row['reminder_at'] is int
-                  ? DateTime.fromMillisecondsSinceEpoch(row['reminder_at']! as int)
+                  ? DateTime.fromMillisecondsSinceEpoch(
+                      row['reminder_at']! as int,
+                    )
                   : null,
-              coverageRenews: switch (row['coverage_renews']) {1 => true, 0 => false, _ => null},
+              coverageRenews: switch (row['coverage_renews']) {
+                1 => true,
+                0 => false,
+                _ => null,
+              },
             ),
           );
         })

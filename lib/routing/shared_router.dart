@@ -19,143 +19,142 @@ import 'router.dart';
 GoRouter buildSharedRouter(SharedSession session) {
   final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shared root');
   return GoRouter(
-  navigatorKey: navigatorKey,
-  initialLocation: '/home',
-  refreshListenable: session,
-  redirect: (context, state) {
-    final signingIn = const {
-      '/intro',
-      '/account',
-    }.contains(state.matchedLocation);
-    // Signed out, the app opens on the intro, which leads to the account.
-    if (!session.signedIn && !signingIn) return '/intro';
-    if (session.signedIn && signingIn) return '/home';
-    return null;
-  },
-  routes: [
-    GoRoute(
-      path: '/intro',
-      builder: (context, state) => IntroFlow(
-        onStart: () => context.go('/account?mode=create'),
-        onSignIn: () => context.go('/account'),
+    navigatorKey: navigatorKey,
+    initialLocation: '/home',
+    refreshListenable: session,
+    redirect: (context, state) {
+      final signingIn = const {
+        '/intro',
+        '/account',
+      }.contains(state.matchedLocation);
+      // Signed out, the app opens on the intro, which leads to the account.
+      if (!session.signedIn && !signingIn) return '/intro';
+      if (session.signedIn && signingIn) return '/home';
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/intro',
+        builder: (context, state) => IntroFlow(
+          onStart: () => context.go('/account?mode=create'),
+          onSignIn: () => context.go('/account'),
+        ),
       ),
-    ),
-    GoRoute(
-      path: '/account',
-      builder: (context, state) => AccountScreen(
-        // A new key per mode, so switching modes from the intro resets it.
-        key: ValueKey(state.uri.queryParameters['mode']),
-        session: session,
-        startCreating: state.uri.queryParameters['mode'] == 'create',
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => AccountScreen(
+          // A new key per mode, so switching modes from the intro resets it.
+          key: ValueKey(state.uri.queryParameters['mode']),
+          session: session,
+          startCreating: state.uri.queryParameters['mode'] == 'create',
+        ),
       ),
-    ),
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => ListenableBuilder(
-        listenable: session,
-        builder: (context, child) {
-          final vault = session.vault;
-          return Scaffold(
-            backgroundColor: Pd.bg,
-            extendBody: true,
-            body: child,
-            bottomNavigationBar: PdTabBar(
-              currentIndex: shell.currentIndex,
-              homeFirst: true,
-              onTap: (index) => shell.goBranch(
-                index,
-                initialLocation: index == shell.currentIndex,
-              ),
-              onScan: vault == null
-                  ? null
-                  : () => showSharedManualAdd(context, vault),
-            ),
-          );
-        },
-        child: shell,
-      ),
-      branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/home',
-              builder: (context, state) => const ComingUpScreen(shared: true),
-              routes: [
-                GoRoute(
-                  path: 'item/:id',
-                  parentNavigatorKey: navigatorKey,
-                  builder: (context, state) => SharedItemScreen(
-                    state.pathParameters['id']!,
-                    fromHome: true,
-                  ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => ListenableBuilder(
+          listenable: session,
+          builder: (context, child) {
+            final vault = session.vault;
+            return Scaffold(
+              backgroundColor: Pd.bg,
+              extendBody: true,
+              body: child,
+              bottomNavigationBar: PdTabBar(
+                currentIndex: shell.currentIndex,
+                homeFirst: true,
+                onTap: (index) => shell.goBranch(
+                  index,
+                  initialLocation: index == shell.currentIndex,
                 ),
-              ],
-            ),
-            GoRoute(
-              path: '/claims',
-              builder: (context, state) =>
-                  const ClaimHistoryScreen(shared: true),
-              routes: [
-                GoRoute(
-                  path: ':id',
-                  builder: (context, state) =>
-                      SharedClaimLedgerScreen(state.pathParameters['id']!),
-                  routes: [
-                    GoRoute(
-                      path: 'guidance',
-                      builder: (context, state) =>
-                          SharedClaimScreen(state.pathParameters['id']!),
+                onScan: vault == null
+                    ? null
+                    : () => showSharedManualAdd(context, vault),
+              ),
+            );
+          },
+          child: shell,
+        ),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const ComingUpScreen(shared: true),
+                routes: [
+                  GoRoute(
+                    path: 'item/:id',
+                    parentNavigatorKey: navigatorKey,
+                    builder: (context, state) => SharedItemScreen(
+                      state.pathParameters['id']!,
+                      fromHome: true,
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/vault',
-              builder: (context, state) => SharedVaultScreen(
-                showDue: state.uri.queryParameters['filter'] == 'due',
+                  ),
+                ],
               ),
-              routes: [
-                GoRoute(
-                  path: 'item/:id',
-                  parentNavigatorKey: navigatorKey,
-                  builder: (context, state) =>
-                      SharedItemScreen(state.pathParameters['id']!),
+              GoRoute(
+                path: '/claims',
+                builder: (context, state) =>
+                    const ClaimHistoryScreen(shared: true),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) =>
+                        SharedClaimLedgerScreen(state.pathParameters['id']!),
+                    routes: [
+                      GoRoute(
+                        path: 'guidance',
+                        builder: (context, state) =>
+                            SharedClaimScreen(state.pathParameters['id']!),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/vault',
+                builder: (context, state) => SharedVaultScreen(
+                  showDue: state.uri.queryParameters['filter'] == 'due',
                 ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/settings',
-              builder: (context, state) => const SharedSettingsScreen(),
-              routes: [
-                GoRoute(
-                  path: 'notifications',
-                  parentNavigatorKey: navigatorKey,
-                  builder: (context, state) => const SharedSettingsScreen(notificationsOnly: true),
-                ),
-                ...legalRoutes(navigatorKey),
-              ],
-            ),
-          ],
-        ),
-      ],
-    ),
-    GoRoute(
-      path: Routes.notifications,
-      parentNavigatorKey: navigatorKey,
-      builder: (context, state) => ReminderInbox(
-        fromDrawer: state.extra == true,
-        shared: true,
+                routes: [
+                  GoRoute(
+                    path: 'item/:id',
+                    parentNavigatorKey: navigatorKey,
+                    builder: (context, state) =>
+                        SharedItemScreen(state.pathParameters['id']!),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const SharedSettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'notifications',
+                    parentNavigatorKey: navigatorKey,
+                    builder: (context, state) =>
+                        const SharedSettingsScreen(notificationsOnly: true),
+                  ),
+                  ...legalRoutes(navigatorKey),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
-    ),
-    ...buildAddRoutes(navigatorKey: navigatorKey, shared: true),
-  ],
-);
+      GoRoute(
+        path: Routes.notifications,
+        parentNavigatorKey: navigatorKey,
+        builder: (context, state) =>
+            ReminderInbox(fromDrawer: state.extra == true, shared: true),
+      ),
+      ...buildAddRoutes(navigatorKey: navigatorKey, shared: true),
+    ],
+  );
 }

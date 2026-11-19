@@ -64,7 +64,9 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                height: document.isPdf ? Pd.s12 : (widget.featured ? 160 : Pd.s12 + Pd.s6),
+                height: document.isPdf
+                    ? Pd.s12
+                    : (widget.featured ? 160 : Pd.s12 + Pd.s6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(Pd.rSm),
                   child: ColoredBox(
@@ -88,7 +90,9 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
               const SizedBox(height: Pd.s1),
               Text(
                 document.name,
-                style: PdType.footnote.copyWith(color: widget.onPaper ? Pd.ink : Pd.text),
+                style: PdType.footnote.copyWith(
+                  color: widget.onPaper ? Pd.ink : Pd.text,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

@@ -23,6 +23,7 @@ void main() {
     expect(find.text('AR'), findsOneWidget);
     expect(find.text('0 OF 25 ITEMS'), findsOneWidget);
     expect(tester.widget<MeterBar>(find.byType(MeterBar)).fraction, 0);
+    await _tap(tester, 'settings-open-notifications');
     expect(_emailSwitch(tester).value, isTrue);
 
     await _tap(tester, 'shared-settings-lead-7');
@@ -52,30 +53,26 @@ void main() {
     'the full Settings page scrolls at 130% text and opens web flows',
     (tester) async {
       final (session, _) = await _openSettings(tester, scale: 1.3);
-      await _tap(tester, 'shared-settings-plans');
-      expect(session.webPaths.last, '/pricing');
+      await _tap(tester, 'settings-open-notifications');
       await _tap(tester, 'shared-settings-web-reminders');
       expect(session.webPaths.last, '/settings#reminders');
-      expect(find.text('Coming soon with Pro'), findsOneWidget);
-      expect(
-        find.byType(PdSwitch).evaluate().where((element) {
-          return (element.widget as PdSwitch).onChanged == null;
-        }),
-        hasLength(2),
-      );
+      expect(find.byType(PdSwitch), findsOneWidget);
+      await _tap(tester, 'back-button');
       await _tap(tester, 'shared-settings-export');
       expect(session.webPaths.last, '/settings#data');
       await _tap(tester, 'shared-settings-delete');
       expect(session.webPaths.last, '/delete-account');
-      await _tap(tester, 'shared-settings-privacy');
-      expect(session.webPaths.last, '/privacy');
-      await _tap(tester, 'shared-settings-terms');
-      expect(session.webPaths.last, '/terms');
-      expect(find.text('VERSION 0.1.0'), findsOneWidget);
+      await _tap(tester, 'settings-legal');
+      expect(find.text('Privacy Policy'), findsOneWidget);
+      expect(find.text('Terms of Service'), findsOneWidget);
+      expect(find.text('Open-source licenses'), findsOneWidget);
+      expect(find.text('Paper Drawer website'), findsOneWidget);
+      await _tap(tester, 'back-button');
+      expect(find.text('0.1.0'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       await _tap(tester, 'brand-mark');
-      expect(find.text('The vault'), findsOneWidget);
+      expect(find.text('Your drawer'), findsOneWidget);
       await _tap(tester, 'settings-tab');
       await _tap(tester, 'account-sign-out');
       expect(find.text('Keep it.'), findsOneWidget);

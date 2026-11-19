@@ -10,7 +10,10 @@ class PdGlassSurface extends StatelessWidget {
   final Widget child;
 
   static const radius = BorderRadius.all(Radius.circular(Pd.rPill));
-  static final _blur = ImageFilter.blur(sigmaX: Pd.dockBlur, sigmaY: Pd.dockBlur);
+  static final _blur = ImageFilter.blur(
+    sigmaX: Pd.dockBlur,
+    sigmaY: Pd.dockBlur,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +103,10 @@ class _GlassRim extends CustomPainter {
       ).createShader(rect);
     }
     canvas.drawRRect(
-      PdGlassSurface.radius.toRRect(rect).scaleRadii().deflate(paint.strokeWidth / 2),
+      PdGlassSurface.radius
+          .toRRect(rect)
+          .scaleRadii()
+          .deflate(paint.strokeWidth / 2),
       paint,
     );
   }

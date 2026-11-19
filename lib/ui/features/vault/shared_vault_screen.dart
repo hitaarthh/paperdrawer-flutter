@@ -69,7 +69,9 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: Column(
             children: [
-              const PdBrandBar(trailing: DrawerNotificationButton(fromDrawer: true)),
+              const PdBrandBar(
+                trailing: DrawerNotificationButton(fromDrawer: true),
+              ),
               Expanded(
                 child: RefreshIndicator.adaptive(
                   onRefresh: session.refresh,
@@ -96,7 +98,9 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
                         ),
                       if (vault != null && summaries.isEmpty)
                         _inset(
-                          VaultEmpty(onAdd: () => showSharedManualAdd(context, vault)),
+                          VaultEmpty(
+                            onAdd: () => showSharedManualAdd(context, vault),
+                          ),
                         ),
                       if (vault != null && summaries.isNotEmpty)
                         ..._full(summaries),

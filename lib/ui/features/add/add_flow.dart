@@ -19,7 +19,10 @@ enum _LimitAction { review, waitlist }
 abstract final class AddFlow {
   static void manual(BuildContext context, {ItemKind kind = ItemKind.bill}) {
     if (context.read<ItemRepository>().atLimit) {
-      showPdSnackbar(context, 'Your Base drawer is full. Archive a file to make room.');
+      showPdSnackbar(
+        context,
+        'Your Base drawer is full. Archive a file to make room.',
+      );
       return;
     }
     context.push(Routes.add, extra: kind);

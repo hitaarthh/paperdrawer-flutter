@@ -128,7 +128,8 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                 GoRoute(
                   path: 'notifications',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => const SettingsScreen(notificationsOnly: true),
+                  builder: (context, state) =>
+                      const SettingsScreen(notificationsOnly: true),
                 ),
                 ...legalRoutes(rootNavigatorKey),
                 GoRoute(
@@ -144,9 +145,8 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
     GoRoute(
       path: Routes.notifications,
       parentNavigatorKey: rootNavigatorKey,
-      builder: (context, state) => ReminderInbox(
-        fromDrawer: state.extra == true,
-      ),
+      builder: (context, state) =>
+          ReminderInbox(fromDrawer: state.extra == true),
     ),
     ...buildAddRoutes(navigatorKey: rootNavigatorKey),
     // The one-time "Turn on reminders" offer, pushed after a first save.
@@ -183,7 +183,9 @@ List<GoRoute> buildAddRoutes({
       key: state.pageKey,
       fullscreenDialog: true,
       child: ManualItemForm(
-        kind: state.extra is ItemKind ? state.extra! as ItemKind : ItemKind.bill,
+        kind: state.extra is ItemKind
+            ? state.extra! as ItemKind
+            : ItemKind.bill,
         shared: shared,
       ),
     ),

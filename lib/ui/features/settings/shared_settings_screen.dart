@@ -76,28 +76,22 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
       return PdPushedScaffold(
         backLabel: 'Settings',
         glassBack: true,
-        onBack: () => context.canPop() ? context.pop() : context.go(Routes.settings),
+        onBack: () =>
+            context.canPop() ? context.pop() : context.go(Routes.settings),
         title: 'Reminders & notifications',
         children: [
-                                SharedReminderSettings(
-                                  profile: profile,
-                                  email: session.email,
-                                  loading: session.loading,
-                                  onLeadChanged: canEditReminders
-                                      ? (days) => _saveReminders(
-                                          session,
-                                          leadDays: days,
-                                        )
-                                      : null,
-                                  onEmailChanged: canEditReminders
-                                      ? (enabled) => _saveReminders(
-                                          session,
-                                          emailReminders: enabled,
-                                        )
-                                      : null,
-                                  onOpenWeb: () =>
-                                      _openWeb(session, '/settings#reminders'),
-                                ),
+          SharedReminderSettings(
+            profile: profile,
+            email: session.email,
+            loading: session.loading,
+            onLeadChanged: canEditReminders
+                ? (days) => _saveReminders(session, leadDays: days)
+                : null,
+            onEmailChanged: canEditReminders
+                ? (enabled) => _saveReminders(session, emailReminders: enabled)
+                : null,
+            onOpenWeb: () => _openWeb(session, '/settings#reminders'),
+          ),
         ],
       );
     }
@@ -159,10 +153,14 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                             PdListGroup(
                               children: [
                                 PdListRow(
-                                  key: const ValueKey('settings-open-notifications'),
+                                  key: const ValueKey(
+                                    'settings-open-notifications',
+                                  ),
                                   title: 'Reminders & notifications',
                                   chevron: true,
-                                  onTap: () => context.push(Routes.settingsNotifications),
+                                  onTap: () => context.push(
+                                    Routes.settingsNotifications,
+                                  ),
                                 ),
                               ],
                             ),
@@ -208,8 +206,10 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                                 ),
                                 FutureBuilder(
                                   future: _version,
-                                  builder: (context, state) =>
-                                      PdListRow(title: 'Version', value: state.data ?? '—'),
+                                  builder: (context, state) => PdListRow(
+                                    title: 'Version',
+                                    value: state.data ?? '—',
+                                  ),
                                 ),
                               ],
                             ),

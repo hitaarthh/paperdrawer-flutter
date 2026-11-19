@@ -118,6 +118,7 @@ void main() {
   ) async {
     final app = await _launch(tester, grant: true);
     await _tap(tester, 'settings-tab');
+    await _tap(tester, 'settings-open-notifications');
     await _tap(tester, 'settings-reminders');
     expect(app.gateway.asked, 1);
     expect(app.settings.remindersOn, isTrue);

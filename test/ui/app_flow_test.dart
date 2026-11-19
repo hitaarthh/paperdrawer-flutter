@@ -7,6 +7,7 @@ import 'package:paperdrawer/app.dart';
 import 'package:paperdrawer/data/repositories/claim_repository.dart';
 import 'package:paperdrawer/data/repositories/item_repository.dart';
 import 'package:paperdrawer/data/repositories/settings_repository.dart';
+import 'package:paperdrawer/data/services/capture_service.dart';
 import 'package:paperdrawer/data/services/drawer_actions.dart';
 import 'package:paperdrawer/data/services/exporter.dart';
 import 'package:paperdrawer/data/services/file_store.dart';
@@ -17,60 +18,71 @@ import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/ui/core/widgets/stamp.dart';
-import 'package:paperdrawer/ui/features/add/camera_screen.dart';
 import 'package:paperdrawer/ui/features/claims/claim_detail_screen.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
 
 void main() {
-  testWidgets('the Settings dock opens the Add sheet and camera at 130%', (
+  testWidgets('the Settings dock opens and dismisses the file form at 130%', (
     tester,
   ) async {
     await _launch(tester, _Items([]), scale: 1.3);
     await _tap(tester, 'settings-tab');
+    expect(_key('drawer-notifications'), findsNothing);
     await _tap(tester, 'scan-or-add');
-    expect(_key('add-sheet'), findsOneWidget);
-    await tester.tapAt(const Offset(20, 25));
-    await tester.pumpAndSettle();
-    expect(_key('add-sheet'), findsNothing);
-
-    await tester.longPress(_key('scan-or-add'));
-    await tester.pumpAndSettle();
-    expect(find.byType(CameraScreen), findsOneWidget);
+    expect(find.text('Add a file'), findsOneWidget);
     expect(_key('scan-or-add'), findsNothing);
+    expect(_key('drawer-notifications'), findsNothing);
+    await _tap(tester, 'close-button');
+    expect(find.text('Settings'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('first bill can be added manually and opened from the vault', (
+  testWidgets('add, edit, open and delete an original from the drawer', (
     tester,
   ) async {
     final items = _Items([]);
-    await _launch(tester, items);
+    final actions = _FileActions();
+    final capture = _FilesCapture();
+    await _launch(tester, items, actions: actions, capture: capture);
     expect(find.text('Coming up'), findsOneWidget);
-    await _tap(tester, 'scan-or-add');
-    await _tap(tester, 'add-sheet-manual');
-    expect(find.text('Check the details'), findsOneWidget);
-    expect(_key('scan-or-add'), findsNothing);
-
-    await _tap(tester, 'save-to-drawer');
-    expect(find.text('Add a name so you can find it later.'), findsWidgets);
-    await tester.enterText(_key('item-name'), 'Wireless earbuds');
-    await _tap(tester, 'save-to-drawer');
-
-    expect(items.active.single.name, 'Wireless earbuds');
-    expect(_key('vault-item-item-1'), findsOneWidget);
-    expect(find.text('JUST ADDED'), findsOneWidget);
-    expect(find.text('Saved to your drawer'), findsOneWidget);
-    await _tap(tester, 'vault-item-item-1');
-    expect(find.text('Wireless earbuds'), findsOneWidget);
-    await _tap(tester, 'item-claim');
-    expect(find.text('CLAIM LEDGER'), findsOneWidget);
-    expect(find.text('Claim opened'), findsOneWidget);
-    expect(_key('settings-tab'), findsOneWidget);
+    await _tap(tester, 'drawer-notifications');
+    expect(find.text('Notifications are off'), findsOneWidget);
     await _tap(tester, 'back-button');
-    expect(find.text('View claim ledger'), findsOneWidget);
-    await _tap(tester, 'item-claim');
-    expect(find.text('Claim opened'), findsOneWidget);
+    await _tap(tester, 'scan-or-add');
+
+    await _tap(tester, 'save-to-drawer');
+    expect(find.text('Choose a file to continue.'), findsOneWidget);
+    await _tap(tester, 'choose-original');
+    expect(capture.single, isTrue);
+    await _tap(tester, 'item-kind-picker');
+    for (final kind in ['Policy', 'Vehicle papers', 'Agreement']) {
+      expect(find.text(kind), findsOneWidget);
+    }
+    await tester.tap(find.text('Agreement'));
+    await tester.pumpAndSettle();
+    await tester.enterText(_key('item-name'), 'Studio lease');
+    await _tap(tester, 'save-to-drawer');
+
+    expect(items.active.single.kind, ItemKind.agreement);
+    expect(items.active.single.draft.coverageRenews, isFalse);
+    expect(items.active.single.attachments.single.name, 'example.pdf');
+    expect(find.text('Studio lease'), findsOneWidget);
+    expect(_key('drawer-notifications'), findsNothing);
+    await tester.tap(find.text('Open original'));
+    await tester.pumpAndSettle();
+    expect(actions.opened?.name, 'example.pdf');
+    await _tap(tester, 'item-edit');
+    await tester.enterText(_key('item-name'), 'Updated studio lease');
+    await _tap(tester, 'save-to-drawer');
+    expect(find.text('Updated studio lease'), findsOneWidget);
+    expect(items.active.single.attachments, hasLength(1));
+    await _tap(tester, 'item-delete');
+    await tester.tap(find.text('Delete item'));
+    await tester.pumpAndSettle();
+    expect(items.active, isEmpty);
+    expect(_key('drawer-notifications'), findsOneWidget);
+    expect(_key('drawer-add-first-file'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -133,9 +145,9 @@ void main() {
             .first,
       );
       expect(_key('vault-item-due'), findsOneWidget);
-      await _tap(tester, 'vault-filter-inClaim');
-      expect(_key('vault-item-due'), findsNothing);
-      expect(_key('vault-item-policy'), findsOneWidget);
+      await _tap(tester, 'vault-filter-due');
+      expect(_key('vault-item-due'), findsOneWidget);
+      expect(_key('vault-item-policy'), findsNothing);
       await _tap(tester, 'home-tab');
       await _scrollHome(tester, 'home-claim-claim-1');
       await _tap(tester, 'home-claim-claim-1');
@@ -298,7 +310,7 @@ void main() {
     expect(find.text('SETTLED MON 16 NOV'), findsOneWidget);
     await _tap(tester, 'back-button');
     await _tap(tester, 'scan-or-add');
-    expect(find.text('What are you adding?'), findsOneWidget);
+    expect(find.text('Add a file'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
@@ -328,6 +340,7 @@ Future<void> _launch(
   _Items items, {
   _Claims? claims,
   DrawerActions actions = const _Actions(),
+  CaptureService capture = const CaptureService(),
   double scale = 1,
 }) async {
   final actualClaims = claims ?? _Claims([]);
@@ -358,6 +371,7 @@ Future<void> _launch(
         recognizer: FakeTextRecognizer(const []),
         today: today,
         actions: actions,
+        capture: capture,
       ),
     ),
   );
@@ -388,10 +402,41 @@ class _Items extends ChangeNotifier implements ItemRepository {
       id: 'item-${items.length + 1}',
       draft: draft,
       createdAt: _today,
+      attachments: [
+        for (final file in files)
+          Attachment(id: file.name, path: file.path, name: file.name, bytes: 1),
+      ],
     );
     items.add(item);
     notifyListeners();
     return item;
+  }
+
+  @override
+  Future<Item> update(
+    String id,
+    ItemDraft draft, {
+    List<PendingFile> addFiles = const [],
+    Set<String> removeAttachmentIds = const {},
+    bool prependOriginal = false,
+  }) async {
+    final index = items.indexWhere((item) => item.id == id);
+    final original = items[index];
+    final saved = Item(
+      id: id,
+      draft: draft,
+      createdAt: original.createdAt,
+      attachments: original.attachments,
+    );
+    items[index] = saved;
+    notifyListeners();
+    return saved;
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    items.removeWhere((item) => item.id == id);
+    notifyListeners();
   }
 
   @override
@@ -444,6 +489,9 @@ class _Claims extends ChangeNotifier implements ClaimRepository {
     notifyListeners();
     return claim;
   }
+
+  @override
+  Future<void> load() async {}
 
   @override
   Future<void> logSent(String id, DateTime today, {int? step}) async {
@@ -504,4 +552,22 @@ class _ClaimActions extends _Actions {
   Future<void> copyText(String text) async {
     copied = text;
   }
+}
+
+class _FilesCapture extends CaptureService {
+  bool single = false;
+
+  @override
+  Future<List<PendingFile>> pickFiles({bool single = false}) async {
+    this.single = single;
+    return const [PendingFile(path: '/tmp/example.pdf', name: 'example.pdf')];
+  }
+}
+
+class _FileActions extends _Actions {
+  Attachment? opened;
+
+  @override
+  Future<void> openAttachment(Attachment attachment) async =>
+      opened = attachment;
 }

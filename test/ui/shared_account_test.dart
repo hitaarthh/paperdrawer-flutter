@@ -114,21 +114,16 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('vault-tab')));
     await tester.pumpAndSettle();
-    expect(find.text('The vault'), findsOneWidget);
+    expect(find.text('Your drawer'), findsOneWidget);
     expect(find.text('1 OF 25'), findsOneWidget);
     expect(find.text('DUE NEXT'), findsNothing);
 
     expect(find.byKey(const ValueKey('shared-vault-add')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('scan-or-add')));
     await tester.pumpAndSettle();
-    expect(find.text('What are you adding?'), findsOneWidget);
-    final manual = find.byKey(const ValueKey('add-sheet-manual'));
-    await tester.ensureVisible(manual);
-    await tester.tap(manual);
-    await tester.pumpAndSettle();
-    expect(find.text('Check the details'), findsOneWidget);
+    expect(find.text('Add a file'), findsOneWidget);
     expect(session.opened, isNull);
-    await tester.tap(find.byKey(const ValueKey('back-button')));
+    await tester.tap(find.byKey(const ValueKey('close-button')));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -142,7 +137,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('empty shared vault opens the native camera from the receipt', (
+  testWidgets('empty shared vault opens the Files form from the receipt', (
     tester,
   ) async {
     final session = _SharedVaultSession()
@@ -150,13 +145,13 @@ void main() {
     await _launchDrawer(tester, session);
     await tester.tap(find.byKey(const ValueKey('vault-tab')));
     await tester.pumpAndSettle();
-    expect(find.text('Add the last thing you bought.'), findsOneWidget);
-    final add = find.byKey(const ValueKey('scan-first-bill'));
+    expect(find.text('Add your first file.'), findsOneWidget);
+    final add = find.byKey(const ValueKey('drawer-add-first-file'));
     await tester.ensureVisible(add);
     await tester.pumpAndSettle();
     await tester.tap(add);
     await tester.pumpAndSettle();
-    expect(find.text('Camera unavailable'), findsOneWidget);
+    expect(find.text('Choose from Files'), findsOneWidget);
     expect(session.opened, isNull);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -214,11 +209,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('scan-or-add')));
     await tester.pumpAndSettle();
-    final manual = find.byKey(const ValueKey('add-sheet-manual'));
-    await tester.ensureVisible(manual);
-    await tester.tap(manual);
-    await tester.pumpAndSettle();
-    expect(find.text('Check the details'), findsOneWidget);
+    expect(find.text('Add a file'), findsOneWidget);
     expect(session.opened, isNull);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -242,13 +233,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('VAULT'), findsOneWidget);
-    expect(find.text('EDIT'), findsOneWidget);
+    expect(find.text('VAULT'), findsNothing);
+    expect(find.byKey(const ValueKey('item-delete')), findsOneWidget);
     expect(
       tester.widgetList<PdIcon>(find.byType(PdIcon)).map((icon) => icon.glyph),
       contains(PdGlyph.back),
     );
-    await tester.tap(find.byKey(const ValueKey('shared-item-edit')));
+    await tester.tap(find.byKey(const ValueKey('item-edit')));
     await tester.pumpAndSettle();
     expect(session.opened, '/bills/new?edit=earbuds');
     expect(tester.takeException(), isNull);

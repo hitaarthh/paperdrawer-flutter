@@ -88,7 +88,10 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: Column(
             children: [
-              PdBrandBar(onMarkTap: () => context.go(Routes.vault), trailing: const DrawerNotificationButton()),
+              PdBrandBar(
+                onMarkTap: () => context.go(Routes.vault),
+                trailing: const DrawerNotificationButton(),
+              ),
               Expanded(
                 child: ListView(
                   key: const ValueKey('coming-up-list'),
@@ -152,7 +155,10 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                         ),
                       if (data.openClaims.isNotEmpty) ...[
                         const SizedBox(height: Pd.s6),
-                        _SectionLabel('Open claims', count: data.openClaims.length),
+                        _SectionLabel(
+                          'Open claims',
+                          count: data.openClaims.length,
+                        ),
                         const SizedBox(height: Pd.s3),
                       ],
                       for (final claim in data.openClaims)

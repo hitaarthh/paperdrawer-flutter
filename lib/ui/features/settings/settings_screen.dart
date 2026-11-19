@@ -52,7 +52,9 @@ class _SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<_SettingsView> {
   final _scroll = ScrollController();
-  late final _reselect = widget.notificationsOnly ? null : context.read<TabReselect>();
+  late final _reselect = widget.notificationsOnly
+      ? null
+      : context.read<TabReselect>();
 
   @override
   void initState() {
@@ -133,7 +135,8 @@ class _SettingsViewState extends State<_SettingsView> {
       return PdPushedScaffold(
         backLabel: 'Settings',
         glassBack: true,
-        onBack: () => context.canPop() ? context.pop() : context.go(Routes.settings),
+        onBack: () =>
+            context.canPop() ? context.pop() : context.go(Routes.settings),
         title: 'Reminders & notifications',
         children: [
           Text(
@@ -141,32 +144,30 @@ class _SettingsViewState extends State<_SettingsView> {
             style: PdType.detail.copyWith(color: Pd.textMuted),
           ),
           const SizedBox(height: Pd.s4),
-              PdListGroup(
-                children: [
-                  PdListRow(
-                    title: 'Device notifications',
-                    trailing: Semantics(
-                      label: 'Device notifications',
-                      child: PdSwitch(
-                        key: const ValueKey('settings-reminders'),
-                        value: model.remindersOn,
-                        onChanged: model.busy || !model.canRemind
-                            ? null
-                            : (value) =>
-                                  _perform(model, model.setReminders(value)),
-                      ),
-                    ),
+          PdListGroup(
+            children: [
+              PdListRow(
+                title: 'Device notifications',
+                trailing: Semantics(
+                  label: 'Device notifications',
+                  child: PdSwitch(
+                    key: const ValueKey('settings-reminders'),
+                    value: model.remindersOn,
+                    onChanged: model.busy || !model.canRemind
+                        ? null
+                        : (value) => _perform(model, model.setReminders(value)),
                   ),
-                  PdListRow(
-                    key: const ValueKey('settings-reminder-lead'),
-                    title: 'Automatic reminders',
-                    value: daysWord(model.leadDays),
-                    onTap: model.busy ? null : () => _chooseLead(model),
-                    chevron: true,
-                  ),
-                ],
+                ),
               ),
-
+              PdListRow(
+                key: const ValueKey('settings-reminder-lead'),
+                title: 'Automatic reminders',
+                value: daysWord(model.leadDays),
+                onTap: model.busy ? null : () => _chooseLead(model),
+                chevron: true,
+              ),
+            ],
+          ),
         ],
       );
     }
@@ -181,23 +182,39 @@ class _SettingsViewState extends State<_SettingsView> {
               Expanded(
                 child: ListView(
                   controller: _scroll,
-                  padding: EdgeInsets.fromLTRB(Pd.margin, Pd.s3, Pd.margin,
-                    Pd.s8 + MediaQuery.paddingOf(context).bottom),
+                  padding: EdgeInsets.fromLTRB(
+                    Pd.margin,
+                    Pd.s3,
+                    Pd.margin,
+                    Pd.s8 + MediaQuery.paddingOf(context).bottom,
+                  ),
                   children: [
-                    Semantics(header: true, child: Text('Settings', style: PdType.heroTitle)),
+                    Semantics(
+                      header: true,
+                      child: Text('Settings', style: PdType.heroTitle),
+                    ),
                     const SizedBox(height: Pd.s6),
                     const SettingsSection(
                       title: 'Account',
                       description: 'Your drawer is stored on this iPhone.',
-                      children: [PdListGroup(children: [PdListRow(title: 'On this iPhone')])],
+                      children: [
+                        PdListGroup(
+                          children: [PdListRow(title: 'On this iPhone')],
+                        ),
+                      ],
                     ),
                     const SizedBox(height: Pd.s6),
                     SettingsSection(
                       title: 'Plan',
                       children: [
-                        PdListGroup(children: [
-                          PdListRow(title: 'Base · Free', value: '${model.active} of $baseItemLimit items'),
-                        ]),
+                        PdListGroup(
+                          children: [
+                            PdListRow(
+                              title: 'Base · Free',
+                              value: '${model.active} of $baseItemLimit items',
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: Pd.s6),
@@ -208,14 +225,16 @@ class _SettingsViewState extends State<_SettingsView> {
                           title: 'Reminders & notifications',
                           value: model.remindersOn ? 'On' : 'Off',
                           chevron: true,
-                          onTap: () => context.push(Routes.settingsNotifications),
+                          onTap: () =>
+                              context.push(Routes.settingsNotifications),
                         ),
                       ],
                     ),
                     const SizedBox(height: Pd.s6),
                     SettingsSection(
                       title: 'Your data',
-                      description: 'Manage and export the files stored on this iPhone.',
+                      description:
+                          'Manage and export the files stored on this iPhone.',
                       children: [
                         PdListGroup(
                           children: [
@@ -231,7 +250,12 @@ class _SettingsViewState extends State<_SettingsView> {
                                 key: const ValueKey('settings-export'),
                                 title: 'Export everything',
                                 chevron: true,
-                                onTap: model.busy ? null : () => _perform(model, model.export(_origin(anchor))),
+                                onTap: model.busy
+                                    ? null
+                                    : () => _perform(
+                                        model,
+                                        model.export(_origin(anchor)),
+                                      ),
                               ),
                             ),
                             PdListRow(
@@ -255,7 +279,10 @@ class _SettingsViewState extends State<_SettingsView> {
                         ),
                         FutureBuilder(
                           future: model.version,
-                          builder: (context, state) => PdListRow(title: 'Version', value: state.data ?? '—'),
+                          builder: (context, state) => PdListRow(
+                            title: 'Version',
+                            value: state.data ?? '—',
+                          ),
                         ),
                       ],
                     ),
