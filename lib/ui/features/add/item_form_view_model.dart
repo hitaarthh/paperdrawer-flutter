@@ -12,7 +12,7 @@ class ItemFormViewModel extends ChangeNotifier {
     AddDetailsArgs? initial,
     this.original,
     this.shared = false,
-    bool fileFirst = false,
+    this.fileFirst = false,
   }) {
     final reading = initial?.reading;
     final saved = original?.draft;
@@ -52,6 +52,7 @@ class ItemFormViewModel extends ChangeNotifier {
   _persist;
   final Item? original;
   final bool shared;
+  final bool fileFirst;
 
   late final Set<ReadField> readFields;
   late final String currency;
@@ -317,7 +318,10 @@ class ItemFormViewModel extends ChangeNotifier {
           : '',
       remind: remind,
       reminderAt: remind ? reminderAt : null,
-      coverageRenews: _active.coverageRenews,
+      coverageRenews: fileFirst && !shared &&
+              (kind == ItemKind.policy || kind == ItemKind.agreement)
+          ? coverageRenews
+          : _active.coverageRenews,
     );
     _busy = true;
     notifyListeners();

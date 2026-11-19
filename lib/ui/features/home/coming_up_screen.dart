@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -63,7 +62,8 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
   Widget build(BuildContext context) {
     final session = widget.shared ? context.watch<SharedSession>() : null;
     final vault = session?.vault;
-    final today = (session?.today ?? context.watch<Today>()).value;
+    final clock = session?.today ?? context.watch<Today>();
+    final today = clock.value;
     final claims = widget.shared
         ? vault?.claims.map(HomeClaimData.shared).toList() ??
               const <HomeClaimData>[]
@@ -78,6 +78,7 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
           : context.watch<ItemRepository>().active,
       claims: claims,
       today: today,
+      now: clock.instant,
     );
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
@@ -103,7 +104,7 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                   ),
                   children: [
                     Text(
-                      '${_weekdayDate(today)} · ${data.dueCount} DUE SOON',
+                      _weekdayDate(today),
                       style: PdType.label.copyWith(color: Pd.textMuted),
                     ),
                     const SizedBox(height: Pd.s2),
@@ -128,12 +129,10 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                     ],
                     if (!widget.shared || vault != null) ...[
                       const SizedBox(height: Pd.s6),
-                      const _SectionLabel('Due soon'),
-                      const SizedBox(height: Pd.s3),
-                      if (data.dueCount == 0)
+                      if (data.tickets.isEmpty)
                         const DashedTile(
-                          title: 'Nothing is due soon',
-                          body: 'Return windows, warranties and renewals appear here as their dates get closer.',
+                          title: 'Nothing coming up',
+                          body: 'Warranty dates, policy dates and reminders appear here.',
                         ),
                       for (final ticket in data.tickets)
                         Padding(
@@ -149,21 +148,6 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                             semanticLabel: ticket.semanticLabel,
                             onTap: () =>
                                 context.push(Routes.homeItem(ticket.itemId!)),
-                          ),
-                        ),
-                      if (data.dueCount > 2)
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: PdButton.text(
-                            key: const ValueKey('home-more-due'),
-                            label: '+${data.dueCount - 2} more due soon',
-                            monospaced: true,
-                            icon: const Icon(
-                              LucideIcons.arrowRight,
-                              size: Pd.iconSm,
-                            ),
-                            onPressed: () =>
-                                context.go('${Routes.vault}?filter=due'),
                           ),
                         ),
                       if (data.openClaims.isNotEmpty) ...[
@@ -217,7 +201,8 @@ class ClaimHistoryScreen extends StatelessWidget {
               .claims
               .map(HomeClaimData.local)
               .toList();
-    final today = (session?.today ?? context.watch<Today>()).value;
+    final clock = session?.today ?? context.watch<Today>();
+    final today = clock.value;
     return PdPushedScaffold(
       title: 'Claim history',
       backLabel: 'Home',

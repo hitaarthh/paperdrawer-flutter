@@ -44,6 +44,9 @@ class ManualItemForm extends StatefulWidget {
 class _ManualItemFormState extends State<ManualItemForm> {
   ItemFormViewModel? _form;
   final _title = TextEditingController();
+  final _scroll = ScrollController();
+  final _fileField = GlobalKey();
+  final _saveError = GlobalKey();
   bool _picking = false;
   bool _saving = false;
   String? _fileError;
@@ -85,6 +88,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
   void dispose() {
     _form?.dispose();
     _title.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -181,6 +185,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
     if (_blocked) return;
     if (!_editing && form.added.isEmpty) {
       setState(() => _fileError = 'Choose a file to continue.');
+      _reveal(_fileField);
       return;
     }
     FocusManager.instance.primaryFocus?.unfocus();
@@ -194,7 +199,11 @@ class _ManualItemFormState extends State<ManualItemForm> {
         amount: form.initialAmount,
         notes: form.initialNotes,
       );
-      if (!mounted || saved == null) return;
+      if (!mounted) return;
+      if (saved == null) {
+        _reveal(_saveError);
+        return;
+      }
       if (!widget.shared && saved.draft.reminderAt != null) {
         final settings = context.read<SettingsRepository>();
         if (!settings.remindersOn && !settings.remindersOffered) {
@@ -215,6 +224,18 @@ class _ManualItemFormState extends State<ManualItemForm> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  void _reveal(GlobalKey field) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final target = field.currentContext;
+      if (target != null) {
+        Scrollable.ensureVisible(target, alignment: .15);
+      } else {
+        _scroll.jumpTo(field == _fileField ? 0 : _scroll.position.maxScrollExtent);
+      }
+    });
   }
 
   @override
@@ -244,6 +265,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
             backLabel: 'Cancel',
             onBack: _close,
             closeOnRight: true,
+            controller: _scroll,
             bottom: PdButton.primary(
               key: const ValueKey('save-to-drawer'),
               label: _editing ? 'Save changes' : 'Save to drawer',
@@ -260,7 +282,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 onTap: () { if (!_blocked) _pick(form); },
               ),
               if (_fileError case final error?)
-                _inlineError(error)
+                KeyedSubtree(key: _fileField, child: _inlineError(error))
               else if (name == null)
                 Padding(
                   padding: const EdgeInsets.only(top: Pd.s1),
@@ -333,7 +355,8 @@ class _ManualItemFormState extends State<ManualItemForm> {
                     onTap: () { if (!_blocked) _chooseReminder(form); },
                   ),
               ],
-              if (form.error case final error?) _inlineError(error),
+              if (form.error case final error?)
+                KeyedSubtree(key: _saveError, child: _inlineError(error)),
             ],
           ),
         );

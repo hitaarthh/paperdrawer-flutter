@@ -45,53 +45,45 @@ class HomeViewData {
   HomeViewData({
     required List<Item> items,
     required List<HomeClaimData> claims,
-    required this.today,
+    required DateTime today,
+    required DateTime now,
   }) : openClaims = claims.where((claim) => claim.isOpen).toList()
          ..sort(_compareClaims),
-       _deadlines = _dueDeadlines(items, today);
+       tickets = _upcomingTickets(items, today, now);
 
-  final DateTime today;
   final List<HomeClaimData> openClaims;
-  final List<(ItemSummary, CoverWindow)> _deadlines;
+  final List<VaultTicketData> tickets;
 
-  int get dueCount => _deadlines.length;
-
-  List<VaultTicketData> get tickets => [
-    for (final (index, (summary, window)) in _deadlines.take(2).indexed)
-      _ticket(summary, window, urgent: index == 0),
-  ];
-
-  static VaultTicketData _ticket(
-    ItemSummary summary,
-    CoverWindow window, {
-    required bool urgent,
-  }) {
-    final ticket = VaultTicketData.window(
-      summary,
-      window,
-      '${summary.item.id}/${window.type.name}',
-    );
-    return urgent ? ticket.asMostUrgent() : ticket;
-  }
-
-  static List<(ItemSummary, CoverWindow)> _dueDeadlines(
-    List<Item> items,
-    DateTime today,
+  static List<VaultTicketData> _upcomingTickets(
+    List<Item> items, DateTime today, DateTime now,
   ) {
-    final summaries = [
-      for (final item in items)
-        if (!item.isArchived) ItemSummary.of(item, today),
-    ];
-    return [
-      for (final summary in summaries)
-        for (final window in summary.windows)
-          if (window.isDue(today)) (summary, window),
-    ]..sort((a, b) {
-      final byDate = a.$2.end.compareTo(b.$2.end);
-      if (byDate != 0) return byDate;
-      final byItem = a.$1.item.id.compareTo(b.$1.item.id);
-      return byItem == 0 ? a.$2.type.index.compareTo(b.$2.type.index) : byItem;
+    final upcoming = <(DateTime, VaultTicketData)>[];
+    for (final item in items) {
+      if (item.isArchived) continue;
+      final summary = ItemSummary.of(item, today);
+      final window = summary.next;
+      if (window != null) {
+        if (window.daysLeft(today) <= ticketWithinDays) {
+          upcoming.add((window.end, VaultTicketData.window(
+            summary, window, '${item.id}/${window.type.name}',
+          )));
+        }
+        continue;
+      }
+      final at = item.draft.reminderAt?.toLocal();
+      if (item.draft.remind && at != null && at.isAfter(now) &&
+          daysBetween(today, civil(at)) <= ticketWithinDays) {
+        upcoming.add((civil(at), VaultTicketData.reminder(item, at, today)));
+      }
+    }
+    upcoming.sort((a, b) {
+      final byDate = a.$1.compareTo(b.$1);
+      return byDate == 0 ? a.$2.key.compareTo(b.$2.key) : byDate;
     });
+    return [
+      for (final (date, ticket) in upcoming)
+        daysBetween(today, date) <= 7 ? ticket.asMostUrgent() : ticket,
+    ];
   }
 
   static int _compareClaims(HomeClaimData a, HomeClaimData b) {

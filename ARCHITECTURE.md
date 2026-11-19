@@ -65,7 +65,7 @@ lib/
     models/item.dart            ItemKind, ItemDraft, Item, Attachment, PendingFile
     models/claim.dart           Claim, ClaimEvent, ClaimType, ClaimWant, ClaimStatus
   data/
-    services/app_database.dart  sqflite open + migrations (v1 → v2 → v3)
+    services/app_database.dart  sqflite open + migrations (v1–v6)
     services/file_store.dart    private originals storage
     services/text_recognizer.dart  Vision OCR via method channel
     services/reminder_scheduler.dart  local notifications planning + scheduling
@@ -97,8 +97,8 @@ exceptions; `FormatException.message` is always user-facing copy.
 
 ### `AppDatabase` (`data/services/app_database.dart`)
 `static Future<Database> open(String path, {DatabaseFactory? factory})`.
-Schema v5, `PRAGMA foreign_keys = ON`:
-- `items(id TEXT PK, kind TEXT, name TEXT, source TEXT, subtype TEXT, reference TEXT, serial_number TEXT, notes TEXT, amount_minor INTEGER, currency TEXT, starts_on TEXT, return_until TEXT, cover_until TEXT, component_warranty_until TEXT, component_warranty_name TEXT, remind INTEGER, created_at INTEGER, updated_at INTEGER, archived_at INTEGER)`
+Schema v6, `PRAGMA foreign_keys = ON`:
+- `items(id TEXT PK, kind TEXT, name TEXT, source TEXT, subtype TEXT, reference TEXT, serial_number TEXT, notes TEXT, amount_minor INTEGER, currency TEXT, starts_on TEXT, return_until TEXT, cover_until TEXT, component_warranty_until TEXT, component_warranty_name TEXT, remind INTEGER, reminder_at INTEGER, coverage_renews INTEGER, created_at INTEGER, updated_at INTEGER, archived_at INTEGER)`
 - `attachments(id TEXT PK, item_id TEXT REFERENCES items(id) ON DELETE CASCADE, rel_path TEXT, name TEXT, bytes INTEGER, position INTEGER, created_at INTEGER)`
 - `claims(id TEXT PK, item_id TEXT REFERENCES items(id) ON DELETE SET NULL, item_label TEXT, type TEXT, want TEXT, problem TEXT, reference TEXT, opened_on TEXT, noticed_on TEXT, step INTEGER, step_since TEXT, last_heard_on TEXT, settled_on TEXT, nudge_days INTEGER, follow_up_at INTEGER)`
 - `claim_events(id TEXT PK, claim_id TEXT REFERENCES claims(id) ON DELETE CASCADE, on_date TEXT, kind TEXT, text TEXT, reference TEXT, created_at INTEGER)`
@@ -110,7 +110,7 @@ every record: `records` → `items` (receipt→bill, policy→policy, document�
 `recorded_on`→`starts_on`; `deadline`→`cover_until`; `amount_cents`→`amount_minor`
 with currency `USD`; `archived_at` kept), each `attachment_key` → one
 `attachments` row; the old table is renamed `records_v1_backup`, never dropped.
-Version 3 adds an optional serial number. Version 4 adds the ledger’s follow-up instant, entry reference and photo table while retaining earlier events. Version 5 adds an optional component warranty date and name.
+Version 3 adds an optional serial number. Version 4 adds the ledger’s follow-up instant, entry reference and photo table while retaining earlier events. Version 5 adds an optional component warranty date and name. Version 6 adds an optional reminder instant in UTC epoch milliseconds and an optional renewal flag. Null fields keep the established reminder lead time and date labels.
 
 ### `FileStore` (`data/services/file_store.dart`)
 `FileStore(Directory root)`; `Future<Attachment> import(String itemId, PendingFile file, {bool claimPhoto = false})`
@@ -159,12 +159,11 @@ Claim photos accept the same image types and live in `root/claim-photos/`.
 
 ## Routes (`routing/router.dart`)
 
-The app opens on `/home`. The Home branch owns `/claims` (history), `/claims/:id` (ledger and reminder destination) and `/claims/:id/guidance` (legacy claims). The Vault branch owns `/vault`, `/vault/item/:id` and its legacy claim creation route. Vault accepts `filter=due`, `review=old` or `added=<id>`. Settings owns `/settings` and `/settings/archive`.
-Full-screen on the root navigator (no tab bar): `/add/camera` (optional `ItemKind`), `/add/reading` (`CaptureReadingArgs`, or a `List<PendingFile>` from older callers), `/add/details` (`AddDetailsArgs`), `/edit/:id`.
+The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders in the local build and legacy claim follow-ups in the signed-in build. Item details and Settings subpages cover the dock.
 
-Screen classes: `ComingUpScreen`, `ClaimHistoryScreen`, `LocalClaimLedgerScreen(id)`, `VaultScreen`, `ItemDetailScreen(id)`, `StartClaimScreen(itemId)`, `ClaimsScreen`, `ClaimDetailScreen(id)`, `SettingsScreen`, `ArchiveScreen`, `CameraScreen`, `ReadingScreen(files)`, `ItemFormScreen.create(AddDetailsArgs)`, `ItemFormScreen.edit(id)`.
-`CaptureReadingArgs` carries the originals and the item kind chosen when adding them. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill.
-The dock’s Add button calls `AddFlow.start(context)` in the local shell (opens the Add sheet or the limit notice). Empty Vault shortcuts supply the selected item kind. A local long press calls `AddFlow.camera(context)`. The shared shell calls `showSharedAdd` after the vault has loaded. Both routers use `buildAddRoutes` for camera, reading and review. The shared routes use single-original capture and save through `SharedSession`.
+Add opens the manual, Files-first form at `/add`. Local `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. The signed-in build uses its existing server contract, account email reminders, and web editor. Settings provides `/settings/notifications`, `/settings/archive` (local), and `/settings/legal`. The legal screen opens the canonical `www.paperdrawer.app` pages.
+
+The existing `/claims` history, `/claims/:id` ledger and notification destination, `/claims/:id/guidance`, and legacy claim creation route remain compatible with saved records. The older camera, reading, and review screens remain reachable at `/add/camera`, `/add/reading`, and `/add/details`. `CaptureReadingArgs` carries the originals and chosen kind. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill. Both routers use `buildAddRoutes`.
 
 ## UI kit (`ui/core/widgets/`)
 
@@ -186,6 +185,6 @@ The dock’s Add button calls `AddFlow.start(context)` in the local shell (opens
 - `sheets.dart`: `Future<T?> showPdSheet<T>(BuildContext, {required String title, String? subtitle, List<PdSheetOption<T>> options, Widget? body})`; `PdSheetOption<T>({required IconData? icon, PdGlyph? glyph, required String title, required String description, required T value, bool recommended = false})`; `Future<T?> showPdActions<T>(BuildContext, {String? title, String? message, required List<PdAction<T>> actions})` (CupertinoActionSheet; `PdAction({label, value, destructive})`, Cancel built in); `Future<DateTime?> showPdDatePicker(BuildContext, {DateTime? initial, DateTime? min, DateTime? max, String title})` (dark wheel in a modal popup, returns civil date); `Future<bool> showPdConfirm(BuildContext, {title, message, confirmLabel, destructive})`.
 - `claim_ladder.dart`: `ClaimLadder({required Claim claim, required DateTime today})` shows the numbered escalation steps and identifies the current and recommended steps.
 - `nav.dart`: `PdLargeTitleScaffold({required String title, Widget? trailing, required List<Widget> slivers, ScrollController? controller, String heroTag})` (CupertinoSliverNavigationBar, Bricolage large title collapsing to Inter 17/600; bg; hairline once scrolled; bottom inset space-12); `PdPushedScaffold({required String backLabel, String? kicker, String? title, TextStyle? titleStyle, TextStyle? backStyle, List<Widget> actions, required List<Widget> children, Widget? bottom, VoidCallback? onBack})` (back button, kicker and title, scrolling body with 20 margins, optional pinned bottom area); `ScanButton({required VoidCallback onTap, VoidCallback? onLongPress})`; `PdNavIcon({required Widget icon, required String semanticLabel, required VoidCallback onTap})`.
-- `tab_bar.dart`: The dark floating dock shows Home, Vault, Add and Settings, with an animated selection pill. Both shells extend the body behind the dock. The measured bottom inset lets the last row or pinned action clear it.
+- `tab_bar.dart`: The dark floating dock shows Home, Drawer, Add and Settings, with an animated selection pill. Both shells extend the body behind the dock. The measured bottom inset lets the last row or pinned action clear it.
 - `empty_state.dart`: `DashedTile({required String title, required String body, Widget? action})`.
 - `ui/core/theme/app_theme.dart`: `ThemeData pdTheme()` (dark, scaffold bg, text selection lime, no ink splash on iOS), `CupertinoThemeData pdCupertinoTheme()` (nav large title / title styles).

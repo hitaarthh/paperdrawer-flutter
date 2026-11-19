@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
 import '../../../domain/models/claim.dart';
+import '../../../domain/models/item.dart';
 import '../../../domain/models/shared_vault.dart';
 import '../../core/widgets/vault_ticket.dart';
 
@@ -43,6 +44,23 @@ class VaultTicketData {
           '${summary.item.name}, ${window.fact(summary.today)}. '
           '${window.action()}.',
       itemId: summary.item.id,
+    );
+  }
+
+  factory VaultTicketData.reminder(Item item, DateTime at, DateTime today) {
+    final date = civil(at);
+    final days = daysBetween(today, date);
+    final when = longDate(date);
+    return VaultTicketData._(
+      key: '${item.id}/reminder',
+      number: days == 0 ? 'TODAY' : days.toString().padLeft(2, '0'),
+      unit: days == 0 ? null : (days == 1 ? 'DAY' : 'DAYS'),
+      kicker: 'REMINDER · ${_dayCaps(date)}',
+      title: item.name,
+      body: when,
+      tone: VaultTicketTone.paper,
+      semanticLabel: '${item.name}, reminder on $when.',
+      itemId: item.id,
     );
   }
 
@@ -118,7 +136,7 @@ String _windowNudge(CoverWindow window) => switch (window.type) {
   WindowType.returnWindow => 'Not happy with it? Start the return now.',
   WindowType.warranty ||
   WindowType.componentWarranty => 'Book a service visit while it’s covered.',
-  WindowType.policyYear => 'Renew before it lapses.',
+  WindowType.policyYear => window.renews ? 'Renew before it lapses.' : 'Check when your coverage ends.',
   WindowType.validity => 'Renew it before it runs out.',
   WindowType.term =>
     window.renews ? 'Renew before it lapses.' : 'Plan for what comes next.',

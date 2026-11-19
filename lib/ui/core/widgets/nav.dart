@@ -101,6 +101,7 @@ class PdPushedScaffold extends StatefulWidget {
     this.onBack,
     this.glassBack = false,
     this.closeOnRight = false,
+    this.controller,
     super.key,
   });
 
@@ -115,6 +116,7 @@ class PdPushedScaffold extends StatefulWidget {
   final VoidCallback? onBack;
   final bool glassBack;
   final bool closeOnRight;
+  final ScrollController? controller;
 
   @override
   State<PdPushedScaffold> createState() => _PdPushedScaffoldState();
@@ -139,7 +141,7 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                       : null,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Pd.s3),
+                  padding: EdgeInsets.symmetric(horizontal: widget.glassBack || widget.closeOnRight ? Pd.margin : Pd.s3),
                   child: Row(
                     children: [
                       if (widget.closeOnRight) ...[
@@ -233,6 +235,7 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                     return false;
                   },
                   child: ListView(
+                    controller: widget.controller,
                     padding: const EdgeInsets.fromLTRB(
                       Pd.margin,
                       Pd.s3,
