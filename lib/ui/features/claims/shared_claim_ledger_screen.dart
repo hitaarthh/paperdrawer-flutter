@@ -18,9 +18,12 @@ class SharedClaimLedgerScreen extends StatelessWidget {
     final vault = session.vault;
     final claim = vault?.claims.where((entry) => entry.id == id).firstOrNull;
     if (claim == null) return MissingLedger(loading: session.loading);
-    final item = vault?.items.where((entry) => entry.item.id == claim.itemId).firstOrNull;
+    final item = vault?.items
+        .where((entry) => entry.item.id == claim.itemId)
+        .firstOrNull;
     final files = {
-      for (final file in [...?item?.originals, ...claim.originals]) file.path: file,
+      for (final file in [...?item?.originals, ...claim.originals])
+        file.path: file,
     };
     return ClaimLedgerScreen(
       title: claim.title,
@@ -42,7 +45,9 @@ class SharedClaimLedgerScreen extends StatelessWidget {
       share: (pdf, origin) => session.shareFiles([pdf], origin),
       settle: (outcome) async {
         if (!await session.settleClaim(id, outcome)) {
-          throw const FormatException('The claim is busy. Try again in a moment.');
+          throw const FormatException(
+            'The claim is busy. Try again in a moment.',
+          );
         }
       },
       busy: session.claimBusy,
@@ -55,7 +60,9 @@ class SharedClaimLedgerScreen extends StatelessWidget {
             try {
               await session.openWeb(claim.webPath);
             } catch (_) {
-              if (context.mounted) showPdSnackbar(context, 'Couldn’t open this claim on the web.');
+              if (context.mounted) {
+                showPdSnackbar(context, 'Couldn’t open this claim on the web.');
+              }
             }
           },
         ),

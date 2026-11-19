@@ -91,7 +91,10 @@ class _ClaimLedgerScreenState extends State<ClaimLedgerScreen> {
   Future<void> _confirmNotifications() async {
     final allowed = await widget.enableNotifications();
     if (!mounted || allowed) return;
-    showPdSnackbar(context, 'Turn on notifications in Settings to get this reminder.');
+    showPdSnackbar(
+      context,
+      'Turn on notifications in Settings to get this reminder.',
+    );
   }
 
   Future<void> _add() async {
@@ -120,7 +123,10 @@ class _ClaimLedgerScreenState extends State<ClaimLedgerScreen> {
       );
       if (!mounted || action == null) return;
       if (action == _FollowUpAction.remove) {
-        await _run(() => widget.setFollowUp(null), 'The reminder couldn’t be removed. Try again.');
+        await _run(
+          () => widget.setFollowUp(null),
+          'The reminder couldn’t be removed. Try again.',
+        );
         return;
       }
     }
@@ -156,7 +162,9 @@ class _ClaimLedgerScreenState extends State<ClaimLedgerScreen> {
 
   void _sharePdf(BuildContext anchor) {
     final box = anchor.findRenderObject();
-    final origin = box is RenderBox && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+    final origin = box is RenderBox && box.hasSize
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
     final share = widget.share;
     _run(() async {
       final pdf = await buildLedgerPdf(
@@ -175,12 +183,16 @@ class _ClaimLedgerScreenState extends State<ClaimLedgerScreen> {
   @override
   Widget build(BuildContext context) {
     final open = widget.settled == null;
-    final day = daysBetween(widget.opened, widget.settled ?? widget.clock.value).clamp(0, 1 << 30);
+    final day = daysBetween(
+      widget.opened,
+      widget.settled ?? widget.clock.value,
+    ).clamp(0, 1 << 30);
     final followUp = widget.followUp;
     return PdPushedScaffold(
       backLabel: 'HOME',
       backStyle: PdType.monoButton,
-      onBack: () => context.canPop() ? context.pop() : context.go(Routes.claims),
+      onBack: () =>
+          context.canPop() ? context.pop() : context.go(Routes.claims),
       kicker: [
         'CLAIM',
         if (widget.itemLabel.isNotEmpty) widget.itemLabel,
@@ -213,9 +225,15 @@ class _ClaimLedgerScreenState extends State<ClaimLedgerScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: Pd.s2,
               children: [
-                Text('ON FILE FOR THIS CLAIM', style: PdType.label.copyWith(color: Pd.textMuted)),
+                Text(
+                  'ON FILE FOR THIS CLAIM',
+                  style: PdType.label.copyWith(color: Pd.textMuted),
+                ),
                 if (widget.files.isEmpty && widget.serial.isEmpty)
-                  Text('No files attached.', style: PdType.footnote.copyWith(color: Pd.textMuted)),
+                  Text(
+                    'No files attached.',
+                    style: PdType.footnote.copyWith(color: Pd.textMuted),
+                  ),
                 Wrap(
                   spacing: Pd.s2,
                   runSpacing: Pd.s2,
@@ -225,12 +243,20 @@ class _ClaimLedgerScreenState extends State<ClaimLedgerScreen> {
                         key: ValueKey('ledger-file-$index'),
                         label: file.name,
                         icon: const Icon(LucideIcons.paperclip),
-                        onPressed: _busy ? null : () => _run(file.open, 'The file couldn’t open. Try again.'),
+                        onPressed: _busy
+                            ? null
+                            : () => _run(
+                                file.open,
+                                'The file couldn’t open. Try again.',
+                              ),
                       ),
                     if (widget.serial.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: Pd.s3),
-                        child: Text('SERIAL ${widget.serial}', style: PdType.monoButton),
+                        child: Text(
+                          'SERIAL ${widget.serial}',
+                          style: PdType.monoButton,
+                        ),
                       ),
                   ],
                 ),

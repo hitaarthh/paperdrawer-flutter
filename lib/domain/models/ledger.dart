@@ -55,13 +55,19 @@ class LedgerDraft {
       throw const FormatException('Write a line about what happened.');
     }
     if (text.runes.length > 2000) {
-      throw const FormatException('Keep the entry to 2,000 characters or fewer.');
+      throw const FormatException(
+        'Keep the entry to 2,000 characters or fewer.',
+      );
     }
     if (reference.runes.length > 100) {
-      throw const FormatException('Keep the reference to 100 characters or fewer.');
+      throw const FormatException(
+        'Keep the reference to 100 characters or fewer.',
+      );
     }
     if (civil(date).isAfter(civil(now))) {
-      throw const FormatException('Choose today or an earlier date for the entry.');
+      throw const FormatException(
+        'Choose today or an earlier date for the entry.',
+      );
     }
     validateFollowUp(followUp, now);
   }

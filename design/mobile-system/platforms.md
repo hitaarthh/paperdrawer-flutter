@@ -8,10 +8,9 @@ One brand, two platforms. Paper cards, stamps, tickets, meters, and the floating
 |---|---|---|
 | Top-level title | Large title (`large-title` 34), collapses to an inline 17pt title on scroll | Small top app bar 64dp with `title-2` 22; a large top app bar may be used on the Vault |
 | Back | Lime chevron + previous screen's name ("Vault") at top left, plus edge swipe | Arrow icon (`text`) at top left, plus system back gesture |
-| Scan entry | Lime-tinted Scan or add button in the floating dock | Same |
-| Primary navigation | Floating glass dock above the home indicator, with a moving pill and lime icon for the selected tab | Same, above the gesture inset |
-| Tabs | Vault · Claims · Settings | Same |
-| Badge on Claims | Inline count in `signal` | Same |
+| Add | Lime plus in the floating dock opens the Add sheet | Same |
+| Primary navigation | Floating dark glass above the home indicator, with a moving pill and lime icon for the selected tab | Dark frosted fallback above the gesture inset |
+| Dock order | Home · Vault · Add · Settings | Same |
 | Switch | iOS switch, on = `lime` track with `bg` thumb | Material 3 switch, on = `lime` track with `on-lime` thumb |
 | Sheets | Native sheet with grabber; medium and large detents | Modal bottom sheet with drag handle |
 | Confirmations | Snackbar-style toast at the bottom, above the tab bar (custom) | Material snackbar above the nav bar |

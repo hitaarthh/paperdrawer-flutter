@@ -297,8 +297,7 @@ class ClaimRepository extends ChangeNotifier {
     final photos = [
       for (final claim in claims)
         if (id == null || claim.id == id)
-          for (final event in claim.events)
-            if (event.photo case final photo?) photo,
+          for (final event in claim.events) ?event.photo,
     ];
     await _db.delete(
       'claims',

@@ -1,8 +1,9 @@
 # TabBar
 
-The floating dock contains Vault, Claims, Settings, and the Scan or add action.
+The floating dock shows Home, Vault, Add and Settings in that order.
 
-- **Surface:** a dark, translucent pill with clipped backdrop blur and a directional rim. It sits above the bottom safe area with side gutters and a maximum width on larger screens.
-- **Tabs:** a custom `icon-md` glyph above a `tab-label`. The selected tab has a lime icon and a pill that moves with selection. The Claims count appears inline in `signal` when action is needed.
-- **Scan or add:** a lime-tinted button that opens the existing add sheet. In the local drawer, a long press opens the camera.
-- **Accessibility:** controls grow with text size. The Claims semantic label includes the count. High contrast uses an opaque dock, and reduced motion moves the selection pill immediately.
+- **Surface.** Use dark, translucent glass with clipped backdrop blur, a soft rim and gutters above the bottom safe area. Keep the tint dark over paper cards.
+- **Tabs.** Use a custom glyph above each label. The selected tab has a lime icon and a moving pill.
+- **Add.** Use a dark plus on a lime pill. A tap opens the Add sheet. A long press opens the camera in the local drawer.
+- **Accessibility.** Use an opaque dock in high contrast and move the selection pill immediately when reduced motion is on. Keep tap targets large and let controls grow with text size.
+- **Scrolling.** Content scrolls behind the glass. Pad the end of the list so its last row can clear the dock.

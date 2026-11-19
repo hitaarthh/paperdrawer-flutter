@@ -12,12 +12,18 @@ abstract final class Pd {
   static const line = Color(0xFF66726B);
 
   // Floating glass dock
-  static const dockGlassTop = Color(0xCF252F2A);
-  static const dockGlassBottom = Color(0xE60E1311);
+  static const dockGlassTop = Color(0xB8242D28);
+  static const dockGlassBottom = Color(0xB8141A17);
   static const dockRimLight = Color(0x59FFFFFF);
   static const dockRimShade = Color(0x1FFFFFFF);
   static const dockSelection = Color(0x24F2F4EF);
-  static const dockBlur = 20.0;
+  static const dockBlur = 22.0;
+  static const dockControlHeight = 56.0;
+  static const dockAddWidth = 34.0;
+  static const dockAddHeight = 26.0;
+  static const dockAddGlow = [
+    BoxShadow(color: Color(0x59D4F25A), blurRadius: 16),
+  ];
   static const dockMaxWidth = 440.0;
   static const dockSelectionDuration = Duration(milliseconds: 200);
 

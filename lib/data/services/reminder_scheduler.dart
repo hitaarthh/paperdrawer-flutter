@@ -79,8 +79,7 @@ List<PlannedReminder> planReminders({
       continue;
     }
     final next = claim.step + 1;
-    if (claim.nudgeDays <= 0 ||
-        next >= ladderFor(claim.type).length) {
+    if (claim.nudgeDays <= 0 || next >= ladderFor(claim.type).length) {
       continue;
     }
     final morning = localMorning(claim.nudgeOn);

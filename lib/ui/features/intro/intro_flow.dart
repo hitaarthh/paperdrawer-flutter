@@ -45,7 +45,7 @@ const _phases = [
     '03 · CLAIM',
     'Claim it.',
     'Something broke, or a refund never came? Open a claim, log every call, '
-        'and see exactly where to go next.',
+        'and choose when to follow up.',
     ClaimArt(),
   ),
 ];

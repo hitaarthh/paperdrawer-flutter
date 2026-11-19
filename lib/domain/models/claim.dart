@@ -41,7 +41,17 @@ enum ClaimWant {
 enum ClaimStatus { waiting, escalate, settled }
 
 enum ClaimEventKind {
-  opened, sent, reply, step, note, settled, reopened, call, email, visit, refund;
+  opened,
+  sent,
+  reply,
+  step,
+  note,
+  settled,
+  reopened,
+  call,
+  email,
+  visit,
+  refund;
 
   LedgerKind get ledgerKind => switch (this) {
     call => LedgerKind.call,
@@ -133,7 +143,9 @@ class Claim {
         kind: event.kind.ledgerKind,
         text: event.text,
         details: event.kind == ClaimEventKind.opened ? problem : '',
-        reference: event.kind == ClaimEventKind.opened ? reference : event.reference,
+        reference: event.kind == ClaimEventKind.opened
+            ? reference
+            : event.reference,
       ),
   ];
 

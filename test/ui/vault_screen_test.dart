@@ -15,6 +15,7 @@ import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
+import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/ui/core/widgets/vault_ticket.dart';
 
 // A Wednesday, so a return window that closes in 2 days reads "FRI 20 NOV".
@@ -69,19 +70,8 @@ void main() {
         expect(find.text('The vault'), findsOneWidget);
         expect(_key('vault-search'), findsOneWidget);
         expect(find.text('5 OF 25'), findsOneWidget);
-        expect(find.text('DUE NEXT'), findsOneWidget);
-        expect(find.text('1 OF 3'), findsOneWidget);
-        expect(find.text('RETURN WINDOW CLOSES · FRI 20 NOV'), findsOneWidget);
-        final first = tester.widget<VaultTicket>(_key('vault-ticket-earbuds'));
-        expect(first.tone, VaultTicketTone.signal);
-        expect(first.number, '02');
-        final policy = tester.widget<VaultTicket>(_key('vault-ticket-policy'));
-        expect(policy.tone, VaultTicketTone.paper);
-        final claim = tester.widget<VaultTicket>(
-          _key('vault-ticket-claim-claim-1'),
-        );
-        expect(claim.tone, VaultTicketTone.lime);
-        expect(claim.kicker, 'CLAIM · NO REPLY FROM BRAND');
+        expect(find.text('DUE NEXT'), findsNothing);
+        expect(find.byType(VaultTicket), findsNothing);
         await tester.ensureVisible(_key('vault-filter-expired'));
         await tester.pumpAndSettle();
         expect(find.text('ENDED 0'), findsOneWidget);
@@ -122,7 +112,7 @@ void main() {
           ],
         );
         await _launch(tester, _Items([bill]), scale: 1.3);
-        await _tap(tester, 'vault-ticket-fan');
+        await _tap(tester, 'vault-item-fan');
 
         expect(find.text('Ceiling fan'), findsOneWidget);
         expect(find.text('Return by 20 Nov'), findsOneWidget);
@@ -150,60 +140,109 @@ void main() {
       },
     );
 
-    testWidgets('the due-next strip counts tickets as it scrolls', (
+    testWidgets(
+      'Home shows two deadline tickets and opens the Due soon filter',
+      (tester) async {
+        await _launch(
+          tester,
+          _fullItems(),
+          claims: _claims(),
+          startAtHome: true,
+          scale: 1.3,
+        );
+
+        final first = tester.widget<VaultTicket>(
+          _key('home-ticket-earbuds/returnWindow'),
+        );
+        expect(first.tone, VaultTicketTone.signal);
+        expect(first.number, '02');
+        expect(first.kicker, 'RETURN WINDOW CLOSES · FRI 20 NOV');
+        final second = tester.widget<VaultTicket>(
+          _key('home-ticket-policy/policyYear'),
+        );
+        expect(second.tone, VaultTicketTone.paper);
+        expect(second.number, '12');
+        expect(_key('home-ticket-puc/validity'), findsNothing);
+
+        await _tap(tester, 'home-more-due');
+        expect(find.text('The vault'), findsOneWidget);
+        expect(find.text('DUE SOON 4'), findsOneWidget);
+        expect(_key('vault-item-laptop'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'a Home ticket opens its item, and an open claim opens its ledger',
+      (tester) async {
+        await _launch(
+          tester,
+          _fullItems(),
+          claims: _claims(),
+          startAtHome: true,
+        );
+
+        await _tap(tester, 'home-ticket-earbuds/returnWindow');
+        expect(_key('item-claim'), findsOneWidget);
+        await _tap(tester, 'back-button');
+        expect(find.text('Coming up'), findsOneWidget);
+
+        await tester.scrollUntilVisible(
+          _key('home-claim-claim-1').hitTestable(),
+          180,
+          scrollable: find.descendant(
+            of: _key('coming-up-list'),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        await _tap(tester, 'home-claim-claim-1');
+        expect(find.text('Laptop repair claim'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('Home scrolls the last claim clear of the glass bar', (
       tester,
     ) async {
-      await _launch(tester, _fullItems(), claims: _claims());
-
-      await tester.drag(_key('vault-due-next'), const Offset(-1000, 0));
-      await tester.pumpAndSettle();
-      expect(find.text('3 OF 3'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('a ticket opens its item, and the claim ticket its claim', (
-      tester,
-    ) async {
-      await _launch(tester, _fullItems(), claims: _claims());
-
-      await _tap(tester, 'vault-ticket-earbuds');
-      expect(_key('item-claim'), findsOneWidget);
-      await _tap(tester, 'back-button');
-
-      await tester.drag(_key('vault-due-next'), const Offset(-1000, 0));
-      await tester.pumpAndSettle();
-      await _tap(tester, 'vault-ticket-claim-claim-1');
-      expect(find.text('Laptop repair claim'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('a long press hides a ticket for today', (tester) async {
-      final settings = _Settings();
+      final claims = _Claims([
+        for (var i = 0; i < 6; i++)
+          Claim(
+            id: 'claim-$i',
+            itemLabel: 'Item number $i with a longer name',
+            type: ClaimType.repair,
+            want: ClaimWant.repair,
+            problem: 'The hinge cracked.',
+            openedOn: addDays(_today, -i),
+            stepSince: _today,
+            step: 0,
+            followUp: i == 0 ? DateTime(2026, 11, 21, 9) : null,
+          ),
+      ]);
       await _launch(
         tester,
         _fullItems(),
-        claims: _claims(),
-        settings: settings,
+        claims: claims,
+        startAtHome: true,
+        scale: 1.3,
       );
-
-      await tester.longPress(_key('vault-ticket-earbuds'));
+      final scroll = find.descendant(
+        of: _key('coming-up-list'),
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        _key('home-claim-claim-0'),
+        180,
+        scrollable: scroll,
+      );
+      expect(find.text('FOLLOW UP SAT 21 NOV'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        _key('home-claim-claim-5'),
+        250,
+        scrollable: scroll,
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Hide for today'));
-      await tester.pumpAndSettle();
-
-      expect(_key('vault-ticket-earbuds'), findsNothing);
-      expect(settings.ticketDismissedKey, startsWith('2026-11-18/earbuds/'));
-      // The next deadline takes the signal colour.
-      final next = tester.widget<VaultTicket>(_key('vault-ticket-policy'));
-      expect(next.tone, VaultTicketTone.signal);
-      expect(find.text('1 OF 2'), findsOneWidget);
-
-      await tester.longPress(_key('vault-ticket-policy'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Hide for today'));
-      await tester.pumpAndSettle();
-      expect(settings.ticketDismissedKey!.split('|'), hasLength(2));
-      expect(_key('vault-ticket-earbuds'), findsNothing);
+      expect(_key('home-claim-claim-5').hitTestable(), findsOneWidget);
+      expect(_key('claims-tab'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -336,11 +375,11 @@ Future<void> _launch(
   WidgetTester tester,
   _Items items, {
   _Claims? claims,
-  _Settings? settings,
+  bool startAtHome = false,
   double scale = 1,
 }) async {
   final actualClaims = claims ?? _Claims([]);
-  final actualSettings = settings ?? _Settings();
+  final actualSettings = _Settings();
   final today = Today(() => _today);
   final files = FileStore(Directory.systemTemp);
   tester.view.devicePixelRatio = 3;
@@ -358,6 +397,7 @@ Future<void> _launch(
   });
   await tester.pumpWidget(
     PaperDrawerApp(
+      initialLocation: startAtHome ? Routes.home : Routes.vault,
       deps: AppDependencies(
         items: items,
         claims: actualClaims,
@@ -414,16 +454,6 @@ class _Claims extends ChangeNotifier implements ClaimRepository {
 }
 
 class _Settings extends ChangeNotifier implements SettingsRepository {
-  String? _dismissed;
-
-  @override
-  String? get ticketDismissedKey => _dismissed;
-  @override
-  Future<void> dismissTicket(String key) async {
-    _dismissed = key;
-    notifyListeners();
-  }
-
   @override
   int get leadDays => 7;
   @override

@@ -85,7 +85,9 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
   }
 
   void _openClaimReminder(String location) {
-    if (_session.signedIn && location.startsWith('/claims/')) _router.go(location);
+    if (_session.signedIn && location.startsWith('/claims/')) {
+      _router.go(location);
+    }
   }
 
   @override
@@ -122,4 +124,3 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
     ),
   );
 }
-

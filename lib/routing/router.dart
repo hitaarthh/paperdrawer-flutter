@@ -30,6 +30,7 @@ abstract final class Routes {
   static const reminders = '/reminders';
 
   static String item(String id) => '/vault/item/$id';
+  static String homeItem(String id) => '/home/item/$id';
   static String startClaim(String itemId) => '/vault/item/$itemId/claim';
   static String claim(String id) => '/claims/$id';
   static String claimGuidance(String id) => '/claims/$id/guidance';
@@ -52,6 +53,33 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
             GoRoute(
               path: Routes.home,
               builder: (context, state) => const ComingUpScreen(),
+              routes: [
+                GoRoute(
+                  path: 'item/:id',
+                  builder: (context, state) => ItemDetailScreen(
+                    id: state.pathParameters['id']!,
+                    fromHome: true,
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: Routes.claims,
+              builder: (context, state) => const ClaimHistoryScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) =>
+                      LocalClaimLedgerScreen(id: state.pathParameters['id']!),
+                  routes: [
+                    GoRoute(
+                      path: 'guidance',
+                      builder: (context, state) =>
+                          ClaimDetailScreen(id: state.pathParameters['id']!),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -92,24 +120,6 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                   builder: (context, state) => const ArchiveScreen(),
                 ),
               ],
-            ),
-          ],
-        ),
-      ],
-    ),
-    GoRoute(
-      path: Routes.claims,
-      builder: (context, state) => const ClaimHistoryScreen(),
-      routes: [
-        GoRoute(
-          path: ':id',
-          builder: (context, state) =>
-              LocalClaimLedgerScreen(id: state.pathParameters['id']!),
-          routes: [
-            GoRoute(
-              path: 'guidance',
-              builder: (context, state) =>
-                  ClaimDetailScreen(id: state.pathParameters['id']!),
             ),
           ],
         ),

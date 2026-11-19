@@ -81,7 +81,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('signed-in vault shows the new search, tickets, and Add sheet', (
+  testWidgets('signed-in Home shows deadlines and Vault keeps search and Add', (
     tester,
   ) async {
     final session = _SharedVaultSession();
@@ -106,9 +106,16 @@ void main() {
       claims: const [],
     );
     await _launchDrawer(tester, session);
+    expect(find.text('Coming up'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('home-ticket-bill/returnWindow')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('vault-tab')));
+    await tester.pumpAndSettle();
     expect(find.text('The vault'), findsOneWidget);
     expect(find.text('1 OF 25'), findsOneWidget);
-    expect(find.text('DUE NEXT'), findsOneWidget);
+    expect(find.text('DUE NEXT'), findsNothing);
 
     expect(find.byKey(const ValueKey('shared-vault-add')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('scan-or-add')));
@@ -137,6 +144,8 @@ void main() {
     final session = _SharedVaultSession()
       ..vault = const SharedVault(items: [], claims: []);
     await _launchDrawer(tester, session);
+    await tester.tap(find.byKey(const ValueKey('vault-tab')));
+    await tester.pumpAndSettle();
     expect(find.text('Add the last thing you bought.'), findsOneWidget);
     final add = find.byKey(const ValueKey('scan-first-bill'));
     await tester.ensureVisible(add);
@@ -148,54 +157,66 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets(
-    'shared Claims shows requested documents and opens the add flow',
-    (tester) async {
-      final session = _SharedVaultSession();
-      session.vault = SharedVault(
-        items: const [],
-        claims: [
-          SharedClaim.fromRow({
-            'id': 'hospital',
-            'title': 'Hospital bill reimbursement',
-            'item_label': 'Family health policy',
-            'type': 'insurance',
-            'state': 'docs_asked',
-            'step': 0,
-            'opened_on': isoDate(addDays(session.today.value, -16)),
-            'next_step': {
-              'title': 'Upload the discharge summary',
-              'text': 'Send the summary to the insurer.',
+  testWidgets('shared Home shows the latest claim entry and follow-up', (
+    tester,
+  ) async {
+    final session = _SharedVaultSession();
+    session.vault = SharedVault(
+      items: const [],
+      claims: [
+        SharedClaim.fromRow({
+          'id': 'hospital',
+          'title': 'Hospital bill reimbursement',
+          'item_label': 'Family health policy',
+          'type': 'insurance',
+          'state': 'docs_asked',
+          'step': 0,
+          'opened_on': isoDate(addDays(session.today.value, -16)),
+          'follow_up_at': DateTime(2026, 11, 21, 9).toIso8601String(),
+          'claim_events': [
+            {
+              'id': 'requested',
+              'occurred_on': '2026-11-19',
+              'created_at': '2026-11-19T10:00:00Z',
+              'title': 'Call',
+              'kind': 'call',
+              'note': 'Insurer requested the discharge summary.',
             },
-          }),
-        ],
-      );
-      await _launchDrawer(tester, session);
-      await tester.tap(find.byKey(const ValueKey('claims-tab')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('1 OPEN · 0 SETTLED · 1 NEEDS YOU'), findsNothing);
-      expect(find.text('OPEN 1'), findsOneWidget);
-      expect(find.text('NEEDS YOU · DOCUMENTS ASKED'), findsOneWidget);
-      expect(find.text('STEP 1 OF 4 · INSURER CLAIMS TEAM'), findsOneWidget);
-      expect(find.text('DOCS ASKED'), findsOneWidget);
-      expect(find.text('Next: Upload the discharge summary'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('claim-settled-filter')));
-      await tester.pumpAndSettle();
-      expect(find.text('No settled claims yet'), findsOneWidget);
-
-      expect(find.byKey(const ValueKey('shared-claims-scan')), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('scan-or-add')));
-      await tester.pumpAndSettle();
-      final manual = find.byKey(const ValueKey('add-sheet-manual'));
-      await tester.ensureVisible(manual);
-      await tester.tap(manual);
-      await tester.pumpAndSettle();
-      expect(session.opened, '/bills/new');
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+          ],
+        }),
+      ],
+    );
+    await _launchDrawer(tester, session);
+    expect(find.byKey(const ValueKey('claims-tab')), findsNothing);
+    final claim = find.byKey(const ValueKey('home-claim-hospital'));
+    await tester.scrollUntilVisible(
+      claim.hitTestable(),
+      170,
+      scrollable: find.descendant(
+        of: find.byKey(const ValueKey('coming-up-list')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(
+      find.textContaining('Insurer requested the discharge summary.'),
+      findsOneWidget,
+    );
+    expect(find.text('FOLLOW UP SAT 21 NOV'), findsOneWidget);
+    await tester.tap(claim);
+    await tester.pumpAndSettle();
+    expect(find.text('CLAIM LEDGER'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('back-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('scan-or-add')));
+    await tester.pumpAndSettle();
+    final manual = find.byKey(const ValueKey('add-sheet-manual'));
+    await tester.ensureVisible(manual);
+    await tester.tap(manual);
+    await tester.pumpAndSettle();
+    expect(session.opened, '/bills/new');
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets('shared detail headers match the design at 130% text', (
     tester,

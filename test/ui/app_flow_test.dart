@@ -30,7 +30,7 @@ void main() {
     await _tap(tester, 'settings-tab');
     await _tap(tester, 'scan-or-add');
     expect(_key('add-sheet'), findsOneWidget);
-    await tester.tapAt(const Offset(20, 120));
+    await tester.tapAt(const Offset(20, 25));
     await tester.pumpAndSettle();
     expect(_key('add-sheet'), findsNothing);
 
@@ -46,7 +46,7 @@ void main() {
   ) async {
     final items = _Items([]);
     await _launch(tester, items);
-    expect(find.text('Add the last thing you bought.'), findsOneWidget);
+    expect(find.text('Coming up'), findsOneWidget);
     await _tap(tester, 'scan-or-add');
     await _tap(tester, 'add-sheet-manual');
     expect(find.text('Check the details'), findsOneWidget);
@@ -63,12 +63,14 @@ void main() {
     expect(find.text('Saved to your drawer'), findsOneWidget);
     await _tap(tester, 'vault-item-item-1');
     expect(find.text('Wireless earbuds'), findsOneWidget);
-    expect(_key('item-claim'), findsOneWidget);
+    await _tap(tester, 'item-claim');
+    expect(find.text('CLAIM LEDGER'), findsOneWidget);
+    expect(find.text('Claim opened'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
   testWidgets(
-    'due ticket, filters, claim badge, and archive work at 130% text scale',
+    'Home deadlines, Vault filters, ledgers and archive work at 130% text scale',
     (tester) async {
       final items = _Items([
         Item(
@@ -114,7 +116,8 @@ void main() {
       ]);
       await _launch(tester, items, claims: claims, scale: 1.3);
 
-      expect(_key('vault-ticket-due'), findsOneWidget);
+      expect(_key('home-ticket-due/warranty'), findsOneWidget);
+      await _tap(tester, 'vault-tab');
       await tester.scrollUntilVisible(
         _key('vault-item-due'),
         200,
@@ -128,12 +131,13 @@ void main() {
       await _tap(tester, 'vault-filter-inClaim');
       expect(_key('vault-item-due'), findsNothing);
       expect(_key('vault-item-policy'), findsOneWidget);
-      await _tap(tester, 'claims-tab');
-      expect(_key('claim-row-claim-1'), findsOneWidget);
-      expect(find.widgetWithText(PdStamp, 'NO REPLY'), findsOneWidget);
-      await _tap(tester, 'claim-featured-claim-1');
+      await _tap(tester, 'home-tab');
+      await _scrollHome(tester, 'home-claim-claim-1');
+      await _tap(tester, 'home-claim-claim-1');
       expect(find.text('Family health policy insurance claim'), findsOneWidget);
-      expect(find.text('Time to go one step up'), findsOneWidget);
+      expect(find.widgetWithText(PdStamp, 'OPEN'), findsOneWidget);
+      expect(find.text('Time to go one step up'), findsNothing);
+      await _tap(tester, 'back-button');
       await _tap(tester, 'settings-tab');
       await _tap(tester, 'settings-archive');
       expect(find.text('Activa PUC'), findsOneWidget);
@@ -144,101 +148,107 @@ void main() {
     },
   );
 
-  testWidgets('the claim tracker opens a draft and logs the sent step on tap', (
-    tester,
-  ) async {
-    final opened = addDays(_today, -14);
-    final claims = _Claims([
-      Claim(
-        id: 'laptop',
-        itemLabel: 'Laptop',
-        type: ClaimType.repair,
-        want: ClaimWant.repair,
-        problem: 'The hinge is loose.',
-        reference: 'SR-55821',
-        openedOn: opened,
-        stepSince: opened,
-        step: 0,
-        events: [
-          ClaimEvent(
-            id: 'opened',
-            on: opened,
-            kind: ClaimEventKind.opened,
-            text: 'Claim opened',
-          ),
-        ],
-      ),
-    ]);
-    final actions = _ClaimActions();
-    await _launch(
-      tester,
-      _Items([]),
-      claims: claims,
-      actions: actions,
-      scale: 1.3,
-    );
-    await _tap(tester, 'claims-tab');
-    await _tap(tester, 'claim-featured-laptop');
-    final backLabel = find.descendant(
-      of: _key('back-button'),
-      matching: find.text('CLAIMS'),
-    );
-    expect(
-      tester.renderObject<RenderParagraph>(backLabel).didExceedMaxLines,
-      isFalse,
-    );
-    expect(
-      find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'),
-      findsOneWidget,
-    );
-    expect(find.text('Time to go one step up'), findsOneWidget);
-    final scroll = find
-        .descendant(
-          of: find.byType(ClaimDetailScreen),
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is Scrollable &&
-                widget.axisDirection == AxisDirection.down,
-          ),
-        )
-        .first;
+  testWidgets(
+    'legacy claim guidance can still open a draft and record a sent message',
+    (tester) async {
+      final opened = addDays(_today, -14);
+      final claims = _Claims([
+        Claim(
+          id: 'laptop',
+          itemLabel: 'Laptop',
+          type: ClaimType.repair,
+          want: ClaimWant.repair,
+          problem: 'The hinge is loose.',
+          reference: 'SR-55821',
+          openedOn: opened,
+          stepSince: opened,
+          step: 0,
+          events: [
+            ClaimEvent(
+              id: 'opened',
+              on: opened,
+              kind: ClaimEventKind.opened,
+              text: 'Claim opened',
+            ),
+          ],
+        ),
+      ]);
+      final actions = _ClaimActions();
+      await _launch(
+        tester,
+        _Items([]),
+        claims: claims,
+        actions: actions,
+        scale: 1.3,
+      );
+      await _tap(tester, 'home-claim-laptop');
+      await _tap(tester, 'claim-actions');
+      await tester.tap(find.text('Claim guidance'));
+      await tester.pumpAndSettle();
+      final backLabel = find.descendant(
+        of: _key('back-button'),
+        matching: find.text('CLAIMS'),
+      );
+      expect(
+        tester.renderObject<RenderParagraph>(backLabel).didExceedMaxLines,
+        isFalse,
+      );
+      expect(
+        find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'),
+        findsOneWidget,
+      );
+      expect(find.text('Time to go one step up'), findsOneWidget);
+      final scroll = find
+          .descendant(
+            of: find.byType(ClaimDetailScreen),
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            ),
+          )
+          .first;
 
-    await tester.scrollUntilVisible(
-      _key('open-claim-mail'),
-      200,
-      scrollable: scroll,
-    );
-    await _tap(tester, 'open-claim-mail');
-    expect(actions.opened?.scheme, 'mailto');
-    expect(actions.opened?.queryParameters['body'], contains('SR-55821'));
-    expect(claims.lastSent, isNull);
+      await tester.scrollUntilVisible(
+        _key('open-claim-mail'),
+        200,
+        scrollable: scroll,
+      );
+      await _tap(tester, 'open-claim-mail');
+      expect(actions.opened?.scheme, 'mailto');
+      expect(actions.opened?.queryParameters['body'], contains('SR-55821'));
+      expect(claims.lastSent, isNull);
 
-    await _tap(tester, 'copy-claim-message');
-    expect(actions.copied, startsWith('To: Grievance officer'));
-    await _tap(tester, 'claim-log-sent');
-    expect(claims.lastSent, ('laptop', 1));
+      await _tap(tester, 'copy-claim-message');
+      expect(actions.copied, startsWith('To: Grievance officer'));
+      await _tap(tester, 'claim-log-sent');
+      expect(claims.lastSent, ('laptop', 1));
 
-    await tester.scrollUntilVisible(
-      _key('claim-log-update'),
-      220,
-      scrollable: scroll,
-    );
-    expect(find.text('RECOMMENDED NEXT'), findsOneWidget);
-    expect(find.text('Claim opened'), findsOneWidget);
-    await _tap(tester, 'claim-log-update');
-    await tester.tap(find.text('Add a note'));
-    await tester.pumpAndSettle();
-    await tester.enterText(_key('claim-log-text'), 'Asked for a repair date.');
-    await tester.pump();
-    await _tap(tester, 'save-claim-log');
-    expect(claims.lastNote, ('laptop', 'Asked for a repair date.'));
+      await tester.scrollUntilVisible(
+        _key('claim-log-update'),
+        220,
+        scrollable: scroll,
+      );
+      expect(find.text('RECOMMENDED NEXT'), findsOneWidget);
+      expect(find.text('Claim opened'), findsOneWidget);
+      await _tap(tester, 'claim-log-update');
+      await tester.tap(find.text('Add a note'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        _key('claim-log-text'),
+        'Asked for a repair date.',
+      );
+      await tester.pump();
+      await _tap(tester, 'save-claim-log');
+      expect(claims.lastNote, ('laptop', 'Asked for a repair date.'));
 
-    await _tap(tester, 'mark-claim-settled');
-    expect(find.text('HOW WAS IT RESOLVED?'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      await _tap(tester, 'mark-claim-settled');
+      expect(find.text('HOW WAS IT RESOLVED?'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-  testWidgets('Claims filters and scan work at 130% text scale', (
+  testWidgets('settled claims remain available from Home at 130% text scale', (
     tester,
   ) async {
     Claim claim(String id, String name, int age, {int? settledDaysAgo}) {
@@ -264,41 +274,39 @@ void main() {
       claim('late', 'Laptop with a loose hinge', 14),
     ]);
     await _launch(tester, _Items([]), claims: claims, scale: 1.3);
-    await _tap(tester, 'claims-tab');
-    expect(find.text('2 OPEN · 1 SETTLED · 1 NEEDS YOU'), findsNothing);
-    expect(find.text('OPEN 2'), findsOneWidget);
-    expect(_key('claim-featured-late'), findsOneWidget);
-    expect(_key('claim-row-settled'), findsNothing);
-    final claimsScroll = find
-        .byWidgetPredicate(
-          (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-        )
-        .first;
+    expect(_key('claims-tab'), findsNothing);
+    expect(_key('home-claim-settled'), findsNothing);
+    await _scrollHome(tester, 'home-claim-history');
+    await _tap(tester, 'home-claim-history');
+    expect(find.text('Claim history'), findsOneWidget);
     await tester.scrollUntilVisible(
-      _key('claim-row-waiting'),
-      120,
-      scrollable: claimsScroll,
-    );
-    expect(
-      tester.getTopLeft(_key('claim-row-late')).dy,
-      lessThan(tester.getTopLeft(_key('claim-row-waiting')).dy),
-    );
-
-    await _tap(tester, 'claim-settled-filter');
-    expect(_key('claim-row-late'), findsNothing);
-    expect(find.text('Settled on 16 Nov'), findsOneWidget);
-    await _tap(tester, 'claim-all-filter');
-    await tester.scrollUntilVisible(
-      _key('claim-row-settled'),
+      _key('home-claim-settled'),
       180,
-      scrollable: claimsScroll,
+      scrollable: find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+          )
+          .first,
     );
-    expect(_key('claim-row-settled'), findsOneWidget);
-    expect(_key('claims-scan'), findsNothing);
+    expect(find.text('SETTLED MON 16 NOV'), findsOneWidget);
+    await _tap(tester, 'back-button');
     await _tap(tester, 'scan-or-add');
     expect(find.text('What are you adding?'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+Future<void> _scrollHome(WidgetTester tester, String target) async {
+  await tester.scrollUntilVisible(
+    _key(target).hitTestable(),
+    180,
+    scrollable: find.descendant(
+      of: _key('coming-up-list'),
+      matching: find.byType(Scrollable),
+    ),
+  );
 }
 
 Finder _key(String key) => find.byKey(ValueKey(key));
@@ -404,6 +412,33 @@ class _Claims extends ChangeNotifier implements ClaimRepository {
 
   (String, int?)? lastSent;
   (String, String)? lastNote;
+
+  @override
+  Future<Claim> openLedger(Item item, DateTime today) async {
+    final claim = Claim(
+      id: 'new-claim',
+      itemId: item.id,
+      itemLabel: item.name,
+      type: ClaimType.repair,
+      want: ClaimWant.repair,
+      problem: '',
+      openedOn: today,
+      step: 0,
+      stepSince: today,
+      nudgeDays: 0,
+      events: [
+        ClaimEvent(
+          id: 'opening',
+          on: today,
+          kind: ClaimEventKind.opened,
+          text: 'Claim opened',
+        ),
+      ],
+    );
+    claims.add(claim);
+    notifyListeners();
+    return claim;
+  }
 
   @override
   Future<void> logSent(String id, DateTime today, {int? step}) async {

@@ -304,13 +304,21 @@ Future<DateTime?> showPdFollowUpPicker(
   required DateTime now,
   DateTime? initial,
 }) {
-  final earliest = DateTime(now.year, now.month, now.day, now.hour, now.minute + 1);
+  final earliest = DateTime(
+    now.year,
+    now.month,
+    now.day,
+    now.hour,
+    now.minute + 1,
+  );
   final tomorrow = DateTime(now.year, now.month, now.day + 1, 10);
   return _showPdDateWheel(
     context,
     title: 'Follow-up reminder',
     mode: CupertinoDatePickerMode.dateAndTime,
-    initial: initial != null && !initial.isBefore(earliest) ? initial.toLocal() : tomorrow,
+    initial: initial != null && !initial.isBefore(earliest)
+        ? initial.toLocal()
+        : tomorrow,
     min: earliest,
   );
 }

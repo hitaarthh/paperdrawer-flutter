@@ -14,7 +14,8 @@ import '../../core/widgets/chips.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/text_field.dart';
 
-String followUpLabel(DateTime at) => DateFormat('EEE d MMM, HH:mm').format(at.toLocal());
+String followUpLabel(DateTime at) =>
+    DateFormat('EEE d MMM, HH:mm').format(at.toLocal());
 
 Future<bool?> showLedgerEntrySheet(
   BuildContext context, {
@@ -162,7 +163,7 @@ class _LedgerEntryFormState extends State<_LedgerEntryForm> {
             '${widget.title.toUpperCase()} · ENTRY ${widget.number}',
             style: PdType.label.copyWith(color: Pd.textMuted),
           ),
-          const Semantics(
+          Semantics(
             header: true,
             child: Text('What happened?', style: PdType.title1),
           ),
@@ -228,20 +229,31 @@ class _LedgerEntryFormState extends State<_LedgerEntryForm> {
               ),
               PdButton.secondary(
                 key: const ValueKey('ledger-entry-follow-up'),
-                label: followUp == null ? 'Set follow-up' : followUpLabel(followUp),
+                label: followUp == null
+                    ? 'Set follow-up'
+                    : followUpLabel(followUp),
                 icon: const Icon(LucideIcons.bell),
                 onPressed: _busy ? null : _chooseFollowUp,
               ),
             ],
           ),
           if (photo != null)
-            _OptionalSelection(label: photo.name, onRemove: _busy ? null : () => setState(() => _photo = null)),
+            _OptionalSelection(
+              label: photo.name,
+              onRemove: _busy ? null : () => setState(() => _photo = null),
+            ),
           if (followUp != null)
-            _OptionalSelection(label: 'Follow-up reminder', onRemove: _busy ? null : () => setState(() => _followUp = null)),
+            _OptionalSelection(
+              label: 'Follow-up reminder',
+              onRemove: _busy ? null : () => setState(() => _followUp = null),
+            ),
           if (_error case final message?)
             Semantics(
               liveRegion: true,
-              child: Text(message, style: PdType.footnote.copyWith(color: Pd.signalSoft)),
+              child: Text(
+                message,
+                style: PdType.footnote.copyWith(color: Pd.signalSoft),
+              ),
             ),
           ValueListenableBuilder(
             valueListenable: _text,

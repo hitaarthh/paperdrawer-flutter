@@ -97,9 +97,9 @@ class Exporter {
     ].join('\n');
     final name = '${_safeName(item.name)}-claim-kit.txt';
     return XFile.fromData(
-        Uint8List.fromList(utf8.encode(summary)),
-        name: name,
-        mimeType: 'text/plain',
+      Uint8List.fromList(utf8.encode(summary)),
+      name: name,
+      mimeType: 'text/plain',
     );
   }
 

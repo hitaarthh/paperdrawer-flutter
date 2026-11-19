@@ -8,12 +8,13 @@ import '../ui/features/account/shared_session.dart';
 import '../ui/features/account/shared_vault_screens.dart';
 import '../ui/features/add/shared_add_flow.dart';
 import '../ui/features/claims/shared_claim_ledger_screen.dart';
+import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/intro/intro_flow.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
 
 GoRouter buildSharedRouter(SharedSession session) => GoRouter(
-  initialLocation: '/vault',
+  initialLocation: '/home',
   refreshListenable: session,
   redirect: (context, state) {
     final signingIn = const {
@@ -22,7 +23,7 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
     }.contains(state.matchedLocation);
     // Signed out, the app opens on the intro, which leads to the account.
     if (!session.signedIn && !signingIn) return '/intro';
-    if (session.signedIn && signingIn) return '/vault';
+    if (session.signedIn && signingIn) return '/home';
     return null;
   },
   routes: [
@@ -53,8 +54,7 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
             body: child,
             bottomNavigationBar: PdTabBar(
               currentIndex: shell.currentIndex,
-              claimsBadge:
-                  vault?.claims.where((claim) => claim.needsAction).length ?? 0,
+              homeFirst: true,
               onTap: (index) => shell.goBranch(
                 index,
                 initialLocation: index == shell.currentIndex,
@@ -71,23 +71,22 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/vault',
-              builder: (context, state) => const SharedVaultScreen(),
+              path: '/home',
+              builder: (context, state) => const ComingUpScreen(shared: true),
               routes: [
                 GoRoute(
                   path: 'item/:id',
-                  builder: (context, state) =>
-                      SharedItemScreen(state.pathParameters['id']!),
+                  builder: (context, state) => SharedItemScreen(
+                    state.pathParameters['id']!,
+                    fromHome: true,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
             GoRoute(
               path: '/claims',
-              builder: (context, state) => const SharedClaimsScreen(),
+              builder: (context, state) =>
+                  const ClaimHistoryScreen(shared: true),
               routes: [
                 GoRoute(
                   path: ':id',
@@ -100,6 +99,23 @@ GoRouter buildSharedRouter(SharedSession session) => GoRouter(
                           SharedClaimScreen(state.pathParameters['id']!),
                     ),
                   ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/vault',
+              builder: (context, state) => SharedVaultScreen(
+                showDue: state.uri.queryParameters['filter'] == 'due',
+              ),
+              routes: [
+                GoRoute(
+                  path: 'item/:id',
+                  builder: (context, state) =>
+                      SharedItemScreen(state.pathParameters['id']!),
                 ),
               ],
             ),

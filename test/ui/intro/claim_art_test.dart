@@ -42,7 +42,7 @@ void main() {
     await _loadFont(PdType.mono, 'assets/fonts/JetBrainsMono.ttf');
   });
 
-  testWidgets('draws the sample claim ladder within the art canvas', (
+  testWidgets('draws the sample claim ledger within the art canvas', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 360);
@@ -53,12 +53,12 @@ void main() {
 
     expect(tester.takeException(), isNull);
     for (final text in [
-      'WARRANTY REPAIR · LAPTOP',
-      'DAY 14',
-      'Brand support',
-      'Grievance officer',
-      'National Consumer Helpline',
-      'Consumer commission',
+      'Laptop hinge repair',
+      'OPEN',
+      'FOLLOW UP SAT 21 NOV',
+      'CLAIM LEDGER',
+      'Support booked a repair visit.',
+      'Sent the invoice and a photo of the hinge.',
     ]) {
       expect(find.text(text), findsOneWidget);
     }
@@ -85,8 +85,8 @@ void main() {
     await tester.pumpWidget(_canvas(textScaler: const TextScaler.linear(2)));
 
     expect(tester.takeException(), isNull);
-    final title = tester.getSize(find.text('Brand support'));
+    final title = tester.getSize(find.text('Support booked a repair visit.'));
     await tester.pumpWidget(_canvas());
-    expect(tester.getSize(find.text('Brand support')), title);
+    expect(tester.getSize(find.text('Support booked a repair visit.')), title);
   });
 }

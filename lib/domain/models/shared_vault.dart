@@ -263,7 +263,10 @@ class SharedClaimEvent {
   LedgerEntry get ledger {
     final hasLabelTitle = title == kind.label && note.isNotEmpty;
     return LedgerEntry(
-      id: id, date: date, kind: kind, reference: reference,
+      id: id,
+      date: date,
+      kind: kind,
+      reference: reference,
       text: hasLabelTitle ? note : title,
       details: hasLabelTitle ? '' : note,
     );

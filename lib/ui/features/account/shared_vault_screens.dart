@@ -69,27 +69,46 @@ class SharedClaimsScreen extends StatelessWidget {
 }
 
 class SharedItemScreen extends StatelessWidget {
-  const SharedItemScreen(this.id, {super.key});
+  const SharedItemScreen(this.id, {this.fromHome = false, super.key});
   final String id;
+  final bool fromHome;
 
-  Future<void> _openLedger(BuildContext context, SharedSession session, SharedItem item, SharedClaim? existing) async {
+  String get _backLabel => fromHome ? 'HOME' : 'VAULT';
+  String get _backRoute => fromHome ? '/home' : '/vault';
+
+  Future<void> _openLedger(
+    BuildContext context,
+    SharedSession session,
+    SharedItem item,
+    SharedClaim? existing,
+  ) async {
     try {
       final claim = existing ?? await session.openLedger(item);
       if (context.mounted) context.push('/claims/${claim.id}');
     } on FormatException catch (error) {
       if (context.mounted) showPdSnackbar(context, error.message);
     } catch (_) {
-      if (context.mounted) showPdSnackbar(context, 'The claim ledger couldn’t open. Try again.');
+      if (context.mounted) {
+        showPdSnackbar(context, 'The claim ledger couldn’t open. Try again.');
+      }
     }
   }
 
-  Future<void> _shareKit(BuildContext context, SharedSession session, SharedItem item) async {
+  Future<void> _shareKit(
+    BuildContext context,
+    SharedSession session,
+    SharedItem item,
+  ) async {
     final box = context.findRenderObject();
-    final origin = box is RenderBox && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+    final origin = box is RenderBox && box.hasSize
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
     try {
       await session.shareClaimKit(item, origin);
     } catch (_) {
-      if (context.mounted) showPdSnackbar(context, 'The claim kit couldn’t be shared. Try again.');
+      if (context.mounted) {
+        showPdSnackbar(context, 'The claim kit couldn’t be shared. Try again.');
+      }
     }
   }
 
@@ -100,7 +119,7 @@ class SharedItemScreen extends StatelessWidget {
         .where((entry) => entry.item.id == id)
         .firstOrNull;
     if (item == null) {
-      return _missing(context, session, 'Vault', '/vault');
+      return _missing(context, session, _backLabel, _backRoute);
     }
     final linkedClaims = session.vault!.claims
         .where((claim) => claim.itemId == id)
@@ -118,9 +137,9 @@ class SharedItemScreen extends StatelessWidget {
         .firstOrNull
         ?.$2;
     return PdPushedScaffold(
-      backLabel: 'VAULT',
+      backLabel: _backLabel,
       backStyle: PdType.monoButton,
-      onBack: () => context.canPop() ? context.pop() : context.go('/vault'),
+      onBack: () => context.canPop() ? context.pop() : context.go(_backRoute),
       kicker: itemDetailKicker(summary, category: category),
       title: item.item.name,
       titleStyle: PdType.trackerTitle,
@@ -151,7 +170,9 @@ class SharedItemScreen extends StatelessWidget {
               key: const ValueKey('shared-item-claim'),
               label: activeClaim == null ? 'Open a claim' : 'View claim ledger',
               expand: true,
-              onPressed: session.claimBusy ? null : () => _openLedger(context, session, item, activeClaim),
+              onPressed: session.claimBusy
+                  ? null
+                  : () => _openLedger(context, session, item, activeClaim),
             ),
             Builder(
               builder: (anchor) => PdButton.secondary(

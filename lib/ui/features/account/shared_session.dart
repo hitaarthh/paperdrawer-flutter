@@ -19,8 +19,11 @@ import '../../../domain/models/ledger.dart';
 import '../../../domain/models/item.dart';
 
 class SharedSession extends ChangeNotifier {
-  SharedSession(this.account, {SharedVaultService? service, CaptureService capture = const CaptureService()})
-    : _service = service ?? SharedVaultService(account.client), _capture = capture {
+  SharedSession(
+    this.account, {
+    SharedVaultService? service,
+    this.capture = const CaptureService(),
+  }) : _service = service ?? SharedVaultService(account.client) {
     _subscription = account.changes.listen(
       (_) => _onAccount(),
       onError: (Object _, StackTrace _) => _onAccount(),
@@ -30,7 +33,7 @@ class SharedSession extends ChangeNotifier {
 
   final SharedAccount account;
   final SharedVaultService _service;
-  final CaptureService _capture;
+  final CaptureService capture;
   late final StreamSubscription<AuthState> _subscription;
   final Today today = Today();
   final followUps = SharedClaimReminders();
@@ -53,7 +56,8 @@ class SharedSession extends ChangeNotifier {
   bool savingReminders = false;
   bool settlingClaim = false;
   bool savingLedger = false;
-  bool get claimBusy => loading || savingReminders || settlingClaim || savingLedger;
+  bool get claimBusy =>
+      loading || savingReminders || settlingClaim || savingLedger;
   bool _disposed = false;
 
   Future<void> refresh() async {
@@ -84,10 +88,7 @@ class SharedSession extends ChangeNotifier {
     final owner = _userId;
     final snapshot = vault;
     final current = snapshot?.profile;
-    if (owner == null ||
-        snapshot == null ||
-        current == null ||
-        claimBusy) {
+    if (owner == null || snapshot == null || current == null || claimBusy) {
       return;
     }
     if (leadDays == current.leadDays) leadDays = null;
@@ -166,10 +167,13 @@ class SharedSession extends ChangeNotifier {
       _saveLedger((owner) => _service.openLedger(owner, item));
 
   Future<SharedClaim> addLedgerEntry(String id, LedgerDraft entry) =>
-      _saveLedger((owner) => _service.addLedgerEntry(owner, id, entry, today.instant));
+      _saveLedger(
+        (owner) => _service.addLedgerEntry(owner, id, entry, today.instant),
+      );
 
-  Future<SharedClaim> setFollowUp(String id, DateTime? value) =>
-      _saveLedger((owner) => _service.setFollowUp(owner, id, value, today.instant));
+  Future<SharedClaim> setFollowUp(String id, DateTime? value) => _saveLedger(
+    (owner) => _service.setFollowUp(owner, id, value, today.instant),
+  );
 
   Future<SharedClaim> _saveLedger(
     Future<SharedClaim> Function(String owner) save,
@@ -189,7 +193,10 @@ class SharedSession extends ChangeNotifier {
       }
       vault = SharedVault(
         items: snapshot.items,
-        claims: [claim, ...snapshot.claims.where((other) => other.id != claim.id)],
+        claims: [
+          claim,
+          ...snapshot.claims.where((other) => other.id != claim.id),
+        ],
         profile: snapshot.profile,
       );
       _syncFollowUps();
@@ -205,7 +212,7 @@ class SharedSession extends ChangeNotifier {
   Future<void> shareFiles(List<XFile> files, Rect? origin) =>
       _actions.shareFiles(files, origin: origin);
 
-  Future<PendingFile?> pickLedgerPhoto() => _capture.pickLedgerPhoto();
+  Future<PendingFile?> pickLedgerPhoto() => capture.pickLedgerPhoto();
 
   Future<void> shareClaimKit(SharedItem item, Rect? origin) async {
     final owner = _userId;

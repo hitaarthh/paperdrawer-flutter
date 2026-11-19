@@ -37,16 +37,28 @@ class LocalClaimLedgerScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _showActions(BuildContext context, Claim claim, ClaimRepository claims, Today today) async {
+  Future<void> _showActions(
+    BuildContext context,
+    Claim claim,
+    ClaimRepository claims,
+    Today today,
+  ) async {
     final action = await showPdActions<_LedgerAction>(
       context,
       title: 'Claim actions',
       actions: [
         if (claim.nudgeDays > 0)
-          const PdAction(label: 'Claim guidance', value: _LedgerAction.guidance),
+          const PdAction(
+            label: 'Claim guidance',
+            value: _LedgerAction.guidance,
+          ),
         if (!claim.isOpen)
           const PdAction(label: 'Reopen claim', value: _LedgerAction.reopen),
-        const PdAction(label: 'Delete claim', value: _LedgerAction.delete, destructive: true),
+        const PdAction(
+          label: 'Delete claim',
+          value: _LedgerAction.delete,
+          destructive: true,
+        ),
       ],
     );
     if (!context.mounted || action == null) return;
@@ -77,7 +89,9 @@ class LocalClaimLedgerScreen extends StatelessWidget {
     } on FormatException catch (error) {
       if (context.mounted) showPdSnackbar(context, error.message);
     } catch (_) {
-      if (context.mounted) showPdSnackbar(context, 'The claim couldn’t be updated. Try again.');
+      if (context.mounted) {
+        showPdSnackbar(context, 'The claim couldn’t be updated. Try again.');
+      }
     }
   }
 
@@ -93,8 +107,7 @@ class LocalClaimLedgerScreen extends StatelessWidget {
     final capture = context.read<CaptureService>();
     final files = [
       ...?item?.attachments,
-      for (final event in claim.events)
-        if (event.photo case final photo?) photo,
+      for (final event in claim.events) ?event.photo,
     ];
     return ClaimLedgerScreen(
       title: claim.title,
@@ -104,7 +117,10 @@ class LocalClaimLedgerScreen extends StatelessWidget {
       followUp: claim.followUp,
       entries: claim.ledger,
       clock: clock,
-      files: [for (final file in files) (name: file.name, open: () => actions.openAttachment(file))],
+      files: [
+        for (final file in files)
+          (name: file.name, open: () => actions.openAttachment(file)),
+      ],
       serial: item?.draft.serialNumber ?? '',
       pickPhoto: capture.pickLedgerPhoto,
       addEntry: (entry) => claims.addEntry(id, entry, clock.instant),

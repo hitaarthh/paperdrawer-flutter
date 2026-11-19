@@ -7,7 +7,6 @@ import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/formats.dart';
-import '../../../domain/models/claim.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -16,11 +15,14 @@ import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/vault_ticket.dart';
+import '../account/shared_session.dart';
 import '../shell/tab_reselect.dart';
 import 'home_view_data.dart';
 
 class ComingUpScreen extends StatefulWidget {
-  const ComingUpScreen({super.key});
+  const ComingUpScreen({this.shared = false, super.key});
+
+  final bool shared;
 
   @override
   State<ComingUpScreen> createState() => _ComingUpScreenState();
@@ -28,23 +30,23 @@ class ComingUpScreen extends StatefulWidget {
 
 class _ComingUpScreenState extends State<ComingUpScreen> {
   final _scroll = ScrollController();
-  late final _reselect = context.read<TabReselect>();
+  late final _reselect = widget.shared ? null : context.read<TabReselect>();
 
   @override
   void initState() {
     super.initState();
-    _reselect.addListener(_resetHome);
+    _reselect?.addListener(_resetHome);
   }
 
   @override
   void dispose() {
-    _reselect.removeListener(_resetHome);
+    _reselect?.removeListener(_resetHome);
     _scroll.dispose();
     super.dispose();
   }
 
   void _resetHome() {
-    if (_reselect.index != 0 || !_scroll.hasClients) return;
+    if (_reselect?.index != 0 || !_scroll.hasClients) return;
     if (MediaQuery.disableAnimationsOf(context)) {
       _scroll.jumpTo(0);
     } else {
@@ -58,10 +60,21 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final today = context.watch<Today>().value;
-    final claims = context.watch<ClaimRepository>().claims;
+    final session = widget.shared ? context.watch<SharedSession>() : null;
+    final vault = session?.vault;
+    final today = (session?.today ?? context.watch<Today>()).value;
+    final claims = widget.shared
+        ? vault?.claims.map(HomeClaimData.shared).toList() ??
+              const <HomeClaimData>[]
+        : context
+              .watch<ClaimRepository>()
+              .claims
+              .map(HomeClaimData.local)
+              .toList();
     final data = HomeViewData(
-      items: context.watch<ItemRepository>().active,
+      items: widget.shared
+          ? vault?.items.map((entry) => entry.item).toList() ?? const []
+          : context.watch<ItemRepository>().active,
       claims: claims,
       today: today,
     );
@@ -78,6 +91,9 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                 child: ListView(
                   key: const ValueKey('coming-up-list'),
                   controller: _scroll,
+                  physics: session == null
+                      ? null
+                      : const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(
                     Pd.margin,
                     Pd.s3,
@@ -95,75 +111,91 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
                       header: true,
                       child: Text('Coming up', style: PdType.heroTitle),
                     ),
-                    const SizedBox(height: Pd.s6),
-                    const _SectionLabel('Due soon'),
-                    const SizedBox(height: Pd.s3),
-                    if (data.dueCount == 0)
-                      const DashedTile(
-                        title: 'Nothing is due soon',
-                        body: 'Return windows, warranties and renewals appear here as their dates get closer.',
-                      ),
-                    for (final ticket in data.tickets)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: Pd.s3),
-                        child: VaultTicket(
-                          key: ValueKey('home-ticket-${ticket.key}'),
-                          number: ticket.number,
-                          unit: ticket.unit,
-                          kicker: ticket.kicker,
-                          title: ticket.title,
-                          body: ticket.body,
-                          tone: ticket.tone,
-                          semanticLabel: ticket.semanticLabel,
-                          onTap: () =>
-                              context.push(Routes.item(ticket.itemId!)),
+                    if (session?.failed == true) ...[
+                      const SizedBox(height: Pd.s6),
+                      DashedTile(
+                        title: 'Couldn’t refresh Paper Drawer',
+                        body: 'Check your connection and try again.',
+                        action: PdButton.text(
+                          label: 'Try again',
+                          onPressed: session!.refresh,
                         ),
                       ),
-                    if (data.dueCount > 2)
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: PdButton.text(
-                          key: const ValueKey('home-more-due'),
-                          label: '+${data.dueCount - 2} more due soon',
-                          monospaced: true,
-                          icon: const Icon(
-                            LucideIcons.arrowRight,
-                            size: Pd.iconSm,
+                    ],
+                    if (session?.loading == true && vault == null) ...[
+                      const SizedBox(height: Pd.s6),
+                      Text('Loading your drawer…', style: PdType.callout),
+                    ],
+                    if (!widget.shared || vault != null) ...[
+                      const SizedBox(height: Pd.s6),
+                      const _SectionLabel('Due soon'),
+                      const SizedBox(height: Pd.s3),
+                      if (data.dueCount == 0)
+                        const DashedTile(
+                          title: 'Nothing is due soon',
+                          body: 'Return windows, warranties and renewals appear here as their dates get closer.',
+                        ),
+                      for (final ticket in data.tickets)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: Pd.s3),
+                          child: VaultTicket(
+                            key: ValueKey('home-ticket-${ticket.key}'),
+                            number: ticket.number,
+                            unit: ticket.unit,
+                            kicker: ticket.kicker,
+                            title: ticket.title,
+                            body: ticket.body,
+                            tone: ticket.tone,
+                            semanticLabel: ticket.semanticLabel,
+                            onTap: () =>
+                                context.push(Routes.homeItem(ticket.itemId!)),
                           ),
-                          onPressed: () =>
-                              context.go('${Routes.vault}?filter=due'),
                         ),
-                      ),
-                    const SizedBox(height: Pd.s6),
-                    _SectionLabel(
-                      'Open claims · Your ledgers',
-                      count: data.openClaims.length,
-                    ),
-                    const SizedBox(height: Pd.s3),
-                    if (data.openClaims.isEmpty)
-                      const DashedTile(
-                        title: 'No open claims',
-                        body:
-                            'You can open a claim from an item in your vault.',
-                      ),
-                    for (final claim in data.openClaims)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: Pd.s3),
-                        child: _LedgerCard(
-                          claim: claim,
-                          today: today,
-                          onTap: () => context.push(Routes.claim(claim.id)),
+                      if (data.dueCount > 2)
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: PdButton.text(
+                            key: const ValueKey('home-more-due'),
+                            label: '+${data.dueCount - 2} more due soon',
+                            monospaced: true,
+                            icon: const Icon(
+                              LucideIcons.arrowRight,
+                              size: Pd.iconSm,
+                            ),
+                            onPressed: () =>
+                                context.go('${Routes.vault}?filter=due'),
+                          ),
                         ),
+                      const SizedBox(height: Pd.s6),
+                      _SectionLabel(
+                        'Open claims · Your ledgers',
+                        count: data.openClaims.length,
                       ),
-                    if (claims.any((claim) => !claim.isOpen))
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: PdButton.text(
-                          key: const ValueKey('home-claim-history'),
-                          label: 'Claim history',
-                          onPressed: () => context.push(Routes.claims),
+                      const SizedBox(height: Pd.s3),
+                      if (data.openClaims.isEmpty)
+                        const DashedTile(
+                          title: 'No open claims',
+                          body: 'You can open a claim from an item in your vault.',
                         ),
-                      ),
+                      for (final claim in data.openClaims)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: Pd.s3),
+                          child: _LedgerCard(
+                            claim: claim,
+                            today: today,
+                            onTap: () => context.push(Routes.claim(claim.id)),
+                          ),
+                        ),
+                      if (claims.any((claim) => !claim.isOpen))
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: PdButton.text(
+                            key: const ValueKey('home-claim-history'),
+                            label: 'Claim history',
+                            onPressed: () => context.push(Routes.claims),
+                          ),
+                        ),
+                    ],
                   ],
                 ),
               ),
@@ -176,12 +208,22 @@ class _ComingUpScreenState extends State<ComingUpScreen> {
 }
 
 class ClaimHistoryScreen extends StatelessWidget {
-  const ClaimHistoryScreen({super.key});
+  const ClaimHistoryScreen({this.shared = false, super.key});
+
+  final bool shared;
 
   @override
   Widget build(BuildContext context) {
-    final claims = context.watch<ClaimRepository>().claims;
-    final today = context.watch<Today>().value;
+    final session = shared ? context.watch<SharedSession>() : null;
+    final claims = shared
+        ? session?.vault?.claims.map(HomeClaimData.shared).toList() ??
+              const <HomeClaimData>[]
+        : context
+              .watch<ClaimRepository>()
+              .claims
+              .map(HomeClaimData.local)
+              .toList();
+    final today = (session?.today ?? context.watch<Today>()).value;
     return PdPushedScaffold(
       title: 'Claim history',
       backLabel: 'Home',
@@ -237,16 +279,19 @@ class _LedgerCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final Claim claim;
+  final HomeClaimData claim;
   final DateTime today;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final entry = claim.ledger.firstOrNull;
+    final entry = claim.entries.firstOrNull;
     final followUp = claim.followUp?.toLocal();
-    final status = claim.settledOn != null
-        ? 'SETTLED ${_weekdayDate(claim.settledOn!)}'
+    final settled = claim.settled;
+    final status = !claim.isOpen
+        ? settled == null
+              ? 'SETTLED'
+              : 'SETTLED ${_weekdayDate(settled)}'
         : followUp == null
         ? 'NO FOLLOW-UP SET'
         : 'FOLLOW UP ${_weekdayDate(followUp)}';
@@ -269,7 +314,7 @@ class _LedgerCard extends StatelessWidget {
               spacing: Pd.s1,
               children: [
                 _SectionLabel(
-                  '${claim.type.caps} · ${claim.events.length} ${claim.events.length == 1 ? 'ENTRY' : 'ENTRIES'}',
+                  '${claim.category} · ${claim.entries.length} ${claim.entries.length == 1 ? 'ENTRY' : 'ENTRIES'}',
                 ),
                 Text(claim.title, style: PdType.cardTitle),
                 Text(

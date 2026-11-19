@@ -2,51 +2,40 @@
 
 How the components build the app's main screens. The web designs on paperdrawer.app are the source for content and states; these recipes adapt them to a phone.
 
-## Vault (tab 1)
+## Home
 
-1. **Header:** Paper Drawer brand bar followed by "The vault". Scan or add lives in the floating dock.
-2. **CountdownTicket** for the single most urgent deadline, if one is due within 14 days.
-3. **Chip** row of filters (All · Due · In claim · Covered · Expired), scrolling sideways, with `space-5` / `space-4` edge padding.
-4. **Cards** in one column, sorted by days left: a ReceiptCard for bills, a DocumentCard for policies, PUC and agreements, `space-3` apart.
-5. **LimitNotice** above the list when the user is at 25 of 25 items on Base.
-6. **Empty state:** a dashed `line` tile reading "Your drawer is empty", with the body text "Scan your first bill. We'll read the dates." and a primary Button "Scan a bill".
+1. Show the current date, the number of deadlines due soon, and the number of open claims above “Coming up.”
+2. Show the two closest upcoming deadlines as tickets. Use signal orange for the first and paper for the second. Today uses “TODAY.” Future counts exclude the current day. More deadlines link to Vault with Due soon selected.
+3. Show open claims with the latest entry and the follow-up date, or “No follow-up set.” With no open claims, point to Vault. Keep settled ledgers available through Claim history.
+4. Let the list scroll behind the dock. Use the measured bottom inset so the last row can move above it.
+
+## Vault
+
+1. Show the brand bar, “The vault,” search, and the underlined filters All · Due soon · In claim · Covered · Ended.
+2. Sort document cards by the nearest date. Show the Base limit notice when the drawer is full.
+3. For an empty Vault, use a welcome receipt with “Scan your first bill.” Policy, vehicle and agreement shortcuts open Add with the corresponding category selected.
+4. After a local save, show the new card under “Just added.” Offer Undo and use the next future planned reminder when one exists.
 
 ## Add flow
 
-1. **Scan** opens the BottomSheet: Scan with camera / Upload a photo or PDF / Type it in.
-2. **Camera:**
-   - Full-screen with a dark ground and a lime corner frame (the Scan icon's corners at 64pt).
-   - The shutter is a 72pt lime circle; there's a "Done" text button.
-   - Multi-page capture is allowed.
-3. **Reading:** a paper receipt prints in from the top with a "READING YOUR BILL" `label`. No spinners. Keep it under 3 seconds or show progress.
-4. **Check the details:** TextFields, each tagged "READ FROM BILL" in `lime`. Then Item type (Chip choice), Warranty, Return window and Reminder ListRows.
-5. **Save:** a primary Button "Save to drawer". A stamp lands on the new card, followed by the Snackbar "Saved to your drawer · UNDO".
+1. The lime Add action opens “What are you adding?” Choose Bill & warranty, Insurance policy, Vehicle papers or Agreement, then Take a photo, Upload a file or Type it in. Manual entry starts with a blank form for the chosen category.
+2. Show a lime frame and shutter in the camera. A captured preview can be retaken or confirmed with Done.
+3. Show the original and progress while reading. Skip to review is available immediately. An unreadable original still opens review with editable fields.
+4. “Check what we read” keeps the original available for retaking. Mark recognized facts and provide editable return and warranty dates. A component warranty is tracked separately. Keep the form scrollable and the Save to vault action visible.
 
 ## Item detail
 
-1. **NavBar:**
-   - iOS: back "Vault".
-   - Android: arrow back.
-   - Share and overflow actions on both.
-2. The card at full width (receipt or document) at the top.
-3. **Meters** on dark for each window (Return, Warranty, Renewal, Service).
-4. **Documents strip:** thumbnails of the original photos and PDFs on `surface-2`, 72pt, `radius-sm`.
-5. **Actions:** primary Button "Start a claim", secondary "Export claim kit".
+1. Show the original, saved facts and coverage windows. Include a separate meter for component coverage when supplied.
+2. “Open a claim” creates or opens a ledger from the item. Existing open claims offer “View claim ledger.”
 
-## Claims (tab 2)
+## Claim ledger
 
-1. **Header:** Paper Drawer brand bar followed by the Claims title.
-2. **Needs You:** when a claim needs attention, link to the oldest such claim with a lime ticket and the reason it needs attention.
-3. **Filters:** underlined Open, Settled and All tabs with live counts. List claims that need attention first, then other open claims by oldest reply. List settled claims newest first.
-4. **Claim rows on `surface-2`:** display the claim day beside a dashed rule, the claim type and item, title, current step, next action and a status stamp. Shared claims can also show DOCS ASKED.
-5. **On-device claim tracker**
-   - Show the claim type, item, and opening date above the title, with Mark settled in the top bar.
-   - Show the wait in a notched ticket. When the reply window has passed, highlight the ticket in lime and preview the next step’s draft.
-   - Place the draft on `paper-2` above the mail, copy, and sent actions. The user supplies the recipient address and any supporting documents in their mail app.
-   - Follow the draft with the escalation ladder and the dated claim log. Log an update lets the user record a reply or note.
-   - For settled claims, show the outcome before the ladder and log.
+1. Show an Open or Settled stamp, a follow-up row and “Add an entry” for open claims.
+2. The paper log shows newest entries first. An entry shows the date, type, what happened and the reference number when supplied.
+3. Below the log, show attached files, Share as PDF and Mark settled. Settling records the outcome and clears the active follow-up.
+4. The entry sheet offers Call, Email, Visit, Note and Refund. Record what happened, choose a date and add a reference, photo or future follow-up time as needed.
 
-## Settings (tab 3)
+## Settings
 
 - **Grouped ListRows:**
   - Account: name, email, password.
@@ -66,6 +55,6 @@ How the components build the app's main screens. The web designs on paperdrawer.
 
 - **Title:** the item and the fact ("Washing machine warranty ends in 22 days").
 - **Body:** the action ("Book a service visit before 10 Dec").
-- **Tap:** opens Item detail.
+- **Tap:** opens Item detail or the claim ledger for a follow-up.
 - **Android:** notification icon = the mark in white, with an accent colour of `lime`.
 - **iOS:** time-sensitive interruption level only for the final reminder before a return window closes.

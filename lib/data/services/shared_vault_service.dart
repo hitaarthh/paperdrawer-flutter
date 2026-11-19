@@ -31,12 +31,7 @@ class SharedVaultService {
         'purchased_on',
       ),
       _page('documents', '*,$_files', userId, 'end_on'),
-      _page(
-        'claims',
-        _claimFields,
-        userId,
-        'opened_on',
-      ),
+      _page('claims', _claimFields, userId, 'opened_on'),
       _fetchProfile(userId),
     ).wait;
     return SharedVault(
@@ -88,27 +83,37 @@ class SharedVaultService {
 
   Future<SharedClaim> openLedger(String userId, SharedItem item) async {
     _requireOwner(userId);
-    final id = await _client.rpc<String>('open_claim_ledger', params: {
-      'p_id': const Uuid().v4(),
-      'p_item_id': item.item.id,
-      'p_bill': item.item.kind == ItemKind.bill,
-    });
+    final id = await _client.rpc<String>(
+      'open_claim_ledger',
+      params: {
+        'p_id': const Uuid().v4(),
+        'p_item_id': item.item.id,
+        'p_bill': item.item.kind == ItemKind.bill,
+      },
+    );
     return _fetchClaim(userId, id);
   }
 
   Future<SharedClaim> setFollowUp(
-    String userId, String id, DateTime? followUp, DateTime now,
+    String userId,
+    String id,
+    DateTime? followUp,
+    DateTime now,
   ) async {
     _requireOwner(userId);
     validateFollowUp(followUp, now);
-    await _client.rpc<void>('set_claim_follow_up', params: {
-      'p_id': id, 'p_at': followUp?.toUtc().toIso8601String(),
-    });
+    await _client.rpc<void>(
+      'set_claim_follow_up',
+      params: {'p_id': id, 'p_at': followUp?.toUtc().toIso8601String()},
+    );
     return _fetchClaim(userId, id);
   }
 
   Future<SharedClaim> addLedgerEntry(
-    String userId, String id, LedgerDraft entry, DateTime now,
+    String userId,
+    String id,
+    LedgerDraft entry,
+    DateTime now,
   ) async {
     _requireOwner(userId);
     entry.validate(now);
@@ -116,20 +121,34 @@ class SharedVaultService {
     if (await _hasEvent(userId, id, eventId)) return _fetchClaim(userId, id);
 
     final photo = entry.photo;
-    final attachment = photo == null ? null : await _uploadLedgerPhoto(userId, eventId, photo);
+    final attachment = photo == null
+        ? null
+        : await _uploadLedgerPhoto(userId, eventId, photo);
     try {
       _requireOwner(userId);
-      await _client.rpc<void>('add_claim_ledger_entry', params: {
-        'p_id': id, 'p_event_id': eventId, 'p_on': isoDate(entry.date),
-        'p_kind': entry.kind.name, 'p_note': entry.text, 'p_reference': entry.reference,
-        'p_at': entry.followUp?.toUtc().toIso8601String(), 'p_photo': attachment,
-      });
+      await _client.rpc<void>(
+        'add_claim_ledger_entry',
+        params: {
+          'p_id': id,
+          'p_event_id': eventId,
+          'p_on': isoDate(entry.date),
+          'p_kind': entry.kind.name,
+          'p_note': entry.text,
+          'p_reference': entry.reference,
+          'p_at': entry.followUp?.toUtc().toIso8601String(),
+          'p_photo': attachment,
+        },
+      );
     } on PostgrestException catch (error) {
       // A server rejection rolls the transaction back. A network error may
       // have happened after commit, so a retry checks the same event ID.
-      if (attachment != null && error.code != null && error.code!.length == 5 &&
+      if (attachment != null &&
+          error.code != null &&
+          error.code!.length == 5 &&
           !await _hasEvent(userId, id, eventId)) {
-        await _client.storage.from('vault').remove([attachment['storage_path']! as String]);
+        await _client.storage.from('vault').remove([
+          attachment['storage_path']! as String,
+        ]);
       }
       rethrow;
     }
@@ -138,12 +157,20 @@ class SharedVaultService {
 
   Future<bool> _hasEvent(String userId, String claimId, String eventId) async {
     _requireOwner(userId);
-    return await _client.from('claim_events').select('id')
-        .eq('user_id', userId).eq('claim_id', claimId).eq('id', eventId).maybeSingle() != null;
+    return await _client
+            .from('claim_events')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('claim_id', claimId)
+            .eq('id', eventId)
+            .maybeSingle() !=
+        null;
   }
 
   Future<Map<String, Object>> _uploadLedgerPhoto(
-    String userId, String eventId, PendingFile picked,
+    String userId,
+    String eventId,
+    PendingFile picked,
   ) async {
     final name = p.basename(picked.name.isEmpty ? picked.path : picked.name);
     final extension = p.extension(name).toLowerCase();
@@ -163,17 +190,28 @@ class SharedVaultService {
     final path = '$userId/claim-ledger/$eventId$extension';
     _requireOwner(userId);
     try {
-      await _client.storage.from('vault').upload(path, file, fileOptions: FileOptions(contentType: mime));
+      await _client.storage
+          .from('vault')
+          .upload(path, file, fileOptions: FileOptions(contentType: mime));
     } on StorageException catch (error) {
       if (error.statusCode != '409' && error.error != 'Duplicate') rethrow;
     }
-    return {'storage_path': path, 'file_name': name, 'mime_type': mime, 'size_bytes': size};
+    return {
+      'storage_path': path,
+      'file_name': name,
+      'mime_type': mime,
+      'size_bytes': size,
+    };
   }
 
   Future<SharedClaim> _fetchClaim(String userId, String id) async {
     _requireOwner(userId);
-    final row = await _client.from('claims').select(_claimFields)
-      .eq('user_id', userId).eq('id', id).single();
+    final row = await _client
+        .from('claims')
+        .select(_claimFields)
+        .eq('user_id', userId)
+        .eq('id', id)
+        .single();
     _requireOwner(userId);
     return SharedClaim.fromRow(row);
   }

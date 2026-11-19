@@ -1,177 +1,95 @@
 import 'package:flutter/widgets.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../../domain/item_status.dart';
+import '../../../../domain/models/ledger.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/type.dart';
+import '../../../core/widgets/stamp.dart';
+import '../../claims/claim_ledger_sections.dart';
 
-/// Intro step 3 art: a sample warranty-repair claim on its escalation ladder.
-///
-/// Drawn on the 390×360 intro art canvas with the mockup's coordinates
-/// (iOS Intro 3 · Claim). It is a picture, so text never follows Dynamic
-/// Type; the intro flow scales the whole canvas instead.
+/// A sample manual claim ledger drawn on the intro art canvas.
 class ClaimArt extends StatelessWidget {
   const ClaimArt({super.key});
 
-  /// CSS `line-height: normal` for the bundled faces (ascent + descent).
-  static const _interNormal = 1.21;
-  static const _monoNormal = 1.32;
+  static final _entries = [
+    LedgerEntry(
+      id: 'repair-call',
+      date: DateTime.utc(2026, 11, 12),
+      kind: LedgerKind.call,
+      text: 'Support booked a repair visit.',
+      reference: 'SR-4821',
+    ),
+    LedgerEntry(
+      id: 'repair-email',
+      date: DateTime.utc(2026, 11, 10),
+      kind: LedgerKind.email,
+      text: 'Sent the invoice and a photo of the hinge.',
+    ),
+  ];
 
   @override
-  Widget build(BuildContext context) {
-    final kicker = PdType.label.copyWith(
-      fontSize: 10,
-      height: _monoNormal,
-      letterSpacing: 10 * 0.1,
-    );
-    final title = PdType.bodyStrong.copyWith(height: _interNormal);
-    final detail = PdType.footnote.copyWith(color: Pd.textMuted, height: 1.45);
-    return MediaQuery.withNoTextScaling(
-      // Self-contained picture: never inherit a host's text decoration.
-      child: DefaultTextStyle(
-        style: PdType.body,
-        child: Stack(
-          children: [
-            Positioned(
-              left: Pd.s5,
-              right: Pd.s5,
-              top: Pd.s2,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Pd.surface2,
-                  borderRadius: BorderRadius.circular(Pd.rSm),
-                  border: Border.all(color: Pd.hairline),
-                ),
-                child: Padding(
-                  // 16 18 6, plus the 1px border DecoratedBox doesn't inset.
-                  padding: const EdgeInsets.fromLTRB(19, 17, 19, 7),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: Pd.s2),
+  Widget build(BuildContext context) => MediaQuery.withNoTextScaling(
+    child: DefaultTextStyle(
+      style: PdType.body,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(Pd.margin, Pd.s2, Pd.margin, 0),
+          child: LayoutBuilder(
+            builder: (context, constraints) => FittedBox(
+              alignment: Alignment.topCenter,
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                width: constraints.maxWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: Pd.s3,
+                  children: [
+                    Row(
+                      spacing: Pd.s2,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Laptop hinge repair',
+                            style: PdType.title2,
+                          ),
+                        ),
+                        const PdStamp(StampKind.escalate, compactLabel: 'OPEN'),
+                      ],
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Pd.surface2,
+                        border: Border.all(color: Pd.hairline),
+                        borderRadius: BorderRadius.circular(Pd.rSm),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(Pd.s3),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           spacing: Pd.s2,
                           children: [
-                            Flexible(
-                              child: Text(
-                                'WARRANTY REPAIR · LAPTOP',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: PdType.label.copyWith(
-                                  color: Pd.textMuted,
-                                ),
-                              ),
+                            const Icon(
+                              LucideIcons.bell,
+                              color: Pd.lime,
+                              size: Pd.iconSm,
                             ),
                             Text(
-                              'DAY 14',
-                              style: PdType.label.copyWith(color: Pd.signal),
+                              'FOLLOW UP SAT 21 NOV',
+                              style: PdType.label.copyWith(color: Pd.lime),
                             ),
                           ],
                         ),
                       ),
-                      _Rung(
-                        number: '01',
-                        fill: Pd.signal,
-                        children: [
-                          Text(
-                            'NO REPLY · 14 DAYS',
-                            style: kicker.copyWith(color: Pd.signal),
-                          ),
-                          Text('Brand support', style: title),
-                        ],
-                      ),
-                      _Rung(
-                        number: '02',
-                        fill: Pd.lime,
-                        children: [
-                          Text(
-                            'RECOMMENDED NEXT',
-                            style: kicker.copyWith(color: Pd.lime),
-                          ),
-                          Text('Grievance officer', style: title),
-                        ],
-                      ),
-                      _Rung(
-                        number: '03',
-                        children: [
-                          Text('National Consumer Helpline', style: title),
-                          Text(
-                            'Call 1915 or file at consumerhelpline.gov.in',
-                            style: detail,
-                          ),
-                        ],
-                      ),
-                      _Rung(
-                        number: '04',
-                        children: [
-                          Text('Consumer commission', style: title),
-                          Text('File online at e-Jagriti', style: detail),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                    LedgerPaper(_entries),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-/// One ladder step: a numbered dot beside its copy, under a hairline.
-/// [fill] null draws the upcoming-step outline dot.
-class _Rung extends StatelessWidget {
-  const _Rung({required this.number, required this.children, this.fill});
-
-  static const _dot = 28.0;
-
-  final String number;
-  final Color? fill;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      border: Border(top: BorderSide(color: Pd.hairline)),
-    ),
-    child: Padding(
-      // 12px vertical padding, below the 1px top border.
-      padding: const EdgeInsets.only(top: 1 + Pd.s3, bottom: Pd.s3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 14,
-        children: [
-          Container(
-            width: _dot,
-            height: _dot,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: fill,
-              shape: BoxShape.circle,
-              border: fill == null
-                  ? Border.all(color: Pd.line, width: 2)
-                  : null,
-            ),
-            child: Text(
-              number,
-              style: PdType.dataStrong.copyWith(
-                fontSize: 12,
-                height: 1,
-                color: fill == null ? Pd.textMuted : Pd.onLime,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 3,
-              children: children,
-            ),
-          ),
-        ],
       ),
     ),
   );

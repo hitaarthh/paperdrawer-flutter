@@ -132,7 +132,9 @@ class PdTabBar extends StatelessWidget {
               title: title,
               glyph: glyph,
               selected: index == currentIndex,
-              badge: glyph == PdGlyph.claims ? claimsBadge : 0,
+              badge: glyph == PdGlyph.claims || glyph == PdGlyph.home
+                  ? claimsBadge
+                  : 0,
               onTap: () => onTap(index),
             ),
           ),
@@ -190,7 +192,7 @@ class _DockButton extends StatelessWidget {
           borderRadius: PdTabBar._radius,
         ),
         child: CupertinoButton(
-          minimumSize: const Size(Pd.tapMin, Pd.controlH),
+          minimumSize: const Size(Pd.tapMin, Pd.dockControlHeight),
           padding: const EdgeInsets.all(Pd.s1),
           borderRadius: PdTabBar._radius,
           pressedOpacity: 0.7,
@@ -203,12 +205,13 @@ class _DockButton extends StatelessWidget {
             children: [
               if (add)
                 const SizedBox(
-                  width: Pd.s8,
-                  height: Pd.iconMd,
+                  width: Pd.dockAddWidth,
+                  height: Pd.dockAddHeight,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: Pd.lime,
                       borderRadius: PdTabBar._radius,
+                      boxShadow: Pd.dockAddGlow,
                     ),
                     child: Center(
                       child: PdIcon(

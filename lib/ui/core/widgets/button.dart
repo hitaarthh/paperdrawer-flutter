@@ -79,7 +79,10 @@ class PdButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = _variant == _Variant.primary;
     final mono = switch (_variant) {
-      _Variant.secondary || _Variant.positive || _Variant.destructive || _Variant.onPaper => true,
+      _Variant.secondary ||
+      _Variant.positive ||
+      _Variant.destructive ||
+      _Variant.onPaper => true,
       _Variant.text => monospaced,
       _ => false,
     };

@@ -97,7 +97,7 @@ Bundle the font files in the app: Bricolage 700 and 800, Inter 400 and 600, JetB
 
 24px icons with a 2px stroke, round caps and joins, and no fills. Use [Lucide](https://lucide.dev) for anything not in the Icons group: it matches the web.
 
-The Icons group holds the custom tab icons (Vault drawer, Claims ticket, Settings sliders, Scan). For the iOS back chevron and the system share sheet, use the platform's own symbols.
+The app draws custom Home, Vault, Add, Settings and scan glyphs. For the iOS back chevron and the system share sheet, use the platform's own symbols.
 
 ### Motion and haptics
 
@@ -117,7 +117,7 @@ The Icons group holds the custom tab icons (Vault drawer, Claims ticket, Setting
 | Status | Stamp, Meter, LimitNotice |
 | Inputs | TextField, Chip |
 | Lists | ListRow |
-| Claims | ClaimLadder |
+| Claims | Claim ledger, entry sheet |
 | Overlays | BottomSheet, Snackbar |
 
 Each component's page lists its tokens, its iOS and Android differences, and its rules. The previews are HTML references to build natively from, whether that's SwiftUI and Jetpack Compose or React Native/Expo. In React Native, `tokens.json` maps one-to-one to a theme object. 1px here is 1pt on iOS and 1dp on Android.

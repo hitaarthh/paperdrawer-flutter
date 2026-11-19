@@ -49,7 +49,11 @@ class LedgerStatus extends StatelessWidget {
 }
 
 class LedgerReminder extends StatelessWidget {
-  const LedgerReminder({required this.value, required this.onChange, super.key});
+  const LedgerReminder({
+    required this.value,
+    required this.onChange,
+    super.key,
+  });
 
   final String? value;
   final VoidCallback? onChange;
@@ -72,7 +76,10 @@ class LedgerReminder extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: Pd.s1,
               children: [
-                Text('YOUR FOLLOW-UP REMINDER', style: PdType.label.copyWith(color: Pd.textMuted)),
+                Text(
+                  'YOUR FOLLOW-UP REMINDER',
+                  style: PdType.label.copyWith(color: Pd.textMuted),
+                ),
                 Text(value ?? 'No reminder set', style: PdType.bodyStrong),
               ],
             ),
@@ -107,7 +114,10 @@ class LedgerPaper extends StatelessWidget {
             spacing: Pd.s3,
             runSpacing: Pd.s1,
             children: [
-              Semantics(header: true, child: Text('CLAIM LEDGER', style: label)),
+              Semantics(
+                header: true,
+                child: Text('CLAIM LEDGER', style: label),
+              ),
               if (entries.isNotEmpty) Text('NEWEST FIRST', style: label),
             ],
           ),
@@ -115,7 +125,10 @@ class LedgerPaper extends StatelessWidget {
           if (entries.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: Pd.s3),
-              child: Text('No entries yet.', style: PdType.body.copyWith(color: Pd.ink)),
+              child: Text(
+                'No entries yet.',
+                style: PdType.body.copyWith(color: Pd.ink),
+              ),
             ),
           for (final entry in entries)
             _LedgerLine(key: ValueKey('ledger-line-${entry.id}'), entry: entry),
@@ -148,7 +161,10 @@ class _LedgerLine extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: Pd.s1,
                   children: [
-                    Text(shortDate(entry.date).toUpperCase(), style: label.copyWith(color: Pd.ink)),
+                    Text(
+                      shortDate(entry.date).toUpperCase(),
+                      style: label.copyWith(color: Pd.ink),
+                    ),
                     Text(entry.kind.label.toUpperCase(), style: label),
                   ],
                 ),
@@ -159,9 +175,17 @@ class _LedgerLine extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: Pd.s1,
                   children: [
-                    Text(entry.text, style: PdType.bodyStrong.copyWith(color: Pd.ink)),
-                    if (entry.details.isNotEmpty) Text(entry.details, style: text),
-                    if (entry.reference.isNotEmpty) Text('REF ${entry.reference}', style: label.copyWith(color: Pd.ink)),
+                    Text(
+                      entry.text,
+                      style: PdType.bodyStrong.copyWith(color: Pd.ink),
+                    ),
+                    if (entry.details.isNotEmpty)
+                      Text(entry.details, style: text),
+                    if (entry.reference.isNotEmpty)
+                      Text(
+                        'REF ${entry.reference}',
+                        style: label.copyWith(color: Pd.ink),
+                      ),
                   ],
                 ),
               ),

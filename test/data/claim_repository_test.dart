@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:paperdrawer/data/repositories/claim_repository.dart';
 import 'package:paperdrawer/data/services/app_database.dart';
+import 'package:paperdrawer/data/services/file_store.dart';
 import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:path/path.dart' as p;
@@ -21,7 +22,7 @@ void main() {
       final due = addDays(opened, 14);
 
       final db = await AppDatabase.open(path, factory: databaseFactoryFfi);
-      final claims = ClaimRepository(db);
+      final claims = ClaimRepository(db, FileStore(dir));
       try {
         await db.insert('items', {
           'id': 'laptop',
@@ -55,7 +56,7 @@ void main() {
         factory: databaseFactoryFfi,
       );
       addTearDown(reopened.close);
-      final persisted = ClaimRepository(reopened);
+      final persisted = ClaimRepository(reopened, FileStore(dir));
       addTearDown(persisted.dispose);
       await persisted.load();
       final updated = persisted.claims.single;

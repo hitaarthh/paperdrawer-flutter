@@ -154,8 +154,13 @@ class _ClaimLogEntry extends StatelessWidget {
       ClaimEventKind.note => ('NOTE', 'Note added'),
       ClaimEventKind.settled => ('CLAIM', 'Claim settled'),
       ClaimEventKind.reopened => ('CLAIM', 'Claim reopened'),
-      ClaimEventKind.call || ClaimEventKind.email || ClaimEventKind.visit || ClaimEventKind.refund =>
-        (event.kind.ledgerKind.label.toUpperCase(), event.text),
+      ClaimEventKind.call ||
+      ClaimEventKind.email ||
+      ClaimEventKind.visit ||
+      ClaimEventKind.refund => (
+        event.kind.ledgerKind.label.toUpperCase(),
+        event.text,
+      ),
     };
     final detail = switch (event.kind) {
       ClaimEventKind.reply ||
@@ -254,7 +259,7 @@ class _ClaimNoteFormState extends State<ClaimNoteForm> {
           expand: true,
           onPressed: widget.requiredNote && value.text.trim().isEmpty
               ? null
-              : () => Navigator.of(context).pop(value.text.trim()),
+              : () => Navigator.of(context).pop(_note.text.trim()),
         ),
       ),
     ],

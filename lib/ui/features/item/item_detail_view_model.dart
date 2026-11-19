@@ -48,6 +48,7 @@ class ItemDetailViewModel extends ChangeNotifier {
     }, 'The claim ledger couldn’t open.');
     return opened;
   }
+
   ItemSummary? get summary {
     final item = this.item;
     return item == null

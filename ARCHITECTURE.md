@@ -89,11 +89,12 @@ exceptions; `FormatException.message` is always user-facing copy.
 
 ### `AppDatabase` (`data/services/app_database.dart`)
 `static Future<Database> open(String path, {DatabaseFactory? factory})`.
-Schema v3, `PRAGMA foreign_keys = ON`:
-- `items(id TEXT PK, kind TEXT, name TEXT, source TEXT, subtype TEXT, reference TEXT, serial_number TEXT, notes TEXT, amount_minor INTEGER, currency TEXT, starts_on TEXT, return_until TEXT, cover_until TEXT, remind INTEGER, created_at INTEGER, updated_at INTEGER, archived_at INTEGER)`
+Schema v5, `PRAGMA foreign_keys = ON`:
+- `items(id TEXT PK, kind TEXT, name TEXT, source TEXT, subtype TEXT, reference TEXT, serial_number TEXT, notes TEXT, amount_minor INTEGER, currency TEXT, starts_on TEXT, return_until TEXT, cover_until TEXT, component_warranty_until TEXT, component_warranty_name TEXT, remind INTEGER, created_at INTEGER, updated_at INTEGER, archived_at INTEGER)`
 - `attachments(id TEXT PK, item_id TEXT REFERENCES items(id) ON DELETE CASCADE, rel_path TEXT, name TEXT, bytes INTEGER, position INTEGER, created_at INTEGER)`
-- `claims(id TEXT PK, item_id TEXT REFERENCES items(id) ON DELETE SET NULL, item_label TEXT, type TEXT, want TEXT, problem TEXT, reference TEXT, opened_on TEXT, noticed_on TEXT, step INTEGER, step_since TEXT, last_heard_on TEXT, settled_on TEXT, nudge_days INTEGER)`
-- `claim_events(id TEXT PK, claim_id TEXT REFERENCES claims(id) ON DELETE CASCADE, on_date TEXT, kind TEXT, text TEXT, created_at INTEGER)`
+- `claims(id TEXT PK, item_id TEXT REFERENCES items(id) ON DELETE SET NULL, item_label TEXT, type TEXT, want TEXT, problem TEXT, reference TEXT, opened_on TEXT, noticed_on TEXT, step INTEGER, step_since TEXT, last_heard_on TEXT, settled_on TEXT, nudge_days INTEGER, follow_up_at INTEGER)`
+- `claim_events(id TEXT PK, claim_id TEXT REFERENCES claims(id) ON DELETE CASCADE, on_date TEXT, kind TEXT, text TEXT, reference TEXT, created_at INTEGER)`
+- `claim_event_photos(event_id TEXT PK REFERENCES claim_events(id) ON DELETE CASCADE, rel_path TEXT, name TEXT, bytes INTEGER)`
 - `preferences(key TEXT PK, value TEXT)`
 
 Dates are `yyyy-mm-dd` (`isoDate` / `parseIsoDate`). Migration from v1 keeps
@@ -101,7 +102,7 @@ every record: `records` → `items` (receipt→bill, policy→policy, document�
 `recorded_on`→`starts_on`; `deadline`→`cover_until`; `amount_cents`→`amount_minor`
 with currency `USD`; `archived_at` kept), each `attachment_key` → one
 `attachments` row; the old table is renamed `records_v1_backup`, never dropped.
-Version 3 adds `items.serial_number` with an empty default for existing items.
+Version 3 adds an optional serial number. Version 4 adds the ledger’s follow-up instant, entry reference and photo table while retaining earlier events. Version 5 adds an optional component warranty date and name.
 
 ### `FileStore` (`data/services/file_store.dart`)
 `FileStore(Directory root)`; `Future<Attachment> import(String itemId, PendingFile file)`
@@ -118,8 +119,11 @@ copies into `root/attachments/<itemId>-<uuid><ext>`; accepts `.pdf .jpg .jpeg .p
 - `Future<void> eraseAll()`
 
 ### `ClaimRepository`
-- `ClaimRepository(Database db)`, `Future<void> load()`
+- `ClaimRepository(Database db, FileStore files)`, `Future<void> load()`
 - `List<Claim> get claims` (open first, oldest wait first; then settled, newest first), `Claim? byId(String id)`, `Claim? openFor(String itemId)`, `bool hasOpenClaim(String itemId)`, `int needsAction(DateTime today)` (open claims with status escalate)
+- `openLedger(Item item, DateTime today)` returns the existing open ledger or creates one with an opening event in a single transaction.
+- `addEntry(String id, LedgerDraft entry, DateTime now)` adds a dated call, email, visit, note or refund, with an optional reference and photo. A supplied follow-up and the event commit together. A failed write cleans up the copied photo.
+- `setFollowUp(String id, DateTime? followUp, DateTime now)` schedules or clears an explicit follow-up. Settling clears the active follow-up.
 - `Future<Claim> start({required String itemId, required String itemLabel, required ClaimType type, required ClaimWant want, required String problem, String reference = '', DateTime? noticedOn, required DateTime today})` — step 0, logs an `opened` event; `nudgeDays` from `ladderFor(type)[0].waitDays`
 - `Future<void> logSent(String id, DateTime today, {int? step})` records the sent message and resets the waiting clock. It defaults to the current step. When `step` is the currently recommended next step, it advances the claim and records the send in the same transaction.
 - `Future<void> logReply(String id, DateTime today, {String note = ''})` — sets `lastHeardOn`
@@ -139,19 +143,18 @@ copies into `root/attachments/<itemId>-<uuid><ext>`; accepts `.pdf .jpg .jpeg .p
 ### Services
 - `TextRecognizer` (abstract): `Future<List<String>> recognize(String path)`; `PlatformTextRecognizer` uses MethodChannel `app.paperdrawer.mobile/text`, method `recognize`, args `{'path': String}` → `List<String>` lines (Apple Vision; PDFs: first 3 pages via PDFKit). Never throws: returns `[]` on failure.
 - `CaptureService.inspect(PendingFile)` reads the original's size and provides preview bytes for a supported image. Its camera session supports capture and torch control.
-- `ScanReading readBill(List<String> lines, {required DateTime today})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and warranty duration. `ScanReading.read` identifies populated fields.
+- `ScanReading readBill(List<String> lines, {required DateTime today})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and separate comprehensive and component warranty durations. `ScanReading.read` identifies populated fields.
 - `ReminderScheduler`: `ReminderScheduler({required NotificationGateway gateway, required ItemRepository items, required ClaimRepository claims, required SettingsRepository settings, required Today today})`; `void start()` (listens to the repositories, debounced reschedule); `Future<bool> requestPermission()`; `Stream<String> get taps` (go_router locations); `Future<String?> launchLocation()`. Pure planner `List<PlannedReminder> planReminders({items, claims, leadDays, now})` is unit-tested. Title/body copy: see design/mobile-system/screens.md "Notifications". Payload = location: `/vault/item/<id>` or `/claims/<id>`.
-- `Exporter`: `Future<File> exportEverything({required List<Item> items, required List<Claim> claims})` → zip (`paperdrawer-export-<yyyy-mm-dd>.zip` with `paperdrawer.json` + `originals/`); `Future<List<XFile>> claimKit(Item item, {Claim? claim})` → originals + `<name>-claim-kit.txt` summary.
+- `Exporter`: `Future<File> exportEverything({required List<Item> items, required List<Claim> claims})` → zip (`paperdrawer-export-<yyyy-mm-dd>.zip` with `paperdrawer.json`, `originals/` and any `claim-photos/`); `Future<List<XFile>> claimKit(Item item, {Claim? claim})` → originals + `<name>-claim-kit.txt` summary.
 
 ## Routes (`routing/router.dart`)
 
-Shell branches (tab bar visible): `/vault`, `/vault/item/:id`, `/vault/item/:id/claim`;
-`/claims`, `/claims/:id`; `/settings`, `/settings/archive`.
+The app opens on `/home`. The Home branch owns `/claims` (history), `/claims/:id` (ledger and reminder destination) and `/claims/:id/guidance` (legacy claims). The Vault branch owns `/vault`, `/vault/item/:id` and its legacy claim creation route. Vault accepts `filter=due`, `review=old` or `added=<id>`. Settings owns `/settings` and `/settings/archive`.
 Full-screen on the root navigator (no tab bar): `/add/camera` (optional `ItemKind`), `/add/reading` (`CaptureReadingArgs`, or a `List<PendingFile>` from older callers), `/add/details` (`AddDetailsArgs`), `/edit/:id`.
 
-Screen classes: `VaultScreen`, `ItemDetailScreen(id)`, `StartClaimScreen(itemId)`, `ClaimsScreen`, `ClaimDetailScreen(id)`, `SettingsScreen`, `ArchiveScreen`, `CameraScreen`, `ReadingScreen(files)`, `ItemFormScreen.create(AddDetailsArgs)`, `ItemFormScreen.edit(id)`.
+Screen classes: `ComingUpScreen`, `ClaimHistoryScreen`, `LocalClaimLedgerScreen(id)`, `VaultScreen`, `ItemDetailScreen(id)`, `StartClaimScreen(itemId)`, `ClaimsScreen`, `ClaimDetailScreen(id)`, `SettingsScreen`, `ArchiveScreen`, `CameraScreen`, `ReadingScreen(files)`, `ItemFormScreen.create(AddDetailsArgs)`, `ItemFormScreen.edit(id)`.
 `CaptureReadingArgs` carries the originals and the item kind chosen when adding them. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill.
-The dock’s Scan or add button calls `AddFlow.start(context)` in the local shell (opens the Add sheet or the limit notice). A local long press calls `AddFlow.camera(context)`. The shared shell calls `showSharedAdd` after the vault has loaded.
+The dock’s Add button calls `AddFlow.start(context)` in the local shell (opens the Add sheet or the limit notice). Empty Vault shortcuts supply the selected item kind. A local long press calls `AddFlow.camera(context)`. The shared shell calls `showSharedAdd` after the vault has loaded.
 
 ## UI kit (`ui/core/widgets/`)
 
@@ -173,6 +176,6 @@ The dock’s Scan or add button calls `AddFlow.start(context)` in the local shel
 - `sheets.dart`: `Future<T?> showPdSheet<T>(BuildContext, {required String title, String? subtitle, List<PdSheetOption<T>> options, Widget? body})`; `PdSheetOption<T>({required IconData? icon, PdGlyph? glyph, required String title, required String description, required T value, bool recommended = false})`; `Future<T?> showPdActions<T>(BuildContext, {String? title, String? message, required List<PdAction<T>> actions})` (CupertinoActionSheet; `PdAction({label, value, destructive})`, Cancel built in); `Future<DateTime?> showPdDatePicker(BuildContext, {DateTime? initial, DateTime? min, DateTime? max, String title})` (dark wheel in a modal popup, returns civil date); `Future<bool> showPdConfirm(BuildContext, {title, message, confirmLabel, destructive})`.
 - `claim_ladder.dart`: `ClaimLadder({required Claim claim, required DateTime today})` shows the numbered escalation steps and identifies the current and recommended steps.
 - `nav.dart`: `PdLargeTitleScaffold({required String title, Widget? trailing, required List<Widget> slivers, ScrollController? controller, String heroTag})` (CupertinoSliverNavigationBar, Bricolage large title collapsing to Inter 17/600; bg; hairline once scrolled; bottom inset space-12); `PdPushedScaffold({required String backLabel, String? kicker, String? title, TextStyle? titleStyle, TextStyle? backStyle, List<Widget> actions, required List<Widget> children, Widget? bottom, VoidCallback? onBack})` (back button, kicker and title, scrolling body with 20 margins, optional pinned bottom area); `ScanButton({required VoidCallback onTap, VoidCallback? onLongPress})`; `PdNavIcon({required Widget icon, required String semanticLabel, required VoidCallback onTap})`.
-- `tab_bar.dart`: `PdTabBar({required int currentIndex, required ValueChanged<int> onTap, required VoidCallback? onScan, VoidCallback? onScanLongPress, int claimsBadge = 0})`. The floating dock groups Vault, Claims, Settings, and Scan or add in a clipped glass surface with an animated selection pill. Claims shows its needs-action count inline. Both shells extend the body behind the dock and pass its measured height as bottom media padding so scroll content and pinned actions can clear it.
+- `tab_bar.dart`: The dark floating dock shows Home, Vault, Add and Settings, with an animated selection pill. Both shells extend the body behind the dock. The measured bottom inset lets the last row or pinned action clear it.
 - `empty_state.dart`: `DashedTile({required String title, required String body, Widget? action})`.
 - `ui/core/theme/app_theme.dart`: `ThemeData pdTheme()` (dark, scaffold bg, text selection lime, no ink splash on iOS), `CupertinoThemeData pdCupertinoTheme()` (nav large title / title styles).

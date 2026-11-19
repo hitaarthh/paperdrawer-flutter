@@ -47,7 +47,10 @@ void main() {
     expect(app.settings.remindersOffered, isTrue);
     expect(find.text(_headline), findsNothing);
     expect(find.text('Check the details'), findsNothing);
-    expect(find.text('Saved to your drawer'), findsOneWidget);
+    expect(
+      find.textContaining('Saved. Next reminder planned for'),
+      findsOneWidget,
+    );
 
     await _saveNew(tester, 'Ceiling fan');
     expect(app.items.active, hasLength(2));

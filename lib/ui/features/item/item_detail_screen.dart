@@ -25,9 +25,10 @@ import 'item_detail_view_model.dart';
 enum _ItemAction { archive, restore, delete }
 
 class ItemDetailScreen extends StatelessWidget {
-  const ItemDetailScreen({required this.id, super.key});
+  const ItemDetailScreen({required this.id, this.fromHome = false, super.key});
 
   final String id;
+  final bool fromHome;
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
@@ -39,18 +40,21 @@ class ItemDetailScreen extends StatelessWidget {
       context.read<Exporter>(),
       context.read<DrawerActions>(),
     ),
-    child: const _ItemDetailView(),
+    child: _ItemDetailView(fromHome: fromHome),
   );
 }
 
 class _ItemDetailView extends StatelessWidget {
-  const _ItemDetailView();
+  const _ItemDetailView({required this.fromHome});
+
+  final bool fromHome;
+  String get _backLabel => fromHome ? 'Home' : 'Vault';
 
   void _back(BuildContext context) {
     if (context.canPop()) {
       context.pop();
     } else {
-      context.go(Routes.vault);
+      context.go(fromHome ? Routes.home : Routes.vault);
     }
   }
 
@@ -113,7 +117,7 @@ class _ItemDetailView extends StatelessWidget {
         final confirmed = await showPdConfirm(
           context,
           title: 'Delete this item?',
-          message: 'This permanently removes the item and its originals. Its claim history stays in Claims.',
+          message: 'This permanently removes the item and its originals. Its claim history stays on Home.',
           confirmLabel: 'Delete item',
           destructive: true,
         );
@@ -137,7 +141,11 @@ class _ItemDetailView extends StatelessWidget {
         : null;
   }
 
-  Future<void> _openLedger(BuildContext context, ItemDetailViewModel model, Item item) async {
+  Future<void> _openLedger(
+    BuildContext context,
+    ItemDetailViewModel model,
+    Item item,
+  ) async {
     final claim = model.claim ?? await model.openLedger(item);
     if (!context.mounted) return;
     if (claim != null) {
@@ -153,7 +161,7 @@ class _ItemDetailView extends StatelessWidget {
     final summary = model.summary;
     if (summary == null) {
       return PdPushedScaffold(
-        backLabel: 'Vault',
+        backLabel: _backLabel,
         title: 'Item unavailable',
         onBack: () => _back(context),
         children: const [
@@ -168,7 +176,7 @@ class _ItemDetailView extends StatelessWidget {
     final claim = model.claim;
     final original = item.attachments.firstOrNull;
     return PdPushedScaffold(
-      backLabel: 'Vault',
+      backLabel: _backLabel,
       onBack: () => _back(context),
       kicker: itemDetailKicker(summary),
       title: item.name,
