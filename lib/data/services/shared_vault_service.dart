@@ -59,6 +59,23 @@ class SharedVaultService {
         (throw StateError('Saved item unavailable'));
   }
 
+  Future<SharedItem> updateItem(
+    String userId,
+    SharedItem item,
+    ItemDraft draft, {
+    PendingFile? original,
+    String? uploadId,
+  }) async {
+    await SharedItemWrite(_client).edit(
+      userId, item, draft, original: original, uploadId: uploadId,
+    );
+    final updated = await _fetchItem(
+      userId, item.item.id, bill: item.item.kind == ItemKind.bill,
+    );
+    return updated ??
+        (throw const FormatException('This item is no longer in your drawer.'));
+  }
+
   Future<void> deleteItem(String userId, SharedItem item) async {
     if (_client.auth.currentUser?.id != userId) {
       throw const FormatException('Sign in to delete this item.');

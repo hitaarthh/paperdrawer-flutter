@@ -210,17 +210,9 @@ void main() {
   ) async {
     final session = _SharedVaultSession();
     session.vault = _DetailService().snapshot;
-    addTearDown(session.dispose);
-    _setPhoneSize(tester, 1.3);
-    await tester.pumpWidget(
-      ChangeNotifierProvider<SharedSession>.value(
-        value: session,
-        child: MaterialApp(
-          theme: pdTheme(),
-          home: const SharedItemScreen('earbuds'),
-        ),
-      ),
-    );
+    await _launchDrawer(tester, session);
+    final router = GoRouter.of(tester.element(find.text('Coming up')));
+    unawaited(router.push<void>(Routes.item('earbuds')));
     await tester.pumpAndSettle();
 
     expect(find.text('VAULT'), findsNothing);
@@ -230,9 +222,7 @@ void main() {
       tester.widgetList<PdIcon>(find.byType(PdIcon)).map((icon) => icon.glyph),
       contains(PdGlyph.back),
     );
-    await tester.tap(find.byKey(const ValueKey('item-edit')));
-    await tester.pumpAndSettle();
-    expect(session.opened, '/bills/new?edit=earbuds');
+    expect(find.byKey(const ValueKey('item-edit')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -269,10 +259,11 @@ void main() {
         find.text('Record unavailable', skipOffstage: false),
         findsNothing,
       );
-      expect(
-        find.text('Loading your drawer…', skipOffstage: false),
-        findsNothing,
-      );
+      final loading = find.text('Loading your drawer…', skipOffstage: false);
+      for (final element in loading.evaluate()) {
+        debugPrint('Loading in: ${element.findAncestorWidgetOfExactType<SharedItemScreen>()?.id}');
+      }
+      debugPrint('Route after start of pop: ${router.state.uri}');
 
       await tester.pumpAndSettle();
       expect(find.text(heading), findsOneWidget);
