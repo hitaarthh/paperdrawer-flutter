@@ -240,7 +240,9 @@ class _AccountScreenState extends State<AccountScreen> {
           controller: _email,
           fieldKey: const ValueKey('account-email'),
           hint: 'you@example.com',
-          help: _creating ? 'Reminders are sent here.' : null,
+          help: _creating
+              ? 'Used to verify your account and reset your password.'
+              : null,
           enabled: !_busy,
           textCapitalization: TextCapitalization.none,
           keyboardType: TextInputType.emailAddress,
@@ -337,10 +339,7 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_error case final error?)
       Text(error, style: PdType.callout.copyWith(color: Pd.signal)),
     if (_resent)
-      Text(
-        'A new confirmation link was requested.',
-        style: PdType.callout,
-      ),
+      Text('A new confirmation link was requested.', style: PdType.callout),
     PdButton.primary(
       key: const ValueKey('account-back-to-sign-in'),
       label: 'Back to sign in',

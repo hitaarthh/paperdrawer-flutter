@@ -195,7 +195,7 @@ void main() {
     expect(find.text('Coming up'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('drawer-notifications')));
     await tester.pumpAndSettle();
-    expect(find.text('No device notifications'), findsOneWidget);
+    expect(find.text('Notifications'), findsOneWidget);
     expect(find.text('Hospital bill reimbursement'), findsNothing);
     expect(session.vault!.claims.single.id, 'hospital');
     expect(session.opened, isNull);

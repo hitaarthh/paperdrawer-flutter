@@ -103,6 +103,12 @@ void main() {
       expect(tester.getRect(edit), editRect);
       expect(tester.getTopLeft(detailTitle).dy, lessThan(backRect.bottom));
 
+      final scrolledTitle = tester.getTopLeft(detailTitle);
+      await _tap(tester, 'item-edit');
+      expect(find.text('Edit item'), findsOneWidget);
+      await _tap(tester, 'close-button');
+      expect(tester.getTopLeft(detailTitle), scrolledTitle);
+
       await tester.tap(back);
       await tester.pump();
       await tester.pump(Pd.sheetDuration ~/ 2);

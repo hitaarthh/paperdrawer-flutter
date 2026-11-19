@@ -24,7 +24,6 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
       final service = _InboxService();
-      addTearDown(service.client.dispose);
       final inbox = SharedInboxRepository(service)..setOwner('alice');
       addTearDown(inbox.dispose);
       final router = GoRouter(
@@ -72,7 +71,6 @@ void main() {
     'a fetch from the previous account cannot populate the next inbox',
     () async {
       final service = _InboxService();
-      addTearDown(service.client.dispose);
       final stale = Completer<List<SharedNotification>>();
       service.aliceResponse = stale.future;
       final inbox = SharedInboxRepository(service)..setOwner('alice');
@@ -91,10 +89,8 @@ void main() {
 }
 
 class _InboxService extends SharedInboxService {
-  _InboxService() : this._(SupabaseClient('https://example.invalid', 'unused'));
-  _InboxService._(this.client) : super(client);
+  _InboxService() : super(_UnusedClient());
 
-  final SupabaseClient client;
   final marked = <String>[];
   Future<List<SharedNotification>>? aliceResponse;
 
@@ -117,4 +113,9 @@ class _InboxService extends SharedInboxService {
   @override
   Future<void> markRead(String owner, String id) async =>
       marked.add('$owner/$id');
+}
+
+class _UnusedClient implements SupabaseClient {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

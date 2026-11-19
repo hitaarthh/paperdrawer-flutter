@@ -32,7 +32,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(_name), findsOneWidget);
-    expect(find.text('Reminders are sent here.'), findsOneWidget);
+    expect(
+      find.text('Used to verify your account and reset your password.'),
+      findsOneWidget,
+    );
     expect(find.text('BILLS ARE NEVER SOLD OR SHARED'), findsOneWidget);
     expect(find.text('Create account'), findsOneWidget);
     // The email carries over; the password never does.
@@ -147,10 +150,12 @@ void main() {
 
     failure = const AuthException('x', code: 'email_not_confirmed');
     await _tap(tester, _submit);
-    expect(
-      find.text('Confirm your email first, then sign in.'),
-      findsOneWidget,
-    );
+    expect(find.text('Check your email'), findsOneWidget);
+    await _tap(tester, const ValueKey('account-resend-confirmation'));
+    expect(account.confirmationRequests, ['asha@example.in']);
+    expect(find.text('A new confirmation link was requested.'), findsOneWidget);
+    await _tap(tester, const ValueKey('account-back-to-sign-in'));
+    await tester.enterText(find.byKey(_password), _secret);
 
     failure = Exception('offline');
     await _tap(tester, _submit);
@@ -267,6 +272,7 @@ class _FakeAccount extends SharedAccount {
   Future<bool> Function()? signUpResult;
   final signIns = <(String, String)>[];
   final signUps = <(String, String, String)>[];
+  final confirmationRequests = <String>[];
   final _changes = StreamController<AuthState>.broadcast();
   User? _user;
 
@@ -295,6 +301,10 @@ class _FakeAccount extends SharedAccount {
     signUps.add((name, email, password));
     return await signUpResult?.call() ?? false;
   }
+
+  @override
+  Future<void> resendConfirmation(String email) async =>
+      confirmationRequests.add(email);
 }
 
 class _UnusedClient implements SupabaseClient {
