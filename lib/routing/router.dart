@@ -177,11 +177,14 @@ GoRoute buildEditRoute({
 }) => GoRoute(
   path: Routes.edit(':id'),
   parentNavigatorKey: navigatorKey,
-  pageBuilder: (context, state) => PdPage<void>(
-    key: state.pageKey,
-    fullscreenDialog: true,
-    child: ManualItemForm(id: state.pathParameters['id']!, shared: shared),
-  ),
+  pageBuilder: (context, state) {
+    final id = state.pathParameters['id']!;
+    return PdPage<void>(
+      key: state.pageKey,
+      fullscreenDialog: true,
+      child: ManualItemForm(key: ValueKey(id), id: id, shared: shared),
+    );
+  },
 );
 
 /// Capture and review cover the tab bar in both build modes.
