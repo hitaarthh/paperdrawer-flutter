@@ -65,7 +65,13 @@ class Exporter {
   Future<void> discardExport(File export) =>
       export.parent.delete(recursive: true);
 
-  Future<List<XFile>> claimKit(Item item, {Claim? claim}) async {
+  Future<List<XFile>> claimKit(Item item, {Claim? claim}) async => [
+    for (final attachment in item.attachments)
+      XFile(attachment.path, name: attachment.name),
+    claimKitSummary(item, claim: claim),
+  ];
+
+  static XFile claimKitSummary(Item item, {Claim? claim}) {
     final draft = item.draft;
     final amount = draft.amountMinor;
     final summary = [
@@ -90,15 +96,11 @@ class Exporter {
       ],
     ].join('\n');
     final name = '${_safeName(item.name)}-claim-kit.txt';
-    return [
-      for (final attachment in item.attachments)
-        XFile(attachment.path, name: attachment.name),
-      XFile.fromData(
+    return XFile.fromData(
         Uint8List.fromList(utf8.encode(summary)),
         name: name,
         mimeType: 'text/plain',
-      ),
-    ];
+    );
   }
 
   String _archivePath(Item item, Attachment file) =>
@@ -107,7 +109,7 @@ class Exporter {
   String _claimPhotoPath(Claim claim, Attachment file) =>
       'claim-photos/${claim.id}/${file.id}-${_safeName(file.name)}';
 
-  String _safeName(String name) =>
+  static String _safeName(String name) =>
       name.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-');
 
   Map<String, Object?> _encodeItem(Item item) => {

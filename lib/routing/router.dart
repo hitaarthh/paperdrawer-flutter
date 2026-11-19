@@ -8,6 +8,7 @@ import '../ui/features/add/item_form_screen.dart';
 import '../ui/features/add/reading_screen.dart';
 import '../ui/features/claims/claim_detail_screen.dart';
 import '../ui/features/claims/claims_screen.dart';
+import '../ui/features/claims/local_claim_ledger_screen.dart';
 import '../ui/features/claims/start_claim_screen.dart';
 import '../ui/features/item/item_detail_screen.dart';
 import '../ui/features/reminders/reminders_screen.dart';
@@ -30,6 +31,7 @@ abstract final class Routes {
   static String item(String id) => '/vault/item/$id';
   static String startClaim(String itemId) => '/vault/item/$itemId/claim';
   static String claim(String id) => '/claims/$id';
+  static String claimGuidance(String id) => '/claims/$id/guidance';
   static String edit(String id) => '/edit/$id';
 }
 
@@ -75,7 +77,14 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                 GoRoute(
                   path: ':id',
                   builder: (context, state) =>
-                      ClaimDetailScreen(id: state.pathParameters['id']!),
+                      LocalClaimLedgerScreen(id: state.pathParameters['id']!),
+                  routes: [
+                    GoRoute(
+                      path: 'guidance',
+                      builder: (context, state) =>
+                          ClaimDetailScreen(id: state.pathParameters['id']!),
+                    ),
+                  ],
                 ),
               ],
             ),

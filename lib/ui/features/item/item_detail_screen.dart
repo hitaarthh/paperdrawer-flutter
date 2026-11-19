@@ -137,6 +137,16 @@ class _ItemDetailView extends StatelessWidget {
         : null;
   }
 
+  Future<void> _openLedger(BuildContext context, ItemDetailViewModel model, Item item) async {
+    final claim = model.claim ?? await model.openLedger(item);
+    if (!context.mounted) return;
+    if (claim != null) {
+      context.push(Routes.claim(claim.id));
+    } else if (model.error case final error?) {
+      showPdSnackbar(context, error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final model = context.watch<ItemDetailViewModel>();
@@ -235,16 +245,11 @@ class _ItemDetailView extends StatelessWidget {
             if (claim != null || !item.isArchived)
               PdButton.primary(
                 key: const ValueKey('item-claim'),
-                label: claim == null ? 'Start a claim' : 'View claim',
+                label: claim == null ? 'Open a claim' : 'View claim ledger',
+                expand: true,
                 onPressed: model.busy
                     ? null
-                    : () {
-                        if (claim != null) {
-                          context.go(Routes.claim(claim.id));
-                        } else {
-                          context.push(Routes.startClaim(item.id));
-                        }
-                      },
+                    : () => _openLedger(context, model, item),
               )
             else
               PdButton.primary(
@@ -262,7 +267,8 @@ class _ItemDetailView extends StatelessWidget {
             Builder(
               builder: (anchor) => PdButton.secondary(
                 key: const ValueKey('item-export-kit'),
-                label: 'Share kit',
+                label: 'Share claim kit',
+                expand: true,
                 onPressed: model.busy
                     ? null
                     : () => _perform(
@@ -276,7 +282,7 @@ class _ItemDetailView extends StatelessWidget {
         ),
         if (model.itemClaims.isNotEmpty) ...[
           PdListGroup(
-            header: 'Claims',
+            header: 'Claims on this item',
             children: [
               for (final entry in model.itemClaims)
                 PdListRow(
@@ -288,7 +294,8 @@ class _ItemDetailView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Pd.s6),
-        ],
+        ] else if (!item.isArchived)
+          const ItemClaimHistoryEmpty(),
         ItemRecord(itemRecord(summary)),
         if (item.draft.notes.isNotEmpty) ...[
           const SizedBox(height: Pd.s5),

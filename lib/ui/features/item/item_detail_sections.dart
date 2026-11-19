@@ -123,9 +123,29 @@ class ItemClaimKit extends StatelessWidget {
             description,
             style: PdType.callout.copyWith(color: Pd.textMuted),
           ),
-          Wrap(spacing: Pd.s2, runSpacing: Pd.s2, children: actions),
+          ...actions,
         ],
       ),
+    ),
+  );
+}
+
+class ItemClaimHistoryEmpty extends StatelessWidget {
+  const ItemClaimHistoryEmpty({super.key});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: Pd.s6),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: Pd.s2,
+      children: [
+        Text('CLAIMS ON THIS ITEM', style: PdType.label.copyWith(color: Pd.textMuted)),
+        Text(
+          'No claims yet. Open one to keep a record of calls, emails and visits alongside your saved documents.',
+          style: PdType.callout.copyWith(color: Pd.textMuted),
+        ),
+      ],
     ),
   );
 }

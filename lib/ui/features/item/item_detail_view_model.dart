@@ -40,6 +40,14 @@ class ItemDetailViewModel extends ChangeNotifier {
   Claim? get claim => _claims.openFor(id);
   Iterable<Claim> get itemClaims =>
       _claims.claims.where((claim) => claim.itemId == id);
+
+  Future<Claim?> openLedger(Item item) async {
+    Claim? opened;
+    await _run(() async {
+      opened = await _claims.openLedger(item, _today.value);
+    }, 'The claim ledger couldn’t open.');
+    return opened;
+  }
   ItemSummary? get summary {
     final item = this.item;
     return item == null
