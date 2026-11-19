@@ -194,7 +194,7 @@ class PdFieldButton extends StatelessWidget {
   final String value;
   final String? hint;
   final bool readFromBill;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -228,11 +228,12 @@ class PdFieldButton extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Icon(
-                  LucideIcons.chevronRight,
-                  size: Pd.iconSm,
-                  color: Pd.textSubtle,
-                ),
+                if (onTap != null)
+                  const Icon(
+                    LucideIcons.chevronRight,
+                    size: Pd.iconSm,
+                    color: Pd.textSubtle,
+                  ),
               ],
             ),
           ),

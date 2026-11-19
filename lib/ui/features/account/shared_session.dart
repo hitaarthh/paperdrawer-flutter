@@ -194,42 +194,61 @@ class SharedSession extends ChangeNotifier {
   Future<SharedClaim> openLedger(SharedItem item) =>
       _saveLedger((owner) => _service.openLedger(owner, item));
 
-  /// Each form keeps its ID across retries and is bound to the account that
-  /// opened it, even if the user signs out before the save completes.
+  SharedItem? itemById(String id) =>
+      vault?.items.where((entry) => entry.item.id == id).firstOrNull;
+
+  /// Keep the same item ID when retrying a create with an uncertain result.
   Future<Item> Function(ItemDraft, PendingFile?) itemCreator() {
+    final id = const Uuid().v4();
+    return _itemWriter(
+      (owner, draft, original) =>
+          _service.createItem(owner, id, draft, original: original),
+    );
+  }
+
+  /// Each file selection gets its own upload ID, retained for retries.
+  Future<Item> Function(ItemDraft, PendingFile?) itemEditor(SharedItem item) {
+    PendingFile? selectedFile;
+    String? uploadId;
+    return _itemWriter((owner, draft, original) {
+      if (!identical(original, selectedFile)) {
+        selectedFile = original;
+        uploadId = original == null ? null : const Uuid().v4();
+      }
+      return _service.updateItem(
+        owner, item, draft, original: original, uploadId: uploadId,
+      );
+    });
+  }
+
+  Future<Item> Function(ItemDraft, PendingFile?) _itemWriter(
+    Future<SharedItem> Function(String, ItemDraft, PendingFile?) write,
+  ) {
     final owner = _userId;
     final generation = _accountGeneration;
-    final id = const Uuid().v4();
     return (draft, original) async {
       if (owner == null || !_isCurrent(generation)) {
-        throw const FormatException('Sign in to add an item to your vault.');
+        throw const FormatException('Sign in to save this item.');
       }
       final snapshot = vault;
       if (snapshot == null || claimBusy) {
-        throw const FormatException(
-          'The vault is busy. Try again in a moment.',
-        );
+        throw const FormatException('The drawer is busy. Try again in a moment.');
       }
       _savingItem = true;
       notifyListeners();
       try {
-        final saved = await _service.createItem(
-          owner,
-          id,
-          draft,
-          original: original,
-        );
+        final saved = await write(owner, draft, original);
         if (!_isCurrent(generation)) {
           throw const FormatException('Sign in to see this item.');
         }
-        vault = SharedVault(
-          items: [
-            saved,
-            ...snapshot.items.where((other) => other.item.id != id),
-          ],
-          claims: snapshot.claims,
-          profile: snapshot.profile,
-        );
+        final entries = [...snapshot.items];
+        final index = entries.indexWhere((other) => other.item.id == saved.item.id);
+        if (index < 0) {
+          entries.insert(0, saved);
+        } else {
+          entries[index] = saved;
+        }
+        vault = SharedVault(items: entries, claims: snapshot.claims, profile: snapshot.profile);
         if (inbox case final notifications?) unawaited(notifications.refresh());
         return saved.item;
       } finally {
