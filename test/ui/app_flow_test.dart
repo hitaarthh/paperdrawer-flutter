@@ -18,6 +18,7 @@ import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/routing/router.dart';
+import 'package:paperdrawer/ui/core/theme/tokens.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
 
@@ -34,6 +35,25 @@ void main() {
     expect(_key('drawer-notifications'), findsNothing);
     await _tap(tester, 'close-button');
     expect(find.text('Settings'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('glass pages use a short live transition', (tester) async {
+    await _launch(tester, _Items([]));
+    await tester.tap(_key('drawer-notifications'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 125));
+
+    final notifications = tester.element(find.text('Notifications'));
+    final route = ModalRoute.of(notifications)!;
+    expect(route.allowSnapshotting, isFalse);
+    expect(route.transitionDuration, Pd.sheetDuration);
+    expect(route.animation!.isAnimating, isTrue);
+
+    await tester.pumpAndSettle();
+    await _tap(tester, 'back-button');
+    expect(find.text('Coming up'), findsOneWidget);
+    expect(_key('drawer-notifications'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

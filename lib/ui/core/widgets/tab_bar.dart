@@ -55,6 +55,21 @@ class PdTabBar extends StatelessWidget {
     if (MediaQuery.viewInsetsOf(context).bottom > 0) {
       return const SizedBox.shrink();
     }
+    final isNativeDevice = NativeLiquidGlassUtils.supportsLiquidGlass;
+    final dock = pdNativeGlassVisible(context)
+        ? legacy.Theme(
+            data: legacy.ThemeData.dark(),
+            child: LiquidGlassTabBar(
+              items: _nativeTabs,
+              iosActionButton: onScan == null ? null : _nativeAdd,
+              currentIndex: currentIndex,
+              onTabSelected: onTap,
+              onActionButtonPressed: onScan,
+              height: Pd.dockControlHeight,
+              selectedItemColor: Pd.lime,
+            ),
+          )
+        : _flutterDock(context);
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.symmetric(horizontal: Pd.s4),
@@ -64,41 +79,40 @@ class PdTabBar extends StatelessWidget {
           heightFactor: 1,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: Pd.dockMaxWidth),
-            child: NativeLiquidGlassUtils.supportsLiquidGlass
-                ? legacy.Theme(
-                    data: legacy.ThemeData.dark(),
-                    child: LiquidGlassTabBar(
-                      items: _nativeTabs,
-                      iosActionButton: onScan == null ? null : _nativeAdd,
-                      currentIndex: currentIndex,
-                      onTabSelected: onTap,
-                      onActionButtonPressed: onScan,
-                      height: Pd.dockControlHeight,
-                      selectedItemColor: Pd.lime,
+            child: isNativeDevice
+                ? SizedBox(
+                    // The plugin reserves 20 points above the bar for its
+                    // glass to spill into. Keep that space on animated routes.
+                    height: Pd.dockControlHeight + Pd.s5,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: dock,
                     ),
                   )
-                : DecoratedBox(
-                    decoration: const BoxDecoration(
-                      borderRadius: _radius,
-                      boxShadow: Pd.shadowFab,
-                    ),
-                    child: PdGlassSurface(
-                      child: Padding(
-                        padding: const EdgeInsets.all(Pd.s1),
-                        child: Stack(
-                          children: [
-                            Positioned.fill(child: _selection(context)),
-                            _controls(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                : dock,
           ),
         ),
       ),
     );
   }
+
+  Widget _flutterDock(BuildContext context) => DecoratedBox(
+    decoration: const BoxDecoration(
+      borderRadius: _radius,
+      boxShadow: Pd.shadowFab,
+    ),
+    child: PdGlassSurface(
+      child: Padding(
+        padding: const EdgeInsets.all(Pd.s1),
+        child: Stack(
+          children: [
+            Positioned.fill(child: _selection(context)),
+            _controls(),
+          ],
+        ),
+      ),
+    ),
+  );
 
   Widget _selection(BuildContext context) => AnimatedAlign(
     alignment: AlignmentDirectional(-1 + 2 * _selectedSlot / _tabs.length, 0),

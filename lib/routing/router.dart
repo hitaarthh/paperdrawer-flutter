@@ -18,6 +18,7 @@ import '../ui/features/settings/archive_screen.dart';
 import '../ui/features/settings/settings_screen.dart';
 import '../ui/features/shell/app_shell.dart';
 import '../ui/features/vault/vault_screen.dart';
+import 'paper_page.dart';
 
 /// Locations used across the app and in reminder payloads.
 abstract final class Routes {
@@ -57,7 +58,10 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
   initialLocation: initialLocation ?? Routes.home,
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => AppShell(navigationShell: shell),
+      pageBuilder: (context, state, shell) => PdPage<void>(
+        key: state.pageKey,
+        child: AppShell(navigationShell: shell),
+      ),
       branches: [
         StatefulShellBranch(
           routes: [
@@ -68,9 +72,12 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                 GoRoute(
                   path: 'item/:id',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => ItemDetailScreen(
-                    id: state.pathParameters['id']!,
-                    fromHome: true,
+                  pageBuilder: (context, state) => PdPage<void>(
+                    key: state.pageKey,
+                    child: ItemDetailScreen(
+                      id: state.pathParameters['id']!,
+                      fromHome: true,
+                    ),
                   ),
                 ),
               ],
@@ -90,8 +97,10 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                 GoRoute(
                   path: 'item/:id',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) =>
-                      ItemDetailScreen(id: state.pathParameters['id']!),
+                  pageBuilder: (context, state) => PdPage<void>(
+                    key: state.pageKey,
+                    child: ItemDetailScreen(id: state.pathParameters['id']!),
+                  ),
                 ),
               ],
             ),
@@ -107,14 +116,19 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                   GoRoute(
                     path: destination.name,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        SettingsScreen(destination: destination),
+                    pageBuilder: (context, state) => PdPage<void>(
+                      key: state.pageKey,
+                      child: SettingsScreen(destination: destination),
+                    ),
                   ),
                 ...legalRoutes(rootNavigatorKey),
                 GoRoute(
                   path: 'archive',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => const ArchiveScreen(),
+                  pageBuilder: (context, state) => PdPage<void>(
+                    key: state.pageKey,
+                    child: const ArchiveScreen(),
+                  ),
                 ),
               ],
             ),
@@ -125,8 +139,10 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
     GoRoute(
       path: Routes.notifications,
       parentNavigatorKey: rootNavigatorKey,
-      builder: (context, state) =>
-          ReminderInbox(fromDrawer: state.extra == true),
+      pageBuilder: (context, state) => PdPage<void>(
+        key: state.pageKey,
+        child: ReminderInbox(fromDrawer: state.extra == true),
+      ),
     ),
     ...retiredClaimLinks(),
     ...buildAddRoutes(navigatorKey: rootNavigatorKey),
@@ -134,7 +150,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
     GoRoute(
       path: Routes.reminders,
       parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => CupertinoPage(
+      pageBuilder: (context, state) => PdPage<void>(
         key: state.pageKey,
         fullscreenDialog: true,
         child: const RemindersScreen(),
@@ -143,7 +159,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
     GoRoute(
       path: '/edit/:id',
       parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => CupertinoPage(
+      pageBuilder: (context, state) => PdPage<void>(
         key: state.pageKey,
         fullscreenDialog: true,
         child: ManualItemForm(id: state.pathParameters['id']!),
@@ -171,7 +187,7 @@ List<GoRoute> buildAddRoutes({
   GoRoute(
     path: Routes.add,
     parentNavigatorKey: navigatorKey,
-    pageBuilder: (context, state) => CupertinoPage(
+    pageBuilder: (context, state) => PdPage<void>(
       key: state.pageKey,
       fullscreenDialog: true,
       child: ManualItemForm(
@@ -185,7 +201,7 @@ List<GoRoute> buildAddRoutes({
   GoRoute(
     path: Routes.camera,
     parentNavigatorKey: navigatorKey,
-    pageBuilder: (context, state) => CupertinoPage(
+    pageBuilder: (context, state) => PdPage<void>(
       key: state.pageKey,
       fullscreenDialog: true,
       child: CameraScreen(
@@ -197,7 +213,7 @@ List<GoRoute> buildAddRoutes({
   GoRoute(
     path: Routes.reading,
     parentNavigatorKey: navigatorKey,
-    pageBuilder: (context, state) => CupertinoPage(
+    pageBuilder: (context, state) => PdPage<void>(
       key: state.pageKey,
       fullscreenDialog: true,
       child: switch (state.extra) {
@@ -217,7 +233,7 @@ List<GoRoute> buildAddRoutes({
   GoRoute(
     path: Routes.details,
     parentNavigatorKey: navigatorKey,
-    pageBuilder: (context, state) => CupertinoPage(
+    pageBuilder: (context, state) => PdPage<void>(
       key: state.pageKey,
       fullscreenDialog: true,
       child: ItemFormScreen.create(

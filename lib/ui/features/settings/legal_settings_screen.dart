@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../data/services/drawer_actions.dart';
 import '../../../routing/router.dart';
+import '../../../routing/paper_page.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/snackbar.dart';
 import 'shared_settings_widgets.dart';
@@ -63,12 +64,15 @@ List<GoRoute> legalRoutes(GlobalKey<NavigatorState> navigatorKey) => [
   GoRoute(
     path: 'legal',
     parentNavigatorKey: navigatorKey,
-    builder: (context, state) => const LegalSettingsScreen(),
+    pageBuilder: (context, state) =>
+        PdPage<void>(key: state.pageKey, child: const LegalSettingsScreen()),
     routes: [
       GoRoute(
         path: 'licenses',
-        builder: (context, state) =>
-            const LicensePage(applicationName: 'Paper Drawer'),
+        pageBuilder: (context, state) => PdPage<void>(
+          key: state.pageKey,
+          child: const LicensePage(applicationName: 'Paper Drawer'),
+        ),
       ),
     ],
   ),

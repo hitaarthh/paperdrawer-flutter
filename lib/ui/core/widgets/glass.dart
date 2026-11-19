@@ -10,6 +10,49 @@ List<NavigatorObserver> pdGlassNavigatorObservers() => [
     LiquidGlassNavigatorObserver(),
 ];
 
+bool pdNativeGlassVisible(BuildContext context) =>
+    NativeLiquidGlassUtils.supportsLiquidGlass &&
+    (context.dependOnInheritedWidgetOfExactType<_GlassVisibility>()?.visible ??
+        true);
+
+class PdGlassRouteBoundary extends StatelessWidget {
+  const PdGlassRouteBoundary({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!NativeLiquidGlassUtils.supportsLiquidGlass) return child;
+    final route = ModalRoute.of(context);
+    if (route == null) return child;
+    final primary = route.animation;
+    final secondary = route.secondaryAnimation;
+    return AnimatedBuilder(
+      animation: Listenable.merge([primary, secondary]),
+      child: child,
+      builder: (context, child) => _GlassVisibility(
+        // UIKit can sample the wrong part of Flutter's surface when a
+        // platform view moves during a push or swipe-back animation.
+        visible:
+            route.isCurrent &&
+            (primary?.isCompleted ?? true) &&
+            (secondary?.isDismissed ?? true),
+        child: child!,
+      ),
+    );
+  }
+}
+
+class _GlassVisibility extends InheritedWidget {
+  const _GlassVisibility({required this.visible, required super.child});
+
+  final bool visible;
+
+  @override
+  bool updateShouldNotify(_GlassVisibility oldWidget) =>
+      oldWidget.visible != visible;
+}
+
 class PdGlassSurface extends StatelessWidget {
   const PdGlassSurface({required this.child, super.key});
 
@@ -69,21 +112,20 @@ class PdGlassIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (inSurface && NativeLiquidGlassUtils.supportsLiquidGlass) {
-      return LiquidGlassToolbar(
-        items: [
-          LiquidGlassToolbarItem(
-            id: systemIcon,
-            icon: NativeLiquidGlassIcon.sfSymbol(systemIcon),
-            iconSize: Pd.s5,
-            label: label,
-            enabled: onPressed != null,
-          ),
-        ],
-        height: Pd.tapMin,
-        width: Pd.tapMin,
-        itemSpacing: Pd.tapMin - Pd.s5,
-        onItemTapped: (_) => onPressed?.call(),
+    if (inSurface && pdNativeGlassVisible(context)) {
+      return Semantics(
+        button: true,
+        enabled: onPressed != null,
+        label: label,
+        onTap: onPressed,
+        excludeSemantics: true,
+        child: LiquidGlassButton.icon(
+          icon: NativeLiquidGlassIcon.sfSymbol(systemIcon),
+          size: Pd.tapMin,
+          iconSize: Pd.iconSm,
+          onPressed: onPressed,
+          interactive: !MediaQuery.disableAnimationsOf(context),
+        ),
       );
     }
     final control = Semantics(

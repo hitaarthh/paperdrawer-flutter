@@ -15,6 +15,7 @@ import '../ui/features/settings/legal_settings_screen.dart';
 import '../ui/features/settings/shared_settings_widgets.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
+import 'paper_page.dart';
 import 'router.dart';
 
 GoRouter buildSharedRouter(SharedSession session) {
@@ -52,27 +53,30 @@ GoRouter buildSharedRouter(SharedSession session) {
         ),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, shell) => ListenableBuilder(
-          listenable: session,
-          builder: (context, child) {
-            final vault = session.vault;
-            return Scaffold(
-              backgroundColor: Pd.bg,
-              extendBody: true,
-              body: child,
-              bottomNavigationBar: PdTabBar(
-                currentIndex: shell.currentIndex,
-                onTap: (index) => shell.goBranch(
-                  index,
-                  initialLocation: index == shell.currentIndex,
+        pageBuilder: (context, state, shell) => PdPage<void>(
+          key: state.pageKey,
+          child: ListenableBuilder(
+            listenable: session,
+            builder: (context, child) {
+              final vault = session.vault;
+              return Scaffold(
+                backgroundColor: Pd.bg,
+                extendBody: true,
+                body: child,
+                bottomNavigationBar: PdTabBar(
+                  currentIndex: shell.currentIndex,
+                  onTap: (index) => shell.goBranch(
+                    index,
+                    initialLocation: index == shell.currentIndex,
+                  ),
+                  onScan: vault == null
+                      ? null
+                      : () => showSharedManualAdd(context, vault),
                 ),
-                onScan: vault == null
-                    ? null
-                    : () => showSharedManualAdd(context, vault),
-              ),
-            );
-          },
-          child: shell,
+              );
+            },
+            child: shell,
+          ),
         ),
         branches: [
           StatefulShellBranch(
@@ -84,9 +88,12 @@ GoRouter buildSharedRouter(SharedSession session) {
                   GoRoute(
                     path: 'item/:id',
                     parentNavigatorKey: navigatorKey,
-                    builder: (context, state) => SharedItemScreen(
-                      state.pathParameters['id']!,
-                      fromHome: true,
+                    pageBuilder: (context, state) => PdPage<void>(
+                      key: state.pageKey,
+                      child: SharedItemScreen(
+                        state.pathParameters['id']!,
+                        fromHome: true,
+                      ),
                     ),
                   ),
                 ],
@@ -104,8 +111,10 @@ GoRouter buildSharedRouter(SharedSession session) {
                   GoRoute(
                     path: 'item/:id',
                     parentNavigatorKey: navigatorKey,
-                    builder: (context, state) =>
-                        SharedItemScreen(state.pathParameters['id']!),
+                    pageBuilder: (context, state) => PdPage<void>(
+                      key: state.pageKey,
+                      child: SharedItemScreen(state.pathParameters['id']!),
+                    ),
                   ),
                 ],
               ),
@@ -121,8 +130,10 @@ GoRouter buildSharedRouter(SharedSession session) {
                     GoRoute(
                       path: destination.name,
                       parentNavigatorKey: navigatorKey,
-                      builder: (context, state) =>
-                          SharedSettingsScreen(destination: destination),
+                      pageBuilder: (context, state) => PdPage<void>(
+                        key: state.pageKey,
+                        child: SharedSettingsScreen(destination: destination),
+                      ),
                     ),
                   ...legalRoutes(navigatorKey),
                 ],
@@ -134,8 +145,10 @@ GoRouter buildSharedRouter(SharedSession session) {
       GoRoute(
         path: Routes.notifications,
         parentNavigatorKey: navigatorKey,
-        builder: (context, state) =>
-            ReminderInbox(fromDrawer: state.extra == true, shared: true),
+        pageBuilder: (context, state) => PdPage<void>(
+          key: state.pageKey,
+          child: ReminderInbox(fromDrawer: state.extra == true, shared: true),
+        ),
       ),
       ...retiredClaimLinks(),
       ...buildAddRoutes(navigatorKey: navigatorKey, shared: true),
