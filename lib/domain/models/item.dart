@@ -119,6 +119,8 @@ class ItemDraft {
     this.componentWarrantyUntil,
     this.componentWarrantyName = '',
     this.remind = true,
+    this.reminderAt,
+    this.coverageRenews,
   });
 
   final ItemKind kind;
@@ -148,6 +150,12 @@ class ItemDraft {
   final DateTime? componentWarrantyUntil;
   final String componentWarrantyName;
   final bool remind;
+
+  /// An explicitly scheduled notification. Null keeps the default lead time.
+  final DateTime? reminderAt;
+
+  /// The chosen meaning of a policy or agreement date. Null keeps legacy copy.
+  final bool? coverageRenews;
 }
 
 @immutable

@@ -51,6 +51,8 @@ void main() {
         'serial_number': '',
         'component_warranty_until': null,
         'component_warranty_name': '',
+        'reminder_at': null,
+        'coverage_renews': null,
       });
       expect((await upgraded.query('attachments')).single['item_id'], 'bill');
       await upgraded.update('items', {

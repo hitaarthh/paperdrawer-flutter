@@ -47,6 +47,20 @@ List<PlannedReminder> planReminders({
       DateTime(day.year, day.month, day.day, 9);
   for (final item in items) {
     if (item.isArchived || !item.draft.remind) continue;
+    if (item.draft.reminderAt case final at?) {
+      if (at.isAfter(now)) {
+        plans.add(
+          PlannedReminder(
+            key: 'item/${item.id}/custom',
+            at: at.toLocal(),
+            title: item.name,
+            body: 'Open your drawer to see this file.',
+            location: '/vault/item/${item.id}',
+          ),
+        );
+      }
+      continue;
+    }
     for (final window in windowsOf(item)) {
       if (window.isEnded(civil(now))) continue;
       final offsets = [

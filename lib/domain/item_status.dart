@@ -89,7 +89,7 @@ class CoverWindow {
     if (isDue(today)) {
       return switch (type) {
         WindowType.returnWindow => 'RETURN: ${daysCaps(left)}',
-        WindowType.policyYear => 'RENEWS IN ${daysCaps(left)}',
+        WindowType.policyYear when renews => 'RENEWS IN ${daysCaps(left)}',
         _ when renews => 'RENEWS IN ${daysCaps(left)}',
         _ => '${daysCaps(left)} LEFT',
       };
@@ -110,7 +110,7 @@ class CoverWindow {
     if (isEnded(today)) return 'Ended ${longDate(end)}';
     return switch (type) {
       WindowType.returnWindow => 'Closes ${longDate(end)}',
-      WindowType.policyYear => 'Renews ${longDate(end)}',
+      WindowType.policyYear => '${renews ? 'Renews' : 'Ends'} ${longDate(end)}',
       WindowType.term when renews => 'Renews ${longDate(end)}',
       WindowType.term => 'Ends ${longDate(end)}',
       _ => 'Until ${longDate(end)}',
@@ -122,7 +122,7 @@ class CoverWindow {
     WindowType.returnWindow => 'RETURN WINDOW CLOSES',
     WindowType.warranty => 'WARRANTY ENDS',
     WindowType.componentWarranty => '$label ENDS',
-    WindowType.policyYear => 'POLICY RENEWS',
+    WindowType.policyYear => renews ? 'POLICY RENEWS' : 'POLICY EXPIRES',
     WindowType.validity => 'VALIDITY ENDS',
     WindowType.term => renews ? 'AGREEMENT RENEWS' : 'AGREEMENT ENDS',
   };
@@ -132,7 +132,9 @@ class CoverWindow {
     WindowType.returnWindow => 'Return by ${shortDate(end)}',
     WindowType.warranty || WindowType.componentWarranty =>
       'Book a service visit before ${shortDate(end)}',
-    WindowType.policyYear => 'Renew before ${shortDate(end)}',
+    WindowType.policyYear => renews
+      ? 'Renew before ${shortDate(end)}'
+      : 'Policy expires ${shortDate(end)}',
     WindowType.validity => 'Renew before ${shortDate(end)}',
     WindowType.term =>
       renews ? 'Renew before ${shortDate(end)}' : 'Plan for ${shortDate(end)}',
@@ -151,7 +153,7 @@ class CoverWindow {
         ? ''
         : switch (type) {
             WindowType.returnWindow => 'closes ',
-            WindowType.policyYear => 'renews ',
+            WindowType.policyYear when renews => 'renews ',
             WindowType.term when renews => 'renews ',
             _ => 'ends ',
           };
@@ -283,7 +285,10 @@ class ItemSummary {
         ('BOUGHT', d.startsOn == null ? '—' : monoDate(d.startsOn!), false),
         ('PAID', amount, true),
       ],
-      ItemKind.policy => [('RENEWS', end, false), ('PREMIUM', amount, true)],
+      ItemKind.policy => [
+        (d.coverageRenews == false ? 'EXPIRES' : 'RENEWS', end, false),
+        ('PREMIUM', amount, true),
+      ],
       ItemKind.vehicle => [('VALID TILL', end, false), ('FEE', amount, true)],
       ItemKind.agreement => [
         (_agreementRenews ? 'RENEWS' : 'ENDS', end, false),
@@ -292,7 +297,8 @@ class ItemSummary {
     };
   }
 
-  bool get _agreementRenews => d.subtype != 'Other' && d.subtype != 'AMC';
+  bool get _agreementRenews => d.coverageRenews ??
+      (d.subtype != 'Other' && d.subtype != 'AMC');
 
   /// The line under the meter on cards.
   String get footer {
@@ -395,10 +401,12 @@ List<CoverWindow> windowsOf(Item item) {
       },
       start: docStart.isAfter(end) ? addMonths(end, -12) : docStart,
       end: end,
-      renews:
-          d.kind == ItemKind.agreement &&
-          d.subtype != 'Other' &&
-          d.subtype != 'AMC',
+      renews: switch (d.kind) {
+        ItemKind.policy => d.coverageRenews ?? true,
+        ItemKind.agreement => d.coverageRenews ??
+            (d.subtype != 'Other' && d.subtype != 'AMC'),
+        _ => false,
+      },
     ),
   );
   return windows;

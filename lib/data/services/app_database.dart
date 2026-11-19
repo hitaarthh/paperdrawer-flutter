@@ -9,8 +9,9 @@ import 'package:uuid/uuid.dart';
 /// - v3: optional bill serial numbers.
 /// - v4: claim follow-ups, event references, and entry photos.
 /// - v5: component warranty dates and names.
+/// - v6: exact reminder times and coverage date meaning.
 abstract final class AppDatabase {
-  static const version = 5;
+  static const version = 6;
 
   static Future<Database> open(String path, {DatabaseFactory? factory}) =>
       (factory ?? databaseFactory).openDatabase(
@@ -23,12 +24,14 @@ abstract final class AppDatabase {
             await _addSerialNumber(txn);
             await _addLedger(txn);
             await _addComponentWarranty(txn);
+            await _addItemSchedule(txn);
           }),
           onUpgrade: (db, from, to) => db.transaction((txn) async {
             if (from < 2) await _migrateV1ToV2(txn);
             if (from < 3) await _addSerialNumber(txn);
             if (from < 4) await _addLedger(txn);
             if (from < 5) await _addComponentWarranty(txn);
+            if (from < 6) await _addItemSchedule(txn);
           }),
         ),
       );
@@ -58,6 +61,14 @@ abstract final class AppDatabase {
     );
     await db.execute(
       "ALTER TABLE items ADD COLUMN component_warranty_name TEXT NOT NULL DEFAULT ''",
+    );
+  }
+
+  static Future<void> _addItemSchedule(Transaction db) async {
+    await db.execute('ALTER TABLE items ADD COLUMN reminder_at INTEGER');
+    await db.execute(
+      'ALTER TABLE items ADD COLUMN coverage_renews INTEGER '
+      'CHECK (coverage_renews IN (0, 1))',
     );
   }
 

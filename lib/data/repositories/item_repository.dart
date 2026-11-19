@@ -243,6 +243,8 @@ class ItemRepository extends ChangeNotifier {
         ? d.componentWarrantyName.trim()
         : '',
     'remind': d.remind ? 1 : 0,
+    'reminder_at': d.reminderAt?.millisecondsSinceEpoch,
+    'coverage_renews': switch (d.coverageRenews) {true => 1, false => 0, null => null},
   };
 
   Future<List<Item>> _readAll() async {
@@ -298,6 +300,10 @@ class ItemRepository extends ChangeNotifier {
               componentWarrantyName:
                   row['component_warranty_name'] as String? ?? '',
               remind: (row['remind'] as int? ?? 1) == 1,
+              reminderAt: row['reminder_at'] is int
+                  ? DateTime.fromMillisecondsSinceEpoch(row['reminder_at']! as int)
+                  : null,
+              coverageRenews: switch (row['coverage_renews']) {1 => true, 0 => false, _ => null},
             ),
           );
         })
