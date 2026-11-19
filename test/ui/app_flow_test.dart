@@ -66,6 +66,11 @@ void main() {
     await _tap(tester, 'item-claim');
     expect(find.text('CLAIM LEDGER'), findsOneWidget);
     expect(find.text('Claim opened'), findsOneWidget);
+    expect(_key('settings-tab'), findsOneWidget);
+    await _tap(tester, 'back-button');
+    expect(find.text('View claim ledger'), findsOneWidget);
+    await _tap(tester, 'item-claim');
+    expect(find.text('Claim opened'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

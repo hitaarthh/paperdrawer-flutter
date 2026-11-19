@@ -10,8 +10,8 @@ import '../../domain/models/item.dart';
 
 /// An in-memory attachment whose name is preserved by the native share sheet.
 class NamedShareData extends XFile {
-  NamedShareData(Uint8List bytes, {required this.name, required String mimeType})
-    : super.fromData(bytes, mimeType: mimeType);
+  NamedShareData(super.bytes, {required this.name, required String mimeType})
+    : super.fromData(mimeType: mimeType);
 
   @override
   final String name;
