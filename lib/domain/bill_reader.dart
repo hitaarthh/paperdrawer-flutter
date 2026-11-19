@@ -11,6 +11,7 @@ enum ReadField {
   startsOn,
   coverUntil,
   warranty,
+  componentWarranty,
 }
 
 class ScanReading {
@@ -24,6 +25,8 @@ class ScanReading {
     this.startsOn,
     this.coverUntil,
     this.warrantyMonths,
+    this.componentWarrantyMonths,
+    this.componentWarrantyName,
   });
 
   final ItemKind? kind;
@@ -35,6 +38,8 @@ class ScanReading {
   final DateTime? startsOn;
   final DateTime? coverUntil;
   final int? warrantyMonths;
+  final int? componentWarrantyMonths;
+  final String? componentWarrantyName;
 
   Set<ReadField> get read => {
     if (kind != null) ReadField.kind,
@@ -46,6 +51,7 @@ class ScanReading {
     if (startsOn != null) ReadField.startsOn,
     if (coverUntil != null) ReadField.coverUntil,
     if (warrantyMonths != null) ReadField.warranty,
+    if (componentWarrantyMonths != null) ReadField.componentWarranty,
   };
 
   bool get isEmpty => read.isEmpty;
@@ -73,6 +79,18 @@ final _rupees = RegExp(
 );
 final _warranty = RegExp(
   r'(?:\bwarranty\s*[:\-]\s*(\d{1,2})\s*(years?|yrs?|months?|mos?)\b)|(?:\b(\d{1,2})\s*[- ]?\s*(years?|yrs?|months?|mos?)\s+warranty\b)',
+  caseSensitive: false,
+);
+const _warrantyUnits = r'(years?|yrs?|months?|mos?)';
+const _components = r'(compressor|motor|battery|panel|inverter)';
+final _componentWarranty = RegExp(
+  r'\b(\d{1,2})\s*[- ]?\s*' + _warrantyUnits +
+      r'\s+(?:warranty\s+)?(?:on|for)\s+(?:the\s+)?' + _components + r'\b',
+  caseSensitive: false,
+);
+final _namedComponentWarranty = RegExp(
+  r'\b' + _components + r'\s+(?:warranty|coverage)\s*[:\-]?\s*(\d{1,2})\s*' +
+      _warrantyUnits + r'\b',
   caseSensitive: false,
 );
 final _ref = RegExp(
@@ -141,6 +159,8 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
   DateTime? coverUntil;
   int? amount;
   int? warrantyMonths;
+  int? componentWarrantyMonths;
+  String? componentWarrantyName;
   String? reference;
   String? serialNumber;
   String? source;
@@ -170,12 +190,31 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
       }
     }
 
-    final warranty = _warranty.firstMatch(line);
-    if (warranty != null && warrantyMonths == null) {
-      final count = int.parse(warranty.group(1) ?? warranty.group(3)!);
-      final unit = (warranty.group(2) ?? warranty.group(4)!).toLowerCase();
-      if (count > 0) {
-        warrantyMonths = unit.startsWith('y') ? count * 12 : count;
+    final trailingComponent = _componentWarranty.firstMatch(line);
+    final namedComponent = _namedComponentWarranty.firstMatch(line);
+    final component = trailingComponent ?? namedComponent;
+    if (component != null && componentWarrantyMonths == null) {
+      final trailing = trailingComponent != null;
+      final count = component.group(trailing ? 1 : 2)!;
+      final unit = component.group(trailing ? 2 : 3)!;
+      final name = component.group(trailing ? 3 : 1)!.toLowerCase();
+      componentWarrantyMonths = _warrantyMonths(count, unit);
+      if (componentWarrantyMonths != null) {
+        componentWarrantyName = name[0].toUpperCase() + name.substring(1);
+      }
+    }
+    if (warrantyMonths == null) {
+      for (final match in _warranty.allMatches(line)) {
+        if (component != null &&
+            match.start < component.end &&
+            match.end > component.start) {
+          continue;
+        }
+        warrantyMonths = _warrantyMonths(
+          match.group(1) ?? match.group(3)!,
+          match.group(2) ?? match.group(4)!,
+        );
+        if (warrantyMonths != null) break;
       }
     }
     final ref = _ref.firstMatch(line);
@@ -211,7 +250,8 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
       amount != null ||
       reference != null ||
       serialNumber != null ||
-      warrantyMonths != null;
+      warrantyMonths != null ||
+      componentWarrantyMonths != null;
   return ScanReading(
     kind: kind ?? (foundFacts ? ItemKind.bill : null),
     name: productNames.length == 1 ? productNames.single : null,
@@ -224,7 +264,19 @@ ScanReading readBill(List<String> lines, {required DateTime today}) {
     warrantyMonths: kind == null || kind == ItemKind.bill
         ? warrantyMonths
         : null,
+    componentWarrantyMonths: kind == null || kind == ItemKind.bill
+        ? componentWarrantyMonths
+        : null,
+    componentWarrantyName: kind == null || kind == ItemKind.bill
+        ? componentWarrantyName
+        : null,
   );
+}
+
+int? _warrantyMonths(String countText, String unit) {
+  final count = int.parse(countText);
+  if (count == 0) return null;
+  return unit.toLowerCase().startsWith('y') ? count * 12 : count;
 }
 
 Iterable<DateTime> _datesIn(String line) sync* {

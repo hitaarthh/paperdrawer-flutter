@@ -234,6 +234,12 @@ class ItemRepository extends ChangeNotifier {
     'starts_on': d.startsOn == null ? null : isoDate(d.startsOn!),
     'return_until': d.returnUntil == null ? null : isoDate(d.returnUntil!),
     'cover_until': d.coverUntil == null ? null : isoDate(d.coverUntil!),
+    'component_warranty_until': d.kind == ItemKind.bill && d.componentWarrantyUntil != null
+        ? isoDate(d.componentWarrantyUntil!)
+        : null,
+    'component_warranty_name': d.kind == ItemKind.bill && d.componentWarrantyUntil != null
+        ? d.componentWarrantyName.trim()
+        : '',
     'remind': d.remind ? 1 : 0,
   };
 
@@ -284,6 +290,8 @@ class ItemRepository extends ChangeNotifier {
               startsOn: parseIsoDate(row['starts_on']),
               returnUntil: parseIsoDate(row['return_until']),
               coverUntil: parseIsoDate(row['cover_until']),
+              componentWarrantyUntil: parseIsoDate(row['component_warranty_until']),
+              componentWarrantyName: row['component_warranty_name'] as String? ?? '',
               remind: (row['remind'] as int? ?? 1) == 1,
             ),
           );

@@ -13,6 +13,7 @@ class Today extends ChangeNotifier {
   late DateTime _value;
 
   DateTime get value => _value;
+  DateTime get instant => _now();
 
   void refresh() {
     final next = civil(_now());

@@ -8,10 +8,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../data/services/drawer_actions.dart';
 import '../../../data/services/shared_account.dart';
+import '../../../data/services/shared_claim_reminders.dart';
 import '../../../data/services/shared_vault_service.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/models/shared_profile.dart';
 import '../../../domain/models/shared_vault.dart';
+import '../../../domain/models/ledger.dart';
 
 class SharedSession extends ChangeNotifier {
   SharedSession(this.account, {SharedVaultService? service})
@@ -27,6 +29,7 @@ class SharedSession extends ChangeNotifier {
   final SharedVaultService _service;
   late final StreamSubscription<AuthState> _subscription;
   final Today today = Today();
+  final followUps = SharedClaimReminders();
   final _actions = const DrawerActions();
   String? _userId;
   int _accountGeneration = 0;
@@ -45,19 +48,24 @@ class SharedSession extends ChangeNotifier {
   bool failed = false;
   bool savingReminders = false;
   bool settlingClaim = false;
+  bool savingLedger = false;
+  bool get claimBusy => loading || savingReminders || settlingClaim || savingLedger;
   bool _disposed = false;
 
   Future<void> refresh() async {
     today.refresh();
     final owner = _userId;
-    if (owner == null || loading || savingReminders || settlingClaim) return;
+    if (owner == null || claimBusy) return;
     final generation = _accountGeneration;
     loading = true;
     failed = false;
     notifyListeners();
     try {
       final snapshot = await _service.fetch(owner);
-      if (_isCurrent(generation)) vault = snapshot;
+      if (_isCurrent(generation)) {
+        vault = snapshot;
+        _syncFollowUps();
+      }
     } catch (_) {
       if (_isCurrent(generation)) failed = true;
     } finally {
@@ -75,9 +83,7 @@ class SharedSession extends ChangeNotifier {
     if (owner == null ||
         snapshot == null ||
         current == null ||
-        loading ||
-        savingReminders ||
-        settlingClaim) {
+        claimBusy) {
       return;
     }
     if (leadDays == current.leadDays) leadDays = null;
@@ -118,9 +124,7 @@ class SharedSession extends ChangeNotifier {
         snapshot == null ||
         claim == null ||
         claim.settled != null ||
-        loading ||
-        savingReminders ||
-        settlingClaim) {
+        claimBusy) {
       return false;
     }
     final note = outcome.trim();
@@ -144,6 +148,7 @@ class SharedSession extends ChangeNotifier {
         ],
         profile: snapshot.profile,
       );
+      _syncFollowUps();
       return true;
     } finally {
       if (_isCurrent(generation)) {
@@ -152,6 +157,49 @@ class SharedSession extends ChangeNotifier {
       }
     }
   }
+
+  Future<SharedClaim> openLedger(SharedItem item) =>
+      _saveLedger((owner) => _service.openLedger(owner, item));
+
+  Future<SharedClaim> addLedgerEntry(String id, LedgerDraft entry) =>
+      _saveLedger((owner) => _service.addLedgerEntry(owner, id, entry, today.instant));
+
+  Future<SharedClaim> setFollowUp(String id, DateTime? value) =>
+      _saveLedger((owner) => _service.setFollowUp(owner, id, value, today.instant));
+
+  Future<SharedClaim> _saveLedger(
+    Future<SharedClaim> Function(String owner) save,
+  ) async {
+    final owner = _userId;
+    final snapshot = vault;
+    if (owner == null || snapshot == null || claimBusy) {
+      throw const FormatException('The vault is busy. Try again in a moment.');
+    }
+    final generation = _accountGeneration;
+    savingLedger = true;
+    notifyListeners();
+    try {
+      final claim = await save(owner);
+      if (!_isCurrent(generation)) {
+        throw const FormatException('Sign in to see this claim.');
+      }
+      vault = SharedVault(
+        items: snapshot.items,
+        claims: [claim, ...snapshot.claims.where((other) => other.id != claim.id)],
+        profile: snapshot.profile,
+      );
+      _syncFollowUps();
+      return claim;
+    } finally {
+      if (_isCurrent(generation)) {
+        savingLedger = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> shareFiles(List<XFile> files, Rect? origin) =>
+      _actions.shareFiles(files, origin: origin);
 
   bool _isCurrent(int generation) =>
       !_disposed && _accountGeneration == generation;
@@ -167,9 +215,19 @@ class SharedSession extends ChangeNotifier {
     failed = false;
     savingReminders = false;
     settlingClaim = false;
+    savingLedger = false;
+    if (previous != null) _syncFollowUps();
     notifyListeners();
     if (previous != null) unawaited(_clearDownloads(previous));
     if (owner != null) unawaited(refresh());
+  }
+
+  void _syncFollowUps() => followUps.sync(vault?.claims ?? [], today.instant);
+
+  Future<bool> enableFollowUpNotifications() async {
+    final allowed = await followUps.requestPermission();
+    if (!_disposed && allowed) _syncFollowUps();
+    return allowed;
   }
 
   Future<void> _clearDownloads(String userId) async {
@@ -218,6 +276,7 @@ class SharedSession extends ChangeNotifier {
     _disposed = true;
     unawaited(_subscription.cancel());
     if (_userId case final userId?) unawaited(_clearDownloads(userId));
+    followUps.dispose();
     today.dispose();
     super.dispose();
   }

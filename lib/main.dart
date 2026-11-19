@@ -66,7 +66,7 @@ class _BootstrapState extends State<_Bootstrap> {
     try {
       final files = FileStore(directory);
       final items = ItemRepository(database, files);
-      final claims = ClaimRepository(database);
+      final claims = ClaimRepository(database, files);
       final settings = SettingsRepository(database);
       await Future.wait([items.load(), claims.load(), settings.load()]);
 

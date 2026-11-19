@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import '../formats.dart';
+import 'item.dart';
+import 'ledger.dart';
 
 enum ClaimType {
   repair('REPAIR UNDER WARRANTY', 'WARRANTY REPAIR', 'repair', 'BRAND'),
@@ -38,7 +40,17 @@ enum ClaimWant {
 /// expected days, so the next rung is ready. SETTLED: done.
 enum ClaimStatus { waiting, escalate, settled }
 
-enum ClaimEventKind { opened, sent, reply, step, note, settled, reopened }
+enum ClaimEventKind {
+  opened, sent, reply, step, note, settled, reopened, call, email, visit, refund;
+
+  LedgerKind get ledgerKind => switch (this) {
+    call => LedgerKind.call,
+    sent || email => LedgerKind.email,
+    visit => LedgerKind.visit,
+    refund => LedgerKind.refund,
+    _ => LedgerKind.note,
+  };
+}
 
 @immutable
 class ClaimEvent {
@@ -47,12 +59,16 @@ class ClaimEvent {
     required this.on,
     required this.kind,
     required this.text,
+    this.reference = '',
+    this.photo,
   });
 
   final String id;
   final DateTime on;
   final ClaimEventKind kind;
   final String text;
+  final String reference;
+  final Attachment? photo;
 }
 
 @immutable
@@ -73,6 +89,7 @@ class Claim {
     this.settledOn,
     this.nudgeDays = 14,
     this.events = const [],
+    this.followUp,
   });
 
   final String id;
@@ -102,10 +119,23 @@ class Claim {
 
   /// Newest first.
   final List<ClaimEvent> events;
+  final DateTime? followUp;
 
   bool get isOpen => settledOn == null;
 
   String get title => '$itemLabel ${type.noun} claim';
+
+  List<LedgerEntry> get ledger => [
+    for (final event in events)
+      LedgerEntry(
+        id: event.id,
+        date: event.on,
+        kind: event.kind.ledgerKind,
+        text: event.text,
+        details: event.kind == ClaimEventKind.opened ? problem : '',
+        reference: event.kind == ClaimEventKind.opened ? reference : event.reference,
+      ),
+  ];
 
   /// The last reply, sent message or step change, whichever is later.
   DateTime get waitingSince {

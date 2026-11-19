@@ -63,6 +63,14 @@ class CaptureService {
         .toList();
   }
 
+  Future<PendingFile?> pickLedgerPhoto() async {
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      requestFullMetadata: false,
+    );
+    return file == null ? null : PendingFile(path: file.path, name: file.name);
+  }
+
   Future<CaptureSession> openCamera() async {
     final cameras = await availableCameras();
     if (cameras.isEmpty) {

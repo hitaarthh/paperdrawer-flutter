@@ -1,6 +1,7 @@
 import '../claim_message.dart';
 import '../formats.dart';
 import 'item.dart';
+import 'ledger.dart';
 import 'shared_profile.dart';
 
 class SharedOriginal {
@@ -124,6 +125,9 @@ class SharedClaim {
       opened = parseIsoDate(row['opened_on'])!,
       lastHeard = parseIsoDate(row['last_heard_on']),
       settled = parseIsoDate(row['settled_on']),
+      followUp = (row['follow_up_at'] as String?) == null
+          ? null
+          : DateTime.tryParse(row['follow_up_at'] as String)?.toLocal(),
       step = row['step'] as int? ?? 0,
       draft = _claimDraft(row['draft']),
       nextStep = _claimNextStep(row['next_step']),
@@ -151,6 +155,7 @@ class SharedClaim {
       opened = claim.opened,
       lastHeard = claim.lastHeard,
       settled = date.isBefore(claim.opened) ? claim.opened : date,
+      followUp = null,
       step = claim.step,
       draft = claim.draft,
       nextStep = claim.nextStep,
@@ -166,6 +171,7 @@ class SharedClaim {
   final DateTime opened;
   final DateTime? lastHeard;
   final DateTime? settled;
+  final DateTime? followUp;
   final int step;
   final ClaimMessage? draft;
   final (String, String)? nextStep;
@@ -174,6 +180,7 @@ class SharedClaim {
   final List<(String, String)> facts;
   final List<SharedOriginal> originals;
   final List<SharedClaimEvent> events;
+  List<LedgerEntry> get ledger => [for (final event in events) event.ledger];
 
   String get statusLabel => switch (state) {
     'no_reply' => 'No reply',
@@ -237,15 +244,30 @@ ClaimMessage? _claimDraft(Object? data) {
 
 class SharedClaimEvent {
   SharedClaimEvent.fromRow(Map<String, dynamic> row)
-    : date = parseIsoDate(row['occurred_on'])!,
+    : id = row['id'] as String? ?? row['created_at'] as String,
+      kind = LedgerKind.values.asNameMap()[row['kind']] ?? LedgerKind.note,
+      reference = _text(row['reference']),
+      date = parseIsoDate(row['occurred_on'])!,
       createdAt = DateTime.parse(row['created_at'] as String),
       title = row['title'] as String,
       note = _text(row['note']);
 
+  final String id;
+  final LedgerKind kind;
+  final String reference;
   final DateTime date;
   final DateTime createdAt;
   final String title;
   final String note;
+
+  LedgerEntry get ledger {
+    final hasLabelTitle = title == kind.label && note.isNotEmpty;
+    return LedgerEntry(
+      id: id, date: date, kind: kind, reference: reference,
+      text: hasLabelTitle ? note : title,
+      details: hasLabelTitle ? '' : note,
+    );
+  }
 }
 
 class SharedVault {

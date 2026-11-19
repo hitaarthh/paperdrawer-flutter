@@ -71,9 +71,15 @@ List<PlannedReminder> planReminders({
     }
   }
   for (final claim in claims) {
+    if (!claim.isOpen) continue;
+    if (claim.followUp case final followUp?) {
+      if (followUp.isAfter(now)) {
+        plans.add(claimFollowUp(claim.id, claim.title, followUp));
+      }
+      continue;
+    }
     final next = claim.step + 1;
-    if (!claim.isOpen ||
-        claim.nudgeDays <= 0 ||
+    if (claim.nudgeDays <= 0 ||
         next >= ladderFor(claim.type).length) {
       continue;
     }
@@ -97,6 +103,15 @@ List<PlannedReminder> planReminders({
   });
   return plans.take(60).toList(growable: false);
 }
+
+PlannedReminder claimFollowUp(String id, String title, DateTime at) =>
+    PlannedReminder(
+      key: 'claim/$id',
+      at: at.toLocal(),
+      title: 'Follow up on $title',
+      body: 'Open the claim ledger to see your entries.',
+      location: '/claims/$id',
+    );
 
 abstract interface class NotificationGateway {
   Future<void> initialize(void Function(String) onTap);
@@ -145,19 +160,22 @@ class FlutterLocalNotificationsGateway implements NotificationGateway {
     if (Platform.isIOS) await _plugin.cancelAllPendingNotifications();
   }
 
+  Future<void> cancelClaimReminders() async {
+    if (!Platform.isIOS) return;
+    for (final pending in await _plugin.pendingNotificationRequests()) {
+      if (pending.payload?.startsWith('/claims/') ?? false) {
+        await _plugin.cancel(id: pending.id);
+      }
+    }
+  }
+
   @override
   Future<void> schedule(PlannedReminder reminder) async {
     if (!Platform.isIOS) return;
     final at = reminder.at;
     await _plugin.zonedSchedule(
       id: reminder.id,
-      scheduledDate: tz.TZDateTime(
-        tz.local,
-        at.year,
-        at.month,
-        at.day,
-        at.hour,
-      ),
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
       notificationDetails: NotificationDetails(
         iOS: DarwinNotificationDetails(
           interruptionLevel: reminder.timeSensitive
@@ -240,7 +258,7 @@ class ReminderScheduler {
         items: _items.active,
         claims: _claims.claims,
         leadDays: _settings.leadDays,
-        now: DateTime.now(),
+        now: _today.instant,
       );
       for (final reminder in plans) {
         await _gateway.schedule(reminder);

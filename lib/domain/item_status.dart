@@ -13,7 +13,7 @@ const baseItemLimit = 25;
 /// Show the "N items left on Base" footnote from this many items.
 const baseItemWarnAt = 20;
 
-enum WindowType { returnWindow, warranty, policyYear, validity, term }
+enum WindowType { returnWindow, warranty, componentWarranty, policyYear, validity, term }
 
 /// One period that runs out: a return window, a warranty, a policy year.
 class CoverWindow {
@@ -22,6 +22,7 @@ class CoverWindow {
     required this.start,
     required this.end,
     required this.renews,
+    this.component = '',
   });
 
   final WindowType type;
@@ -32,6 +33,9 @@ class CoverWindow {
 
   /// Agreements that renew rather than simply end.
   final bool renews;
+  final String component;
+
+  String get _componentLabel => component.isEmpty ? 'Component warranty' : '$component warranty';
 
   int totalDays() {
     final days = daysBetween(start, end);
@@ -58,6 +62,7 @@ class CoverWindow {
   String get label => switch (type) {
     WindowType.returnWindow => 'RETURN WINDOW',
     WindowType.warranty => 'WARRANTY',
+    WindowType.componentWarranty => _componentLabel.toUpperCase(),
     WindowType.policyYear => 'POLICY YEAR',
     WindowType.validity => 'VALIDITY',
     WindowType.term => 'TERM',
@@ -108,6 +113,7 @@ class CoverWindow {
   String get ticketKicker => switch (type) {
     WindowType.returnWindow => 'RETURN WINDOW CLOSES',
     WindowType.warranty => 'WARRANTY ENDS',
+    WindowType.componentWarranty => '$label ENDS',
     WindowType.policyYear => 'POLICY RENEWS',
     WindowType.validity => 'VALIDITY ENDS',
     WindowType.term => renews ? 'AGREEMENT RENEWS' : 'AGREEMENT ENDS',
@@ -116,7 +122,7 @@ class CoverWindow {
   /// What to do, on tickets and in reminders.
   String action() => switch (type) {
     WindowType.returnWindow => 'Return by ${shortDate(end)}',
-    WindowType.warranty => 'Book a service visit before ${shortDate(end)}',
+    WindowType.warranty || WindowType.componentWarranty => 'Book a service visit before ${shortDate(end)}',
     WindowType.policyYear => 'Renew before ${shortDate(end)}',
     WindowType.validity => 'Renew before ${shortDate(end)}',
     WindowType.term =>
@@ -143,6 +149,7 @@ class CoverWindow {
     final noun = switch (type) {
       WindowType.returnWindow => 'return window',
       WindowType.warranty => 'warranty',
+      WindowType.componentWarranty => _componentLabel.toLowerCase(),
       WindowType.policyYear => 'policy',
       WindowType.validity => 'validity',
       WindowType.term => 'agreement',
@@ -285,6 +292,13 @@ class ItemSummary {
         final warranty = windows
             .where((w) => w.type == WindowType.warranty)
             .firstOrNull;
+        final component = windows
+            .where((w) => w.type == WindowType.componentWarranty)
+            .firstOrNull;
+        if (shown?.type == WindowType.componentWarranty ||
+            (warranty == null && component != null)) {
+          return component!.meterFooter(today);
+        }
         if (warranty == null) return 'No warranty on record';
         if (warranty.isEnded(today)) {
           return 'Warranty ended ${longDate(warranty.end)}';
@@ -342,6 +356,17 @@ List<CoverWindow> windowsOf(Item item) {
           start: start,
           end: d.coverUntil!,
           renews: false,
+        ),
+      );
+    }
+    if (d.componentWarrantyUntil case final until?) {
+      windows.add(
+        CoverWindow(
+          type: WindowType.componentWarranty,
+          start: start,
+          end: until,
+          renews: false,
+          component: d.componentWarrantyName.trim(),
         ),
       );
     }

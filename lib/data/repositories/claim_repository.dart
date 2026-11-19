@@ -5,11 +5,15 @@ import 'package:uuid/uuid.dart';
 import '../../domain/formats.dart';
 import '../../domain/ladders.dart';
 import '../../domain/models/claim.dart';
+import '../../domain/models/item.dart';
+import '../../domain/models/ledger.dart';
+import '../services/file_store.dart';
 
 class ClaimRepository extends ChangeNotifier {
-  ClaimRepository(this._db);
+  ClaimRepository(this._db, this._files);
 
   final Database _db;
+  final FileStore _files;
   List<Claim> _claims = const [];
   Future<void> _pending = Future.value();
 
@@ -27,10 +31,12 @@ class ClaimRepository extends ChangeNotifier {
   Future<void> load() async {
     final (rows, eventsByClaim) = await _db.transaction((txn) async {
       final rows = await txn.query('claims');
-      final eventRows = await txn.query(
-        'claim_events',
-        orderBy: 'on_date DESC, created_at DESC, rowid DESC',
-      );
+      final eventRows = await txn.rawQuery('''
+        SELECT event.*, photo.rel_path, photo.name AS photo_name, photo.bytes
+        FROM claim_events AS event
+        LEFT JOIN claim_event_photos AS photo ON photo.event_id = event.id
+        ORDER BY event.on_date DESC, event.created_at DESC, event.rowid DESC
+      ''');
       final events = <String, List<ClaimEvent>>{};
       for (final row in eventRows) {
         events
@@ -43,6 +49,8 @@ class ClaimRepository extends ChangeNotifier {
                     ClaimEventKind.values.asNameMap()[row['kind']] ??
                     ClaimEventKind.note,
                 text: row['text']! as String,
+                reference: row['reference']! as String,
+                photo: _photo(row),
               ),
             );
       }
@@ -67,12 +75,86 @@ class ClaimRepository extends ChangeNotifier {
         lastHeardOn: parseIsoDate(row['last_heard_on']),
         settledOn: parseIsoDate(row['settled_on']),
         nudgeDays: row['nudge_days']! as int,
+        followUp: switch (row['follow_up_at']) {
+          final int ms => DateTime.fromMillisecondsSinceEpoch(ms),
+          _ => null,
+        },
         events: List.unmodifiable(eventsByClaim[id] ?? const <ClaimEvent>[]),
       );
     }).toList()..sort(_compare);
     _claims = List.unmodifiable(claims);
     notifyListeners();
   }
+
+  Attachment? _photo(Map<String, Object?> row) {
+    final path = row['rel_path'] as String?;
+    return path == null ? null : Attachment(
+      id: row['id']! as String,
+      path: _files.absolute(path),
+      name: row['photo_name']! as String,
+      bytes: row['bytes']! as int,
+    );
+  }
+
+  Future<Claim> openLedger(Item item, DateTime today) => _write((txn) async {
+    if (openFor(item.id) case final existing?) return existing.id;
+    final type = item.kind == ItemKind.policy ? ClaimType.insurance : ClaimType.repair;
+    final id = const Uuid().v4();
+    await txn.insert('claims', {
+      'id': id,
+      'item_id': item.id,
+      'item_label': item.name,
+      'type': type.name,
+      'want': (type == ClaimType.insurance ? ClaimWant.payout : ClaimWant.repair).name,
+      'opened_on': isoDate(today),
+      'step_since': isoDate(today),
+      'nudge_days': 0,
+    });
+    await _event(txn, id, today, ClaimEventKind.opened, 'Claim opened');
+    return id;
+  }).then((id) => byId(id)!);
+
+  Future<void> addEntry(String id, LedgerDraft entry, DateTime now) =>
+      _enqueue(() async {
+        _getOpen(id);
+        entry.validate(now);
+        final picked = entry.photo;
+        if (picked != null && picked.isPdf) {
+          throw const FormatException('Choose a photo up to 20 MB.');
+        }
+        final photo = picked == null ? null : await _files.import(id, picked);
+        try {
+          await _db.transaction((txn) async {
+            final eventId = await _event(
+              txn, id, entry.date,
+              ClaimEventKind.values.byName(entry.kind.name),
+              entry.text, reference: entry.reference,
+            );
+            if (photo != null) {
+              await txn.insert('claim_event_photos', {
+                'event_id': eventId,
+                'rel_path': _files.relative(photo.path),
+                'name': photo.name,
+                'bytes': photo.bytes,
+              });
+            }
+            if (entry.followUp case final time?) {
+              await _update(txn, id, {'follow_up_at': time.millisecondsSinceEpoch});
+            }
+          });
+        } catch (_) {
+          if (photo != null) await _files.remove(photo.path);
+          rethrow;
+        }
+        await load();
+      });
+
+  Future<void> setFollowUp(String id, DateTime? followUp, DateTime now) =>
+      _write((txn) async {
+        _getOpen(id);
+        validateFollowUp(followUp, now);
+        await _update(txn, id, {'follow_up_at': followUp?.millisecondsSinceEpoch});
+      });
 
   Future<Claim> start({
     required String itemId,
@@ -173,7 +255,7 @@ class ClaimRepository extends ChangeNotifier {
   Future<void> settle(String id, DateTime today, {String note = ''}) =>
       _write((txn) async {
         if (!_get(id).isOpen) return;
-        await _update(txn, id, {'settled_on': isoDate(today)});
+        await _update(txn, id, {'settled_on': isoDate(today), 'follow_up_at': null});
         await _event(
           txn,
           id,
@@ -192,20 +274,33 @@ class ClaimRepository extends ChangeNotifier {
     await _event(txn, id, today, ClaimEventKind.reopened, 'Claim reopened');
   });
 
-  Future<void> delete(String id) => _write((txn) async {
-    await txn.delete('claims', where: 'id = ?', whereArgs: [id]);
+  Future<void> delete(String id) => _deleteClaims(id);
+
+  Future<void> eraseAll() => _deleteClaims(null);
+
+  Future<void> _deleteClaims(String? id) => _enqueue(() async {
+    final photos = [
+      for (final claim in claims)
+        if (id == null || claim.id == id)
+          for (final event in claim.events)
+            if (event.photo case final photo?) photo,
+    ];
+    await _db.delete('claims', where: id == null ? null : 'id = ?', whereArgs: id == null ? null : [id]);
+    for (final photo in photos) {
+      await _files.remove(photo.path);
+    }
+    await load();
   });
 
-  Future<void> eraseAll() => _write((txn) async {
-    await txn.delete('claims');
-  });
+  Future<T> _write<T>(Future<T> Function(Transaction txn) operation) =>
+      _enqueue(() async {
+        final value = await _db.transaction(operation);
+        await load();
+        return value;
+      });
 
-  Future<T> _write<T>(Future<T> Function(Transaction txn) operation) {
-    final result = _pending.then((_) async {
-      final value = await _db.transaction(operation);
-      await load();
-      return value;
-    });
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final result = _pending.then((_) => operation());
     _pending = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     return result;
   }
@@ -238,21 +333,25 @@ class ClaimRepository extends ChangeNotifier {
     await txn.update('claims', fields, where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<void> _event(
+  Future<String> _event(
     Transaction txn,
     String id,
     DateTime date,
     ClaimEventKind kind,
-    String text,
-  ) async {
+    String text, {
+    String reference = '',
+  }) async {
+    final id = const Uuid().v4();
     await txn.insert('claim_events', {
-      'id': const Uuid().v4(),
+      'id': id,
       'claim_id': id,
       'on_date': isoDate(date),
       'kind': kind.name,
       'text': text,
+      'reference': reference,
       'created_at': DateTime.now().millisecondsSinceEpoch,
     });
+    return id;
   }
 
   static String _note(String note, String fallback) =>

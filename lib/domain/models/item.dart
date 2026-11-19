@@ -116,6 +116,8 @@ class ItemDraft {
     this.startsOn,
     this.returnUntil,
     this.coverUntil,
+    this.componentWarrantyUntil,
+    this.componentWarrantyName = '',
     this.remind = true,
   });
 
@@ -141,6 +143,10 @@ class ItemDraft {
 
   /// Warranty end for bills; renews / valid till / ends for documents.
   final DateTime? coverUntil;
+
+  /// Separate coverage for a part, such as a compressor or motor.
+  final DateTime? componentWarrantyUntil;
+  final String componentWarrantyName;
   final bool remind;
 }
 

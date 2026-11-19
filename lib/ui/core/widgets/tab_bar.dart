@@ -98,10 +98,10 @@ class PdTabBar extends StatelessWidget {
         ? Duration.zero
         : Pd.dockSelectionDuration,
     curve: Curves.easeOutCubic,
-    child: const FractionallySizedBox(
+    child: FractionallySizedBox(
       widthFactor: 1 / (_tabs.length + 1),
       heightFactor: 1,
-      child: DecoratedBox(
+      child: const DecoratedBox(
         decoration: BoxDecoration(
           color: Pd.dockSelection,
           borderRadius: _radius,

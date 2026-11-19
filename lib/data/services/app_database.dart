@@ -7,8 +7,9 @@ import 'package:uuid/uuid.dart';
 /// - v1: a single `records` table with one optional attachment per record.
 /// - v2: items, attachments (many per item), claims, claim events.
 /// - v3: optional bill serial numbers.
+/// - v4: claim follow-ups, event references, and entry photos.
 abstract final class AppDatabase {
-  static const version = 3;
+  static const version = 4;
 
   static Future<Database> open(String path, {DatabaseFactory? factory}) =>
       (factory ?? databaseFactory).openDatabase(
@@ -19,10 +20,12 @@ abstract final class AppDatabase {
           onCreate: (db, _) => db.transaction((txn) async {
             await _createV2(txn);
             await _addSerialNumber(txn);
+            await _addLedger(txn);
           }),
           onUpgrade: (db, from, to) => db.transaction((txn) async {
             if (from < 2) await _migrateV1ToV2(txn);
             if (from < 3) await _addSerialNumber(txn);
+            if (from < 4) await _addLedger(txn);
           }),
         ),
       );
@@ -30,6 +33,19 @@ abstract final class AppDatabase {
   static Future<void> _addSerialNumber(Transaction db) => db.execute(
     "ALTER TABLE items ADD COLUMN serial_number TEXT NOT NULL DEFAULT ''",
   );
+
+  static Future<void> _addLedger(Transaction db) async {
+    await db.execute('ALTER TABLE claims ADD COLUMN follow_up_at INTEGER');
+    await db.execute("ALTER TABLE claim_events ADD COLUMN reference TEXT NOT NULL DEFAULT ''");
+    await db.execute('''
+      CREATE TABLE claim_event_photos (
+        event_id TEXT PRIMARY KEY REFERENCES claim_events(id) ON DELETE CASCADE,
+        rel_path TEXT NOT NULL,
+        name TEXT NOT NULL,
+        bytes INTEGER NOT NULL CHECK (bytes BETWEEN 1 AND 20971520)
+      )
+    ''');
+  }
 
   static Future<void> _createV2(Transaction db) async {
     await db.execute('''
