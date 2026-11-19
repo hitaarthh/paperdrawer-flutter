@@ -37,7 +37,7 @@ class NotificationPreview extends StatelessWidget {
               scale: 0.96,
               child: const _Notice(
                 title: 'Family health policy renews in 12 days',
-                body: 'Renew to keep your no-claim bonus',
+                body: 'Review your policy before it renews',
               ),
             ),
           ),

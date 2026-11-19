@@ -260,7 +260,7 @@ class _OpeningArtwork extends StatelessWidget {
           child: Opacity(
             opacity: _tagline.transform(time),
             child: Text(
-              'KEEP IT · REMEMBER IT · CLAIM IT',
+              'KEEP IT · REMEMBER IT',
               textAlign: TextAlign.center,
               style: PdType.openingTagline.copyWith(color: Pd.textMuted),
             ),
@@ -333,7 +333,7 @@ class _OpeningTicket extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Never lose a claim to a missing bill.',
+                    'Your important papers, in one place.',
                     style: PdType.openingTicketTitle.copyWith(color: Pd.ink),
                   ),
                 ],

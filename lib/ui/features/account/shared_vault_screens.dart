@@ -115,24 +115,6 @@ class SharedItemScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _shareKit(
-    BuildContext context,
-    SharedSession session,
-    SharedItem item,
-  ) async {
-    final box = context.findRenderObject();
-    final origin = box is RenderBox && box.hasSize
-        ? box.localToGlobal(Offset.zero) & box.size
-        : null;
-    try {
-      await session.shareClaimKit(item, origin);
-    } catch (_) {
-      if (context.mounted) {
-        showPdSnackbar(context, 'The claim kit couldn’t be shared. Try again.');
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final session = context.watch<SharedSession>();
@@ -142,17 +124,7 @@ class SharedItemScreen extends StatelessWidget {
     if (item == null) {
       return _missing(context, session, _backLabel, _backRoute);
     }
-    final linkedClaims = session.vault!.claims
-        .where((claim) => claim.itemId == id)
-        .toList();
-    final activeClaim = linkedClaims
-        .where((claim) => claim.settled == null)
-        .firstOrNull;
-    final summary = ItemSummary.of(
-      item.item,
-      session.today.value,
-      hasOpenClaim: activeClaim != null,
-    );
+    final summary = ItemSummary.of(item.item, session.today.value);
     final original = item.originals.firstOrNull;
     final rem = session.vault?.profile;
     return PdPushedScaffold(
@@ -217,27 +189,6 @@ class SharedItemScreen extends StatelessWidget {
         if (summary.windows.length > 1) ...[
           const SizedBox(height: Pd.s6),
           ItemCoverage(summary),
-        ],
-        if (linkedClaims.isNotEmpty) ...[
-          const SizedBox(height: Pd.s5),
-          PdListGroup(
-            header: 'Claims on this item',
-            children: [
-              for (final claim in linkedClaims)
-                PdListRow(
-                  title: claim.title,
-                  value: claim.statusLabel,
-                  chevron: true,
-                  onTap: () => context.push('/claims/${claim.id}'),
-                ),
-              Builder(
-                builder: (anchor) => PdListRow(
-                  title: 'Share claim kit',
-                  onTap: () => _shareKit(anchor, session, item),
-                ),
-              ),
-            ],
-          ),
         ],
         if (summary.d.notes.isNotEmpty) ...[
           const SizedBox(height: Pd.s5),

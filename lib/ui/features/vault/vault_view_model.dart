@@ -1,21 +1,18 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/item_status.dart';
 
 class VaultViewModel extends ChangeNotifier {
-  VaultViewModel(this._items, this._claims, this._today)
+  VaultViewModel(this._items, this._today)
     : _knownIds = _items.items.map((item) => item.id).toSet() {
     _items.addListener(_reload);
-    _claims.addListener(_reload);
     _today.addListener(_reload);
     _reload();
   }
 
   final ItemRepository _items;
-  final ClaimRepository _claims;
   final Today _today;
   Set<String> _knownIds;
   String? _landOn;
@@ -108,13 +105,7 @@ class VaultViewModel extends ChangeNotifier {
     _knownIds = ids;
     _summaries =
         _items.active
-            .map(
-              (item) => ItemSummary.of(
-                item,
-                _today.value,
-                hasOpenClaim: _claims.hasOpenClaim(item.id),
-              ),
-            )
+            .map((item) => ItemSummary.of(item, _today.value))
             .toList()
           ..sort((a, b) {
             final rank = a.sortRank.compareTo(b.sortRank);
@@ -128,7 +119,6 @@ class VaultViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _items.removeListener(_reload);
-    _claims.removeListener(_reload);
     _today.removeListener(_reload);
     super.dispose();
   }

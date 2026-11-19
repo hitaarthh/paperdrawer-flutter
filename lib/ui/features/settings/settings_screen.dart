@@ -113,7 +113,7 @@ class _SettingsViewState extends State<_SettingsView> {
     final confirm = await showPdConfirm(
       context,
       title: 'Clear this drawer?',
-      message: 'This permanently removes all items, originals, claims and preferences from this device.',
+      message: 'This permanently removes your Paper Drawer data and originals from this device.',
       confirmLabel: 'Clear drawer',
       destructive: true,
     );

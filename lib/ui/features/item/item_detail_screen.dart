@@ -3,11 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/drawer_actions.dart';
-import '../../../data/services/exporter.dart';
 import '../../../data/services/today.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
@@ -33,9 +31,7 @@ class ItemDetailScreen extends StatelessWidget {
     create: (context) => ItemDetailViewModel(
       id,
       context.read<ItemRepository>(),
-      context.read<ClaimRepository>(),
       context.read<Today>(),
-      context.read<Exporter>(),
       context.read<DrawerActions>(),
     ),
     child: _ItemDetailView(fromHome: fromHome),
@@ -198,35 +194,6 @@ class _ItemDetailView extends StatelessWidget {
           Text('Notes', style: PdType.title2),
           const SizedBox(height: Pd.s2),
           Text(item.draft.notes, style: PdType.body),
-        ],
-        if (model.itemClaims.isNotEmpty) ...[
-          const SizedBox(height: Pd.s5),
-          PdListGroup(
-            header: 'Claims on this item',
-            children: [
-              for (final entry in model.itemClaims)
-                PdListRow(
-                  key: ValueKey('item-claim-${entry.id}'),
-                  title: entry.title,
-                  value: entry.isOpen ? 'Open' : 'Settled',
-                  chevron: true,
-                  onTap: () => context.push(Routes.claim(entry.id)),
-                ),
-              Builder(
-                builder: (anchor) => PdListRow(
-                  key: const ValueKey('item-export-kit'),
-                  title: 'Share claim kit',
-                  onTap: model.busy
-                      ? null
-                      : () => _perform(
-                          context,
-                          model,
-                          model.exportKit(item, _origin(anchor)),
-                        ),
-                ),
-              ),
-            ],
-          ),
         ],
         const SizedBox(height: Pd.s5),
         PdListGroup(

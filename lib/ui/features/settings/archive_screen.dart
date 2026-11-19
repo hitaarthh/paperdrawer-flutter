@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/item_status.dart';
@@ -49,7 +48,6 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
   Widget build(BuildContext context) {
     final items = context.watch<ItemRepository>().archived
       ..sort((a, b) => b.archivedAt!.compareTo(a.archivedAt!));
-    final claims = context.watch<ClaimRepository>();
     final today = context.watch<Today>().value;
     return PdPushedScaffold(
       backLabel: 'Settings',
@@ -72,11 +70,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
           for (final item in items) ...[
             ItemCard(
               key: ValueKey('archived-item-${item.id}'),
-              summary: ItemSummary.of(
-                item,
-                today,
-                hasOpenClaim: claims.hasOpenClaim(item.id),
-              ),
+              summary: ItemSummary.of(item, today),
               onTap: () => context.push(Routes.item(item.id)),
             ),
             Align(

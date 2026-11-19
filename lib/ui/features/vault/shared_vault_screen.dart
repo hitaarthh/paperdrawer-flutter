@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../domain/item_status.dart';
-import '../../../domain/models/shared_vault.dart';
+import '../../../domain/models/shared_vault.dart' show SharedItem;
 import '../../../routing/router.dart' show Routes;
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -50,17 +50,9 @@ class _SharedVaultScreenState extends State<SharedVaultScreen> {
     final session = context.watch<SharedSession>();
     final vault = session.vault;
     final today = session.today.value;
-    final claims =
-        vault?.claims.where((claim) => claim.settled == null).toList() ??
-        const <SharedClaim>[];
-    final openItemIds = claims.map((claim) => claim.itemId).toSet();
     final summaries = [
       for (final entry in vault?.items ?? const <SharedItem>[])
-        ItemSummary.of(
-          entry.item,
-          today,
-          hasOpenClaim: openItemIds.contains(entry.item.id),
-        ),
+        ItemSummary.of(entry.item, today),
     ]..sort((a, b) => a.sortRank.compareTo(b.sortRank));
     return Scaffold(
       backgroundColor: Pd.bg,

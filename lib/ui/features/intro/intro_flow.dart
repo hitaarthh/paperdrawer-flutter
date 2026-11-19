@@ -6,11 +6,10 @@ import '../../core/theme/type.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/icons.dart';
 import '../../core/widgets/paper.dart';
-import 'art/claim_art.dart';
 import 'art/keep_art.dart';
 import 'art/remember_art.dart';
 
-/// Size of the art slot in the intro mockups (iOS Intro 1–3). Every phase's
+/// Size of the art slot in the intro mockups (iOS Intro 1–2). Every phase's
 /// art is drawn on this canvas and scaled down to fit smaller screens.
 const introArtSize = Size(390, 360);
 
@@ -30,8 +29,8 @@ const _phases = [
   _Phase(
     '01 · KEEP',
     'Keep it.',
-    'Snap a bill or upload a policy PDF. Paper Drawer reads the details and '
-        'files the original.',
+    'Save bills, policies, vehicle papers and agreements from Files. '
+        'Keep the originals together in your drawer.',
     KeepArt(),
   ),
   _Phase(
@@ -41,18 +40,11 @@ const _phases = [
         'A heads-up before each one, on your schedule.',
     RememberArt(),
   ),
-  _Phase(
-    '03 · CLAIM',
-    'Claim it.',
-    'Something broke, or a refund never came? Open a claim, log every call, '
-        'and choose when to follow up.',
-    ClaimArt(),
-  ),
 ];
 
-/// Three-step welcome: Keep, Remember, Claim.
+/// Two-step welcome for saving originals and setting reminders.
 ///
-/// [onStart] runs from SKIP and from the last step's "Start your vault".
+/// [onStart] runs from SKIP and from the last step's "Start your drawer".
 /// [onSignIn] runs from "I already have an account"; leave it null where
 /// there are no accounts and the link is hidden.
 class IntroFlow extends StatefulWidget {
@@ -130,7 +122,7 @@ class _IntroFlowState extends State<IntroFlow> {
                         ),
                         PdButton.primary(
                           key: const ValueKey('intro-next'),
-                          label: _last ? 'Start your vault' : 'Next',
+                          label: _last ? 'Start your drawer' : 'Next',
                           icon: _last
                               ? null
                               : const Icon(LucideIcons.arrowRight),

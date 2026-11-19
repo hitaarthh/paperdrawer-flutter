@@ -115,7 +115,6 @@ class VaultFilterTabs extends StatelessWidget {
   static String label(VaultFilter filter) => switch (filter) {
     VaultFilter.all => 'ALL',
     VaultFilter.due => 'DUE SOON',
-    VaultFilter.inClaim => 'IN CLAIM',
     VaultFilter.covered => 'COVERED',
     VaultFilter.expired => 'EXPIRED',
     VaultFilter.undated => 'NO DATE',

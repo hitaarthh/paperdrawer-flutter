@@ -171,7 +171,7 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                               children: [
                                 SharedSettingsDataAction(
                                   title: 'Export your drawer',
-                                  description: 'Get a spreadsheet of your items and claims, plus all original documents, in one ZIP on the web.',
+                                  description: 'Download a backup of your Paper Drawer data and original documents on the web.',
                                   button: PdButton.secondary(
                                     key: const ValueKey(
                                       'shared-settings-export',
@@ -183,7 +183,7 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
                                 ),
                                 SharedSettingsDataAction(
                                   title: 'Delete account',
-                                  description: 'Permanently removes your documents, claims and reminders. You’ll confirm on the web.',
+                                  description: 'Permanently removes your account and its saved data. You’ll confirm on the web.',
                                   button: PdButton.destructive(
                                     key: const ValueKey(
                                       'shared-settings-delete',

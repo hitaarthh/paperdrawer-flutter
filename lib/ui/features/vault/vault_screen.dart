@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/item_status.dart';
@@ -36,7 +35,6 @@ class VaultScreen extends StatelessWidget {
   Widget build(BuildContext context) => ChangeNotifierProvider(
     create: (context) => VaultViewModel(
       context.read<ItemRepository>(),
-      context.read<ClaimRepository>(),
       context.read<Today>(),
     ),
     child: _VaultView(reviewOld: reviewOld, showDue: showDue, addedId: addedId),
@@ -305,7 +303,6 @@ class _VaultViewState extends State<_VaultView> {
     return DashedTile(
       title: switch (model.filter) {
         VaultFilter.due => 'Nothing is due soon',
-        VaultFilter.inClaim => 'No items in a claim',
         VaultFilter.covered => 'No items with active cover',
         VaultFilter.expired => 'No expired files',
         VaultFilter.undated => 'Every file has a tracked date',

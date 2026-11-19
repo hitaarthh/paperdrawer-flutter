@@ -416,7 +416,6 @@ List<CoverWindow> windowsOf(Item item) {
 enum VaultFilter {
   all('ALL'),
   due('DUE'),
-  inClaim('IN CLAIM'),
   covered('COVERED'),
   expired('EXPIRED'),
   undated('NO DATE');
@@ -427,7 +426,6 @@ enum VaultFilter {
   bool matches(ItemSummary s) => switch (this) {
     VaultFilter.all => true,
     VaultFilter.due => s.next?.isDue(s.today) ?? false,
-    VaultFilter.inClaim => s.status == ItemStatus.inClaim,
     VaultFilter.covered => (s.next?.daysLeft(s.today) ?? 0) > dueWithinDays,
     VaultFilter.expired => s.windows.isNotEmpty && s.next == null,
     VaultFilter.undated => s.windows.isEmpty,
