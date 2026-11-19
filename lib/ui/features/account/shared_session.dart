@@ -7,11 +7,13 @@ import 'package:share_plus/share_plus.dart' show XFile;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../data/repositories/shared_inbox_repository.dart';
 import '../../../data/services/capture_service.dart';
 import '../../../data/services/drawer_actions.dart';
 import '../../../data/services/exporter.dart';
 import '../../../data/services/shared_account.dart';
 import '../../../data/services/shared_claim_reminders.dart';
+import '../../../data/services/shared_inbox_service.dart';
 import '../../../data/services/shared_vault_service.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/models/shared_profile.dart';
@@ -23,8 +25,11 @@ class SharedSession extends ChangeNotifier {
   SharedSession(
     this.account, {
     SharedVaultService? service,
+    SharedInboxService? inboxService,
     this.capture = const CaptureService(),
-  }) : _service = service ?? SharedVaultService(account.client) {
+  }) : _service = service ?? SharedVaultService(account.client),
+       _inboxService = inboxService,
+       inbox = inboxService == null ? null : SharedInboxRepository(inboxService) {
     _subscription = account.changes.listen(
       (_) => _onAccount(),
       onError: (Object _, StackTrace _) => _onAccount(),
@@ -34,8 +39,13 @@ class SharedSession extends ChangeNotifier {
 
   final SharedAccount account;
   final SharedVaultService _service;
+  final SharedInboxService? _inboxService;
+  final SharedInboxRepository? inbox;
   final CaptureService capture;
   late final StreamSubscription<AuthState> _subscription;
+  StreamSubscription<DrawerChange>? _drawerSubscription;
+  Timer? _drawerRefresh;
+  bool _refreshPending = false;
   final Today today = Today();
   final followUps = SharedClaimReminders();
   final _actions = const DrawerActions();
@@ -68,8 +78,18 @@ class SharedSession extends ChangeNotifier {
 
   Future<void> refresh() async {
     today.refresh();
+    final inbox = this.inbox;
+    if (inbox != null) unawaited(inbox.refresh());
+    await _refreshVault();
+  }
+
+  Future<void> _refreshVault() async {
     final owner = _userId;
-    if (owner == null || claimBusy) return;
+    if (owner == null) return;
+    if (claimBusy) {
+      _refreshPending = true;
+      return;
+    }
     final generation = _accountGeneration;
     loading = true;
     failed = false;
@@ -84,7 +104,7 @@ class SharedSession extends ChangeNotifier {
     } finally {
       if (_isCurrent(generation)) {
         loading = false;
-        notifyListeners();
+        _publishAndRefreshPending();
       }
     }
   }
@@ -117,11 +137,12 @@ class SharedSession extends ChangeNotifier {
           claims: snapshot.claims,
           profile: profile,
         );
+        if (inbox case final notifications?) unawaited(notifications.refresh());
       }
     } finally {
       if (_isCurrent(generation)) {
         savingReminders = false;
-        notifyListeners();
+        _publishAndRefreshPending();
       }
     }
   }
@@ -207,11 +228,12 @@ class SharedSession extends ChangeNotifier {
           claims: snapshot.claims,
           profile: snapshot.profile,
         );
+        if (inbox case final notifications?) unawaited(notifications.refresh());
         return saved.item;
       } finally {
         if (_isCurrent(generation)) {
           _savingItem = false;
-          notifyListeners();
+          _publishAndRefreshPending();
         }
       }
     };
@@ -230,7 +252,7 @@ class SharedSession extends ChangeNotifier {
     } finally {
       if (_isCurrent(generation)) {
         _savingItem = false;
-        notifyListeners();
+        _publishAndRefreshPending();
       }
     }
     if (!_isCurrent(generation)) return;
@@ -284,7 +306,7 @@ class SharedSession extends ChangeNotifier {
     } finally {
       if (_isCurrent(generation)) {
         savingLedger = false;
-        notifyListeners();
+        _publishAndRefreshPending();
       }
     }
   }
@@ -311,12 +333,27 @@ class SharedSession extends ChangeNotifier {
   bool _isCurrent(int generation) =>
       !_disposed && _accountGeneration == generation;
 
+  void _publishAndRefreshPending() {
+    notifyListeners();
+    if (!_refreshPending || claimBusy) return;
+    _refreshPending = false;
+    unawaited(_refreshVault());
+  }
+
   void _onAccount() {
     final owner = account.user?.id;
     final previous = _userId;
     if (owner == previous) return;
     _userId = owner;
     _accountGeneration++;
+    final generation = _accountGeneration;
+    _drawerRefresh?.cancel();
+    _drawerRefresh = null;
+    _refreshPending = false;
+    if (_drawerSubscription case final subscription?) {
+      unawaited(subscription.cancel());
+    }
+    _drawerSubscription = null;
     vault = null;
     loading = false;
     failed = false;
@@ -324,10 +361,23 @@ class SharedSession extends ChangeNotifier {
     settlingClaim = false;
     savingLedger = false;
     _savingItem = false;
+    inbox?.setOwner(owner);
     if (previous != null) _syncFollowUps();
     notifyListeners();
     if (previous != null) unawaited(_clearDownloads(previous));
-    if (owner != null) unawaited(refresh());
+    if (owner == null) return;
+    _drawerSubscription = _inboxService?.changes(owner).listen((change) {
+      if (!_isCurrent(generation)) return;
+      if (change == DrawerChange.notifications) {
+        unawaited(inbox!.refresh());
+        return;
+      }
+      _drawerRefresh ??= Timer(const Duration(milliseconds: 150), () {
+        _drawerRefresh = null;
+        if (_isCurrent(generation)) unawaited(refresh());
+      });
+    });
+    unawaited(_refreshVault());
   }
 
   void _syncFollowUps() => followUps.sync(vault?.claims ?? [], today.instant);
@@ -383,6 +433,11 @@ class SharedSession extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     unawaited(_subscription.cancel());
+    _drawerRefresh?.cancel();
+    if (_drawerSubscription case final subscription?) {
+      unawaited(subscription.cancel());
+    }
+    inbox?.dispose();
     if (_userId case final userId?) unawaited(_clearDownloads(userId));
     followUps.dispose();
     today.dispose();

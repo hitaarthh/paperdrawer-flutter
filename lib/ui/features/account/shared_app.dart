@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/services/capture_service.dart';
 import '../../../data/services/shared_account.dart';
+import '../../../data/services/shared_inbox_service.dart';
 import '../../../data/services/text_recognizer.dart';
 import '../../../data/services/today.dart';
 import '../../../routing/shared_router.dart';
@@ -67,24 +70,43 @@ class _SharedApp extends StatefulWidget {
 }
 
 class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
-  late final _session = SharedSession(widget.account);
+  late final _session = SharedSession(
+    widget.account,
+    inboxService: SharedInboxService(widget.account.client),
+  );
   late final _router = buildSharedRouter(_session);
+  Timer? _inboxTimer;
+
+  void _watchClock() {
+    _inboxTimer ??= Timer.periodic(const Duration(minutes: 1), (_) {
+      unawaited(_session.inbox!.refresh());
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _session.followUps.sync(const [], _session.today.instant);
+    _watchClock();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _session.refresh();
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_session.refresh());
+      _watchClock();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _inboxTimer?.cancel();
+      _inboxTimer = null;
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _inboxTimer?.cancel();
     _router.dispose();
     _session.dispose();
     super.dispose();
@@ -94,6 +116,7 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) => MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: _session),
+      ChangeNotifierProvider.value(value: _session.inbox!),
       Provider<CaptureService>.value(value: _session.capture),
       Provider<TextRecognizer>(create: (_) => PlatformTextRecognizer()),
       ChangeNotifierProvider<Today>.value(value: _session.today),
