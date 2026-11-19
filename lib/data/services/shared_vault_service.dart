@@ -12,12 +12,15 @@ import '../../domain/models/ledger.dart';
 import '../../domain/models/shared_profile.dart';
 import '../../domain/models/shared_vault.dart';
 import 'file_store.dart' show maxAttachmentBytes;
+import 'shared_item_write.dart';
 
 class SharedVaultService {
   const SharedVaultService(this._client);
   final SupabaseClient _client;
 
   static const _files = 'attachments(file_name,storage_path,mime_type)';
+  static const _billFields = '*,bill_parts(name,years),$_files';
+  static const _documentFields = '*,$_files';
   static const _claimFields = '*,claim_events(*),$_files';
   static const _profileFields =
       'display_name,reminder_lead_days,email_reminders,plan';
@@ -26,11 +29,11 @@ class SharedVaultService {
     final (bills, documents, claims, profile) = await (
       _page(
         'bills',
-        '*,bill_parts(name,years),$_files',
+        _billFields,
         userId,
         'purchased_on',
       ),
-      _page('documents', '*,$_files', userId, 'end_on'),
+      _page('documents', _documentFields, userId, 'end_on'),
       _page('claims', _claimFields, userId, 'opened_on'),
       _fetchProfile(userId),
     ).wait;
@@ -42,6 +45,38 @@ class SharedVaultService {
       claims: claims.map(SharedClaim.fromRow).toList(),
       profile: profile,
     );
+  }
+
+  Future<SharedItem> createItem(
+    String userId,
+    String id,
+    ItemDraft draft, {
+    PendingFile? original,
+  }) async {
+    final bill = draft.kind == ItemKind.bill;
+    // Retry with the form's original ID. Check both tables because the item
+    // type may have changed since a previous attempt lost its response.
+    final saved = await _fetchItem(userId, id, bill: bill) ??
+        await _fetchItem(userId, id, bill: !bill);
+    if (saved != null) return saved;
+    await SharedItemWrite(_client).save(userId, id, draft, original: original);
+    return await _fetchItem(userId, id, bill: bill) ??
+        (throw StateError('Saved item unavailable'));
+  }
+
+  Future<SharedItem?> _fetchItem(
+    String userId,
+    String id, {
+    required bool bill,
+  }) async {
+    final row = await _client
+        .from(bill ? 'bills' : 'documents')
+        .select(bill ? _billFields : _documentFields)
+        .eq('user_id', userId)
+        .eq('id', id)
+        .maybeSingle();
+    if (row == null) return null;
+    return bill ? SharedItem.bill(row) : SharedItem.document(row);
   }
 
   Future<SharedProfile?> _fetchProfile(String userId) async {

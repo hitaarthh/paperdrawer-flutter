@@ -19,10 +19,16 @@ import '../../core/widgets/paper.dart';
 import 'add_details_args.dart';
 
 class ReadingScreen extends StatefulWidget {
-  const ReadingScreen({required this.files, this.kind, super.key});
+  const ReadingScreen({
+    required this.files,
+    this.kind,
+    this.shared = false,
+    super.key,
+  });
 
   final List<PendingFile> files;
   final ItemKind? kind;
+  final bool shared;
 
   @override
   State<ReadingScreen> createState() => _ReadingScreenState();
@@ -200,12 +206,13 @@ class _ReadingScreenState extends State<ReadingScreen> {
           reading?.startsOn == null ? null : monoDate(reading!.startsOn!),
         ),
         _ReadingRow('Product', reading?.name),
-        _ReadingRow(
-          'Total',
-          reading?.amountMinor == null
-              ? null
-              : money(reading!.amountMinor!, 'INR'),
-        ),
+        if (!widget.shared)
+          _ReadingRow(
+            'Total',
+            reading?.amountMinor == null
+                ? null
+                : money(reading!.amountMinor!, 'INR'),
+          ),
         _ReadingRow(
           'Warranty',
           reading?.warrantyMonths == null

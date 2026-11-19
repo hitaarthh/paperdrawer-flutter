@@ -30,11 +30,19 @@ abstract final class AddFlow {
       initialKind: kind,
     );
     if (!context.mounted || choice == null) return;
+    await openChoice(context, choice);
+  }
+
+  static Future<void> openChoice(
+    BuildContext context,
+    AddSheetChoice choice, {
+    bool singleOriginal = false,
+  }) async {
     switch (choice.action) {
       case AddSheetAction.camera:
         context.push(Routes.camera, extra: choice.kind);
       case AddSheetAction.upload:
-        final files = await chooseOriginals(context);
+        final files = await chooseOriginals(context, single: singleOriginal);
         if (!context.mounted || files.isEmpty) return;
         context.push(
           Routes.reading,
@@ -50,7 +58,10 @@ abstract final class AddFlow {
     context.push(Routes.camera, extra: kind);
   }
 
-  static Future<List<PendingFile>> chooseOriginals(BuildContext context) async {
+  static Future<List<PendingFile>> chooseOriginals(
+    BuildContext context, {
+    bool single = false,
+  }) async {
     final source = await showPdActions<_UploadSource>(
       context,
       title: 'Choose a photo or PDF',
@@ -63,8 +74,8 @@ abstract final class AddFlow {
     final capture = context.read<CaptureService>();
     try {
       return await (source == _UploadSource.photos
-          ? capture.pickPhotos()
-          : capture.pickFiles());
+          ? capture.pickPhotos(single: single)
+          : capture.pickFiles(single: single));
     } catch (_) {
       if (context.mounted) {
         showPdSnackbar(

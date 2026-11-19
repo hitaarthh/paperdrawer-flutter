@@ -47,14 +47,24 @@ class CaptureService {
     }
   }
 
-  Future<List<PendingFile>> pickFiles() async {
+  Future<List<PendingFile>> pickFiles({bool single = false}) async {
+    if (single) {
+      final file = await openFile(acceptedTypeGroups: const [_acceptedFiles]);
+      return file == null
+          ? const []
+          : [PendingFile(path: file.path, name: file.name)];
+    }
     final files = await openFiles(acceptedTypeGroups: const [_acceptedFiles]);
     return files
         .map((file) => PendingFile(path: file.path, name: file.name))
         .toList();
   }
 
-  Future<List<PendingFile>> pickPhotos() async {
+  Future<List<PendingFile>> pickPhotos({bool single = false}) async {
+    if (single) {
+      final photo = await pickLedgerPhoto();
+      return photo == null ? const [] : [photo];
+    }
     final files = await ImagePicker().pickMultiImage(
       requestFullMetadata: false,
     );

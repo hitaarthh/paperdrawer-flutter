@@ -26,7 +26,6 @@ class AddSheetChoice {
 Future<AddSheetChoice?> showAddSheet(
   BuildContext context, {
   required int used,
-  bool shared = false,
   bool onBasePlan = true,
   ItemKind initialKind = ItemKind.bill,
 }) => showPdCustomSheet<AddSheetChoice>(
@@ -34,7 +33,6 @@ Future<AddSheetChoice?> showAddSheet(
   semanticLabel: 'Scan or add',
   builder: (context) => AddSheet(
     used: used,
-    shared: shared,
     onBasePlan: onBasePlan,
     initialKind: initialKind,
   ),
@@ -46,7 +44,6 @@ Future<AddSheetChoice?> showAddSheet(
 class AddSheet extends StatefulWidget {
   const AddSheet({
     required this.used,
-    this.shared = false,
     this.onBasePlan = true,
     this.initialKind = ItemKind.bill,
     super.key,
@@ -54,7 +51,6 @@ class AddSheet extends StatefulWidget {
 
   /// Active items in the drawer, shown against [baseItemLimit].
   final int used;
-  final bool shared;
   final bool onBasePlan;
   final ItemKind initialKind;
 
@@ -89,11 +85,6 @@ class _AddSheetState extends State<AddSheet> {
             header: true,
             child: Text('What are you adding?', style: PdType.title1),
           ),
-          if (widget.shared)
-            Text(
-              'Continue on Paper Drawer web to save to your shared vault.',
-              style: PdType.footnote.copyWith(color: Pd.textMuted),
-            ),
         ],
       ),
       _KindGrid(

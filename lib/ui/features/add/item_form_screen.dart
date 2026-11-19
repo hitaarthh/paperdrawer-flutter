@@ -19,6 +19,7 @@ import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/text_field.dart';
+import '../account/shared_session.dart';
 import '../reminders/reminder_permission.dart';
 import 'add_details_args.dart';
 import 'item_form_sections.dart';
@@ -27,11 +28,15 @@ import 'item_form_view_model.dart';
 enum _DateAction { change, clear }
 
 class ItemFormScreen extends StatefulWidget {
-  const ItemFormScreen.create(this.initial, {super.key}) : id = null;
-  const ItemFormScreen.edit(this.id, {super.key}) : initial = null;
+  const ItemFormScreen.create(this.initial, {this.shared = false, super.key})
+    : id = null;
+  const ItemFormScreen.edit(this.id, {super.key})
+    : initial = null,
+      shared = false;
 
   final AddDetailsArgs? initial;
   final String? id;
+  final bool shared;
 
   @override
   State<ItemFormScreen> createState() => _ItemFormScreenState();
@@ -51,14 +56,27 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   @override
   void initState() {
     super.initState();
-    _items = context.read<ItemRepository>();
     final id = widget.id;
+    if (!widget.shared) _items = context.read<ItemRepository>();
     final original = id == null ? null : _items.byId(id);
     if (id != null && original == null) return;
+    final createShared = widget.shared
+        ? context.read<SharedSession>().itemCreator()
+        : null;
     final form = ItemFormViewModel(
-      _items,
+      (draft, files, removed) {
+        if (createShared != null) return createShared(draft, files.singleOrNull);
+        if (id == null) return _items.create(draft, files: files);
+        return _items.update(
+          id,
+          draft,
+          addFiles: files,
+          removeAttachmentIds: removed,
+        );
+      },
       initial: widget.initial,
       original: original,
+      shared: widget.shared,
     );
     _form = form;
     _name = TextEditingController(text: form.initialName);
@@ -104,6 +122,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       notes: _notes.text,
     );
     if (!mounted || saved == null) return;
+    if (widget.shared) {
+      showPdSnackbar(context, 'Saved to your vault', success: true);
+      context.go(Routes.item(saved.id));
+      return;
+    }
     final creating = widget.id == null;
     if (creating &&
         shouldOfferReminders(
@@ -227,10 +250,12 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         ],
       );
     }
-    final original = widget.initial?.files.firstOrNull;
     return ListenableBuilder(
       listenable: form,
-      builder: (context, _) => PopScope(
+      builder: (context, _) {
+        final initial = widget.initial?.files.firstOrNull;
+        final original = form.added.contains(initial) ? initial : null;
+        return PopScope(
         canPop: !form.busy,
         child: PdPushedScaffold(
           backLabel: 'Cancel',
@@ -326,7 +351,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               key: const ValueKey('item-start-date'),
               label: form.startsLabel,
               value: form.startsOn == null ? '' : longDate(form.startsOn!),
-              hint: 'Choose a date',
+              hint: form.shared && form.kind == ItemKind.bill
+                  ? 'Required'
+                  : 'Choose a date',
               readFromBill: _read(form, ReadField.startsOn),
               onTap: () {
                 if (!form.busy) _chooseStart(form);
@@ -375,7 +402,8 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
             ),
           ],
         ),
-      ),
+        );
+      },
     );
   }
 }

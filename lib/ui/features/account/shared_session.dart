@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart' show XFile;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../data/services/capture_service.dart';
 import '../../../data/services/drawer_actions.dart';
@@ -56,8 +57,9 @@ class SharedSession extends ChangeNotifier {
   bool savingReminders = false;
   bool settlingClaim = false;
   bool savingLedger = false;
+  bool _savingItem = false;
   bool get claimBusy =>
-      loading || savingReminders || settlingClaim || savingLedger;
+      loading || savingReminders || settlingClaim || savingLedger || _savingItem;
   bool _disposed = false;
 
   Future<void> refresh() async {
@@ -166,6 +168,50 @@ class SharedSession extends ChangeNotifier {
   Future<SharedClaim> openLedger(SharedItem item) =>
       _saveLedger((owner) => _service.openLedger(owner, item));
 
+  /// Each form keeps its ID across retries and is bound to the account that
+  /// opened it, even if the user signs out before the save completes.
+  Future<Item> Function(ItemDraft, PendingFile?) itemCreator() {
+    final owner = _userId;
+    final generation = _accountGeneration;
+    final id = const Uuid().v4();
+    return (draft, original) async {
+      if (owner == null || !_isCurrent(generation)) {
+        throw const FormatException('Sign in to add an item to your vault.');
+      }
+      final snapshot = vault;
+      if (snapshot == null || claimBusy) {
+        throw const FormatException('The vault is busy. Try again in a moment.');
+      }
+      _savingItem = true;
+      notifyListeners();
+      try {
+        final saved = await _service.createItem(
+          owner,
+          id,
+          draft,
+          original: original,
+        );
+        if (!_isCurrent(generation)) {
+          throw const FormatException('Sign in to see this item.');
+        }
+        vault = SharedVault(
+          items: [
+            saved,
+            ...snapshot.items.where((other) => other.item.id != id),
+          ],
+          claims: snapshot.claims,
+          profile: snapshot.profile,
+        );
+        return saved.item;
+      } finally {
+        if (_isCurrent(generation)) {
+          _savingItem = false;
+          notifyListeners();
+        }
+      }
+    };
+  }
+
   Future<SharedClaim> addLedgerEntry(String id, LedgerDraft entry) =>
       _saveLedger(
         (owner) => _service.addLedgerEntry(owner, id, entry, today.instant),
@@ -243,6 +289,7 @@ class SharedSession extends ChangeNotifier {
     savingReminders = false;
     settlingClaim = false;
     savingLedger = false;
+    _savingItem = false;
     if (previous != null) _syncFollowUps();
     notifyListeners();
     if (previous != null) unawaited(_clearDownloads(previous));

@@ -7,7 +7,12 @@ import '../../../domain/models/item.dart';
 import 'add_details_args.dart';
 
 class ItemFormViewModel extends ChangeNotifier {
-  ItemFormViewModel(this._items, {AddDetailsArgs? initial, this.original}) {
+  ItemFormViewModel(
+    this._persist, {
+    AddDetailsArgs? initial,
+    this.original,
+    this.shared = false,
+  }) {
     final reading = initial?.reading;
     final saved = original?.draft;
     _kind = saved?.kind ?? initial?.effectiveKind ?? ItemKind.bill;
@@ -28,19 +33,22 @@ class ItemFormViewModel extends ChangeNotifier {
     );
     _remind = saved?.remind ?? true;
     _added.addAll(initial?.files ?? const []);
-    readFields = Set.unmodifiable(reading?.read ?? const <ReadField>{});
-    currency = saved?.currency ?? 'INR';
+    final fields = {...?reading?.read};
+    if (shared) fields.remove(ReadField.amount);
+    readFields = Set.unmodifiable(fields);
+    currency = shared ? 'USD' : saved?.currency ?? 'INR';
     initialName = saved?.name ?? reading?.name ?? '';
     initialSource = saved?.source ?? reading?.source ?? '';
     initialReference = saved?.reference ?? reading?.reference ?? '';
     initialSerial = saved?.serialNumber ?? reading?.serialNumber ?? '';
     initialNotes = saved?.notes ?? '';
-    final amount = saved?.amountMinor ?? reading?.amountMinor;
+    final amount = shared ? null : saved?.amountMinor ?? reading?.amountMinor;
     initialAmount = amount == null ? '' : editableMoney(amount);
   }
 
-  final ItemRepository _items;
+  final Future<Item> Function(ItemDraft, List<PendingFile>, Set<String>) _persist;
   final Item? original;
+  final bool shared;
 
   late final Set<ReadField> readFields;
   late final String currency;
@@ -181,6 +189,12 @@ class ItemFormViewModel extends ChangeNotifier {
     _change();
   }
 
+  void setComponentWarrantyMonths(int value) {
+    _active.componentWarrantyMonths = value;
+    _active.componentWarrantyUntil = null;
+    _change();
+  }
+
   void setComponentWarrantyName(String value) {
     _active.componentWarrantyName = value;
     _change();
@@ -204,8 +218,11 @@ class ItemFormViewModel extends ChangeNotifier {
   }
 
   void addFiles(List<PendingFile> files) {
+    if (shared && _added.isNotEmpty) return;
     final paths = {..._added.map((file) => file.path)};
-    _added.addAll(files.where((file) => paths.add(file.path)));
+    _added.addAll(
+      (shared ? files.take(1) : files).where((file) => paths.add(file.path)),
+    );
     _change();
   }
 
@@ -240,7 +257,13 @@ class ItemFormViewModel extends ChangeNotifier {
     required String notes,
   }) async {
     if (_busy) return null;
-    _error = validateName(name) ?? validateAmount(amount) ?? _validateDates();
+    _error = validateName(name) ??
+        validateAmount(amount) ??
+        _validateDates();
+    if (shared && RegExp(r'₹|^\s*(?:rs\.?|inr)', caseSensitive: false)
+        .hasMatch(amount)) {
+      _error = 'Enter an amount in US dollars.';
+    }
     if (_error != null) {
       notifyListeners();
       return null;
@@ -270,15 +293,7 @@ class ItemFormViewModel extends ChangeNotifier {
     _busy = true;
     notifyListeners();
     try {
-      final existing = original;
-      return existing == null
-          ? await _items.create(draft, files: added)
-          : await _items.update(
-              existing.id,
-              draft,
-              addFiles: added,
-              removeAttachmentIds: Set.of(_removed),
-            );
+      return await _persist(draft, added, Set.of(_removed));
     } on FormatException catch (error) {
       _error = error.message;
     } on LimitReachedException catch (error) {

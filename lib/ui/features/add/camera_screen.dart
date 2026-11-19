@@ -17,9 +17,10 @@ import 'add_details_args.dart';
 import 'add_flow.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({this.kind, super.key});
+  const CameraScreen({this.kind, this.singleOriginal = false, super.key});
 
   final ItemKind? kind;
+  final bool singleOriginal;
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -97,7 +98,10 @@ class _CameraScreenState extends State<CameraScreen>
     try {
       final page = await session.takePicture();
       if (!mounted) return;
-      setState(() => _pages.add(page));
+      setState(() {
+        if (widget.singleOriginal) _pages.clear();
+        _pages.add(page);
+      });
     } catch (_) {
       if (mounted && _active) {
         showPdSnackbar(context, 'The photo couldn’t be taken. Try again.');
@@ -108,9 +112,12 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Future<void> _pick() async {
-    final files = await AddFlow.chooseOriginals(context);
+    final files = await AddFlow.chooseOriginals(
+      context,
+      single: widget.singleOriginal,
+    );
     if (!mounted || files.isEmpty) return;
-    _finish([..._pages, ...files]);
+    _finish(widget.singleOriginal ? files : [..._pages, ...files]);
   }
 
   Future<void> _toggleTorch() async {
