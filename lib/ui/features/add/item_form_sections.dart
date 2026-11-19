@@ -14,6 +14,7 @@ import '../../core/widgets/chips.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
+import '../../core/widgets/text_field.dart';
 import 'add_flow.dart';
 import 'item_form_view_model.dart';
 
@@ -30,6 +31,7 @@ class FormCoverSection extends StatefulWidget {
 
 class _FormCoverSectionState extends State<FormCoverSection> {
   bool _editedCover = false;
+  bool _editedComponentWarranty = false;
   ItemFormViewModel get _form => widget.form;
 
   Future<void> _chooseSubtype() async {
@@ -92,6 +94,34 @@ class _FormCoverSectionState extends State<FormCoverSection> {
     }
   }
 
+  Future<void> _chooseComponentWarranty() async {
+    final initial = _form.componentWarrantyUntil;
+    final action = await showPdActions<_WindowAction>(
+      context,
+      title: 'Component warranty',
+      actions: [
+        const PdAction(label: 'Choose an end date', value: _WindowAction.exact),
+        if (initial != null || _form.componentWarrantyMonths != null)
+          const PdAction(label: 'Clear', value: _WindowAction.clear),
+      ],
+    );
+    if (!mounted || action == null || _form.busy) return;
+    if (action == _WindowAction.clear) {
+      setState(() => _editedComponentWarranty = true);
+      _form.setComponentWarrantyUntil(null);
+      return;
+    }
+    final date = await showPdDatePicker(
+      context,
+      title: 'Component warranty end',
+      initial: initial ?? _form.startsOn,
+      min: _form.startsOn,
+    );
+    if (!mounted || date == null || _form.busy) return;
+    setState(() => _editedComponentWarranty = true);
+    _form.setComponentWarrantyUntil(date);
+  }
+
   Future<void> _chooseLead(SettingsRepository settings) async {
     final days = await showPdActions<int>(
       context,
@@ -120,7 +150,10 @@ class _FormCoverSectionState extends State<FormCoverSection> {
     final months = _form.warrantyMonths;
     final returnUntil = _form.returnUntil;
     final settings = context.watch<SettingsRepository>();
-    final dates = (date == null ? 0 : 1) + (returnUntil == null ? 0 : 1);
+    final componentUntil = _form.componentWarrantyUntil;
+    final componentName = _form.componentWarrantyName;
+    final componentMonths = _form.componentWarrantyMonths;
+    final dates = [date, returnUntil, componentUntil].nonNulls.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -210,6 +243,28 @@ class _FormCoverSectionState extends State<FormCoverSection> {
                 chevron: true,
                 onTap: _form.busy ? null : () => _chooseWindow(returns: true),
               ),
+            if (isBill) ...[
+              PdListRow(
+                key: const ValueKey('item-component-warranty'),
+                title: componentName.isEmpty ? 'Component warranty' : '$componentName warranty',
+                value: componentUntil != null
+                    ? longDate(componentUntil)
+                    : componentMonths != null
+                    ? monthsLabel(componentMonths)
+                    : 'Optional',
+                tag: !_editedComponentWarranty &&
+                    _form.readFields.contains(ReadField.componentWarranty)
+                    ? 'Read from bill'
+                    : null,
+                chevron: true,
+                onTap: _form.busy ? null : _chooseComponentWarranty,
+              ),
+              if (componentUntil != null || componentMonths != null)
+                _ComponentWarrantyName(
+                  key: ObjectKey(_form),
+                  form: _form,
+                ),
+            ],
             PdListRow(
               title: 'Reminder',
               trailing: Semantics(
@@ -235,6 +290,38 @@ class _FormCoverSectionState extends State<FormCoverSection> {
       ],
     );
   }
+}
+
+class _ComponentWarrantyName extends StatefulWidget {
+  const _ComponentWarrantyName({required this.form, super.key});
+
+  final ItemFormViewModel form;
+
+  @override
+  State<_ComponentWarrantyName> createState() => _ComponentWarrantyNameState();
+}
+
+class _ComponentWarrantyNameState extends State<_ComponentWarrantyName> {
+  late final _name = TextEditingController(text: widget.form.componentWarrantyName);
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(Pd.s3),
+    child: PdTextField(
+      fieldKey: const ValueKey('item-component-warranty-name'),
+      label: 'COVERED COMPONENT',
+      hint: 'e.g. Compressor',
+      enabled: !widget.form.busy,
+      controller: _name,
+      onChanged: widget.form.setComponentWarrantyName,
+    ),
+  );
 }
 
 class _Presets extends StatelessWidget {

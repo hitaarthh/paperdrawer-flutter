@@ -287,6 +287,43 @@ Future<DateTime?> showPdDatePicker(
   if (earliest != null && selected.isBefore(earliest)) selected = earliest;
   if (latest != null && selected.isAfter(latest)) selected = latest;
 
+  // The native wheel uses local time, while the date-only API uses civil dates.
+  DateTime local(DateTime date) => DateTime(date.year, date.month, date.day);
+  return _showPdDateWheel(
+    context,
+    title: title,
+    mode: CupertinoDatePickerMode.date,
+    initial: local(selected),
+    min: earliest == null ? null : local(earliest),
+    max: latest == null ? null : local(latest),
+  ).then((date) => date == null ? null : civil(date));
+}
+
+Future<DateTime?> showPdFollowUpPicker(
+  BuildContext context, {
+  required DateTime now,
+  DateTime? initial,
+}) {
+  final earliest = DateTime(now.year, now.month, now.day, now.hour, now.minute + 1);
+  final tomorrow = DateTime(now.year, now.month, now.day + 1, 10);
+  return _showPdDateWheel(
+    context,
+    title: 'Follow-up reminder',
+    mode: CupertinoDatePickerMode.dateAndTime,
+    initial: initial != null && !initial.isBefore(earliest) ? initial.toLocal() : tomorrow,
+    min: earliest,
+  );
+}
+
+Future<DateTime?> _showPdDateWheel(
+  BuildContext context, {
+  required String title,
+  required CupertinoDatePickerMode mode,
+  required DateTime initial,
+  DateTime? min,
+  DateTime? max,
+}) {
+  var selected = initial;
   return showCupertinoModalPopup<DateTime>(
     context: context,
     barrierColor: Pd.scrim,
@@ -316,15 +353,15 @@ Future<DateTime?> showPdDatePicker(
                 child: SizedBox(
                   height: Pd.s12 * 5,
                   child: CupertinoDatePicker(
-                    mode: CupertinoDatePickerMode.date,
+                    mode: mode,
                     dateOrder: DatePickerDateOrder.dmy,
                     backgroundColor: Pd.surface2,
-                    initialDateTime: selected,
-                    minimumDate: earliest,
-                    maximumDate: latest,
-                    minimumYear: earliest?.year ?? 1,
-                    maximumYear: latest?.year,
-                    onDateTimeChanged: (date) => selected = civil(date),
+                    initialDateTime: initial,
+                    minimumDate: min,
+                    maximumDate: max,
+                    minimumYear: min?.year ?? 1,
+                    maximumYear: max?.year,
+                    onDateTimeChanged: (date) => selected = date,
                   ),
                 ),
               ),

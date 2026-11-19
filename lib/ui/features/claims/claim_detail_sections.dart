@@ -154,6 +154,8 @@ class _ClaimLogEntry extends StatelessWidget {
       ClaimEventKind.note => ('NOTE', 'Note added'),
       ClaimEventKind.settled => ('CLAIM', 'Claim settled'),
       ClaimEventKind.reopened => ('CLAIM', 'Claim reopened'),
+      ClaimEventKind.call || ClaimEventKind.email || ClaimEventKind.visit || ClaimEventKind.refund =>
+        (event.kind.ledgerKind.label.toUpperCase(), event.text),
     };
     final detail = switch (event.kind) {
       ClaimEventKind.reply ||

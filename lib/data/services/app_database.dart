@@ -8,8 +8,9 @@ import 'package:uuid/uuid.dart';
 /// - v2: items, attachments (many per item), claims, claim events.
 /// - v3: optional bill serial numbers.
 /// - v4: claim follow-ups, event references, and entry photos.
+/// - v5: component warranty dates and names.
 abstract final class AppDatabase {
-  static const version = 4;
+  static const version = 5;
 
   static Future<Database> open(String path, {DatabaseFactory? factory}) =>
       (factory ?? databaseFactory).openDatabase(
@@ -21,11 +22,13 @@ abstract final class AppDatabase {
             await _createV2(txn);
             await _addSerialNumber(txn);
             await _addLedger(txn);
+            await _addComponentWarranty(txn);
           }),
           onUpgrade: (db, from, to) => db.transaction((txn) async {
             if (from < 2) await _migrateV1ToV2(txn);
             if (from < 3) await _addSerialNumber(txn);
             if (from < 4) await _addLedger(txn);
+            if (from < 5) await _addComponentWarranty(txn);
           }),
         ),
       );
@@ -45,6 +48,11 @@ abstract final class AppDatabase {
         bytes INTEGER NOT NULL CHECK (bytes BETWEEN 1 AND 20971520)
       )
     ''');
+  }
+
+  static Future<void> _addComponentWarranty(Transaction db) async {
+    await db.execute('ALTER TABLE items ADD COLUMN component_warranty_until TEXT');
+    await db.execute("ALTER TABLE items ADD COLUMN component_warranty_name TEXT NOT NULL DEFAULT ''");
   }
 
   static Future<void> _createV2(Transaction db) async {

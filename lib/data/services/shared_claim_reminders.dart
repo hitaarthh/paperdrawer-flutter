@@ -7,7 +7,9 @@ import 'reminder_scheduler.dart';
 class SharedClaimReminders {
   final _gateway = FlutterLocalNotificationsGateway();
   final _taps = StreamController<String>.broadcast();
-  late final _initialized = _gateway.initialize(_taps.add);
+  late final _initialized = _gateway.initialize((location) {
+    if (!_taps.isClosed) _taps.add(location);
+  });
   Future<void> _pending = Future.value();
 
   Stream<String> get taps => _taps.stream;
@@ -37,8 +39,9 @@ class SharedClaimReminders {
         await _gateway.cancelClaimReminders();
         final plans = [
           for (final claim in claims)
-            if (claim.settled == null && claim.followUp case final time?)
-              if (time.isAfter(now)) claimFollowUp(claim.id, claim.title, time),
+            if (claim.settled == null)
+              if (claim.followUp case final time? when time.isAfter(now))
+                claimFollowUp(claim.id, claim.title, time),
         ]..sort((a, b) => a.at.compareTo(b.at));
         for (final plan in plans.take(60)) {
           await _gateway.schedule(plan);

@@ -17,6 +17,10 @@ class ItemFormViewModel extends ChangeNotifier {
       coverUntil: saved?.coverUntil ?? reading?.coverUntil,
       returnUntil: saved?.returnUntil,
       warrantyMonths: _kind == ItemKind.bill ? reading?.warrantyMonths : null,
+      componentWarrantyUntil: saved?.componentWarrantyUntil,
+      componentWarrantyName: saved?.componentWarrantyName ??
+          (_kind == ItemKind.bill ? reading?.componentWarrantyName : null) ?? '',
+      componentWarrantyMonths: _kind == ItemKind.bill ? reading?.componentWarrantyMonths : null,
     );
     _remind = saved?.remind ?? true;
     _added.addAll(initial?.files ?? const []);
@@ -90,6 +94,17 @@ class ItemFormViewModel extends ChangeNotifier {
         : _active.coverUntil;
   }
 
+  String get componentWarrantyName => _active.componentWarrantyName;
+  int? get componentWarrantyMonths => _active.componentWarrantyMonths;
+
+  DateTime? get componentWarrantyUntil {
+    final months = componentWarrantyMonths;
+    final start = startsOn;
+    return months != null && start != null
+        ? addMonths(start, months)
+        : _active.componentWarrantyUntil;
+  }
+
   DateTime? get returnUntil {
     final days = _active.returnDays;
     final start = startsOn;
@@ -153,6 +168,17 @@ class ItemFormViewModel extends ChangeNotifier {
   void setWarrantyMonths(int value) {
     _active.warrantyMonths = value;
     _active.coverUntil = null;
+    _change();
+  }
+
+  void setComponentWarrantyUntil(DateTime? value) {
+    _active.componentWarrantyUntil = value;
+    _active.componentWarrantyMonths = null;
+    _change();
+  }
+
+  void setComponentWarrantyName(String value) {
+    _active.componentWarrantyName = value;
     _change();
   }
 
@@ -228,6 +254,10 @@ class ItemFormViewModel extends ChangeNotifier {
       startsOn: startsOn,
       returnUntil: kind == ItemKind.bill ? returnUntil : null,
       coverUntil: coverUntil,
+      componentWarrantyUntil: kind == ItemKind.bill ? componentWarrantyUntil : null,
+      componentWarrantyName: kind == ItemKind.bill && componentWarrantyUntil != null
+          ? componentWarrantyName.trim()
+          : '', 
       remind: remind,
     );
     _busy = true;
@@ -257,7 +287,7 @@ class ItemFormViewModel extends ChangeNotifier {
 
   String? _validateDates() {
     final start = startsOn;
-    if (warrantyMonths != null && start == null) {
+    if ((warrantyMonths != null || componentWarrantyMonths != null) && start == null) {
       return 'Add the purchase date to work out when the warranty ends.';
     }
     if (_active.returnDays != null && start == null) {
@@ -268,6 +298,10 @@ class ItemFormViewModel extends ChangeNotifier {
     final returned = returnUntil;
     if (end != null && end.isBefore(start)) {
       return '$coverLabel must be on or after the ${startsLabel.toLowerCase()}.';
+    }
+    final componentEnd = componentWarrantyUntil;
+    if (componentEnd != null && componentEnd.isBefore(start)) {
+      return 'The component warranty must end on or after the purchase date.';
     }
     if (returned != null && returned.isBefore(start)) {
       return 'The return window must end on or after the purchase date.';
@@ -293,6 +327,9 @@ class _KindDetails {
     this.coverUntil,
     this.returnUntil,
     this.warrantyMonths,
+    this.componentWarrantyUntil,
+    this.componentWarrantyName = '',
+    this.componentWarrantyMonths,
   });
 
   String subtype;
@@ -300,4 +337,7 @@ class _KindDetails {
   DateTime? returnUntil;
   int? warrantyMonths;
   int? returnDays;
+  DateTime? componentWarrantyUntil;
+  String componentWarrantyName;
+  int? componentWarrantyMonths;
 }

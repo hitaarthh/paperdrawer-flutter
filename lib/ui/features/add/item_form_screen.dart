@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/reminder_scheduler.dart';
@@ -119,7 +120,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     final appContext = rootNavigatorKey.currentContext;
     showPdSnackbar(
       context,
-      creating ? 'Saved to your drawer' : 'Changes saved',
+      creating ? _savedMessage(saved) : 'Changes saved',
       success: true,
       action: creating ? 'Undo' : null,
       onAction: creating
@@ -138,6 +139,23 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
           : null,
     );
     _close();
+  }
+
+  String _savedMessage(Item saved) {
+    final settings = context.read<SettingsRepository>();
+    if (!settings.remindersOn || context.read<ReminderScheduler?>() == null) {
+      return 'Saved to your drawer';
+    }
+    final plans = planReminders(
+      items: _items.active,
+      claims: context.read<ClaimRepository>().claims,
+      leadDays: settings.leadDays,
+      now: context.read<Today>().instant,
+    );
+    final next = plans.where((plan) => plan.location == Routes.item(saved.id)).firstOrNull;
+    return next == null
+        ? 'Saved to your drawer'
+        : 'Saved. Next reminder planned for ${shortDate(next.at)}.';
   }
 
   bool _read(ItemFormViewModel form, ReadField field) =>
@@ -213,7 +231,8 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
           onBack: _close,
           kicker: original == null
               ? null
-              : 'NEW ${form.kind.chip} · ${form.reviewedFieldCount} OF 7 FIELDS READ',
+              : 'NEW ${form.kind.chip} · ${form.reviewedFieldCount} '
+                    '${form.reviewedFieldCount == 1 ? 'FIELD' : 'FIELDS'} READ',
           title: widget.id != null
               ? 'Edit details'
               : original == null
