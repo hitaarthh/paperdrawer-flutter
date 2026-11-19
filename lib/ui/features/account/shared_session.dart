@@ -78,7 +78,6 @@ class SharedSession extends ChangeNotifier {
       final snapshot = await _service.fetch(owner);
       if (_isCurrent(generation)) {
         vault = snapshot;
-        _syncFollowUps();
       }
     } catch (_) {
       if (_isCurrent(generation)) failed = true;

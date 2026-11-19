@@ -68,7 +68,7 @@ class _PaperDrawerAppState extends State<PaperDrawerApp> {
   @override
   void initState() {
     super.initState();
-    // A tapped reminder opens the item or claim it is about.
+    // A tapped reminder opens the item it is about.
     _taps = widget.deps.reminders?.taps.listen(_router.go);
   }
 

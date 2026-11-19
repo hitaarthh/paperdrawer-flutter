@@ -26,10 +26,9 @@ class SharedVaultService {
       'display_name,reminder_lead_days,email_reminders,plan';
 
   Future<SharedVault> fetch(String userId) async {
-    final (bills, documents, claims, profile) = await (
+    final (bills, documents, profile) = await (
       _page('bills', _billFields, userId, 'purchased_on'),
       _page('documents', _documentFields, userId, 'end_on'),
-      _page('claims', _claimFields, userId, 'opened_on'),
       _fetchProfile(userId),
     ).wait;
     return SharedVault(
@@ -37,7 +36,7 @@ class SharedVaultService {
         ...bills.map(SharedItem.bill),
         ...documents.map(SharedItem.document),
       ],
-      claims: claims.map(SharedClaim.fromRow).toList(),
+      claims: const [],
       profile: profile,
     );
   }

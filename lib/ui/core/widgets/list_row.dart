@@ -55,6 +55,7 @@ class PdListRow extends StatelessWidget {
     required this.title,
     this.value,
     this.trailing,
+    this.leadingIcon,
     this.chevron = false,
     this.destructive = false,
     this.actionIcon,
@@ -66,6 +67,7 @@ class PdListRow extends StatelessWidget {
   final String title;
   final String? value;
   final Widget? trailing;
+  final IconData? leadingIcon;
   final bool chevron;
   final bool destructive;
   final IconData? actionIcon;
@@ -95,6 +97,15 @@ class PdListRow extends StatelessWidget {
       child: Row(
         spacing: Pd.s2,
         children: [
+          if (leadingIcon case final icon?)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: Pd.s1),
+              child: Icon(
+                icon,
+                size: Pd.iconMd,
+                color: destructive ? Pd.signal : Pd.text2,
+              ),
+            ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

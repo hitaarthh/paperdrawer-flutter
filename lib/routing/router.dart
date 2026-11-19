@@ -7,9 +7,6 @@ import '../ui/features/add/camera_screen.dart';
 import '../ui/features/add/item_form_screen.dart';
 import '../ui/features/add/manual_item_form.dart';
 import '../ui/features/add/reading_screen.dart';
-import '../ui/features/claims/claim_detail_screen.dart';
-import '../ui/features/claims/local_claim_ledger_screen.dart';
-import '../ui/features/claims/start_claim_screen.dart';
 import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/item/item_detail_screen.dart';
 import '../ui/features/reminders/reminders_screen.dart';
@@ -72,24 +69,6 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                 ),
               ],
             ),
-            GoRoute(
-              path: Routes.claims,
-              builder: (context, state) => const ClaimHistoryScreen(),
-              routes: [
-                GoRoute(
-                  path: ':id',
-                  builder: (context, state) =>
-                      LocalClaimLedgerScreen(id: state.pathParameters['id']!),
-                  routes: [
-                    GoRoute(
-                      path: 'guidance',
-                      builder: (context, state) =>
-                          ClaimDetailScreen(id: state.pathParameters['id']!),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ],
         ),
         StatefulShellBranch(
@@ -107,13 +86,6 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
                   parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) =>
                       ItemDetailScreen(id: state.pathParameters['id']!),
-                  routes: [
-                    GoRoute(
-                      path: 'claim',
-                      builder: (context, state) =>
-                          StartClaimScreen(itemId: state.pathParameters['id']!),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -149,6 +121,7 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
       builder: (context, state) =>
           ReminderInbox(fromDrawer: state.extra == true),
     ),
+    ...retiredClaimLinks(),
     ...buildAddRoutes(navigatorKey: rootNavigatorKey),
     // The one-time "Turn on reminders" offer, pushed after a first save.
     GoRoute(
@@ -171,6 +144,17 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
     ),
   ],
 );
+
+/// Old notification links and bookmarks lead to Home.
+List<GoRoute> retiredClaimLinks() => [
+  for (final path in [
+    Routes.claims,
+    '${Routes.claims}/:id',
+    '${Routes.claims}/:id/guidance',
+    '${Routes.vault}/item/:id/claim',
+  ])
+    GoRoute(path: path, redirect: (context, state) => Routes.home),
+];
 
 /// Capture and review cover the tab bar in both build modes.
 List<GoRoute> buildAddRoutes({

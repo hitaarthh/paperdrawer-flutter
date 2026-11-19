@@ -7,7 +7,6 @@ import '../ui/features/account/account_screen.dart';
 import '../ui/features/account/shared_session.dart';
 import '../ui/features/account/shared_vault_screens.dart';
 import '../ui/features/add/shared_add_flow.dart';
-import '../ui/features/claims/shared_claim_ledger_screen.dart';
 import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/intro/intro_flow.dart';
 import '../ui/features/reminders/reminder_inbox.dart';
@@ -90,25 +89,6 @@ GoRouter buildSharedRouter(SharedSession session) {
                   ),
                 ],
               ),
-              GoRoute(
-                path: '/claims',
-                builder: (context, state) =>
-                    const ClaimHistoryScreen(shared: true),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    builder: (context, state) =>
-                        SharedClaimLedgerScreen(state.pathParameters['id']!),
-                    routes: [
-                      GoRoute(
-                        path: 'guidance',
-                        builder: (context, state) =>
-                            SharedClaimScreen(state.pathParameters['id']!),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ],
           ),
           StatefulShellBranch(
@@ -154,6 +134,7 @@ GoRouter buildSharedRouter(SharedSession session) {
         builder: (context, state) =>
             ReminderInbox(fromDrawer: state.extra == true, shared: true),
       ),
+      ...retiredClaimLinks(),
       ...buildAddRoutes(navigatorKey: navigatorKey, shared: true),
     ],
   );

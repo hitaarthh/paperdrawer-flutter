@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -71,26 +69,12 @@ class _SharedApp extends StatefulWidget {
 class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
   late final _session = SharedSession(widget.account);
   late final _router = buildSharedRouter(_session);
-  late final StreamSubscription<String> _claimReminderTaps;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _claimReminderTaps = _session.followUps.taps.listen(_openClaimReminder);
-    unawaited(_openLaunchReminder());
-  }
-
-  Future<void> _openLaunchReminder() async {
-    final location = await _session.followUps.launchLocation();
-    if (!mounted || location == null) return;
-    _openClaimReminder(location);
-  }
-
-  void _openClaimReminder(String location) {
-    if (_session.signedIn && location.startsWith('/claims/')) {
-      _router.go(location);
-    }
+    _session.followUps.sync(const [], _session.today.instant);
   }
 
   @override
@@ -101,7 +85,6 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    unawaited(_claimReminderTaps.cancel());
     _router.dispose();
     _session.dispose();
     super.dispose();

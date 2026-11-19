@@ -4,7 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/reminder_scheduler.dart';
@@ -47,21 +46,17 @@ class ReminderInbox extends StatelessWidget {
     final String emptyTitle;
     final String emptyBody;
     if (shared) {
-      final session = context.watch<SharedSession>();
-      reminders = [
-        for (final claim in session.vault?.claims ?? [])
-          if (claim.settled == null &&
-              (claim.followUp?.isAfter(session.today.instant) ?? false))
-            claimFollowUp(claim.id, claim.title, claim.followUp!),
-      ]..sort((a, b) => a.at.compareTo(b.at));
-      emptyTitle = 'No upcoming notifications';
-      emptyBody = 'Claim follow-ups appear here when you set a date.';
+      final emailReminders = context.watch<SharedSession>().vault?.profile?.emailReminders;
+      reminders = const [];
+      emptyTitle = 'No device notifications';
+      emptyBody = emailReminders == true
+          ? 'Reminders for this account arrive by email.'
+          : 'Manage email reminders for this account in Settings.';
     } else {
       final settings = context.watch<SettingsRepository>();
       reminders = settings.remindersOn
           ? planReminders(
               items: context.watch<ItemRepository>().active,
-              claims: context.watch<ClaimRepository>().claims,
               leadDays: settings.leadDays,
               now: context.watch<Today>().instant,
             )

@@ -10,7 +10,6 @@ import '../../domain/formats.dart';
 import '../../domain/item_status.dart';
 import '../../domain/models/claim.dart';
 import '../../domain/models/item.dart';
-import '../repositories/claim_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/settings_repository.dart';
 import 'today.dart';
@@ -38,7 +37,7 @@ class PlannedReminder {
 
 List<PlannedReminder> planReminders({
   required List<Item> items,
-  required List<Claim> claims,
+  List<Claim> claims = const [],
   required int leadDays,
   required DateTime now,
 }) {
@@ -196,14 +195,12 @@ class ReminderScheduler {
   ReminderScheduler({
     required this._gateway,
     required this._items,
-    required this._claims,
     required this._settings,
     required this._today,
   });
 
   final NotificationGateway _gateway;
   final ItemRepository _items;
-  final ClaimRepository _claims;
   final SettingsRepository _settings;
   final Today _today;
   final _taps = StreamController<String>.broadcast();
@@ -218,7 +215,6 @@ class ReminderScheduler {
     if (_started) return;
     _started = true;
     _items.addListener(_queue);
-    _claims.addListener(_queue);
     _settings.addListener(_queue);
     _today.addListener(_queue);
     _queue();
@@ -248,7 +244,6 @@ class ReminderScheduler {
       if (!_settings.remindersOn) return;
       final plans = planReminders(
         items: _items.active,
-        claims: _claims.claims,
         leadDays: _settings.leadDays,
         now: _today.instant,
       );

@@ -74,7 +74,6 @@ class _BootstrapState extends State<_Bootstrap> {
       final reminders = ReminderScheduler(
         gateway: FlutterLocalNotificationsGateway(),
         items: items,
-        claims: claims,
         settings: settings,
         today: today,
       );

@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/reminder_scheduler.dart';
@@ -177,7 +176,6 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     }
     final plans = planReminders(
       items: _items.active,
-      claims: context.read<ClaimRepository>().claims,
       leadDays: settings.leadDays,
       now: context.read<Today>().instant,
     );
