@@ -19,11 +19,12 @@ enum _LimitAction { review, waitlist }
 abstract final class AddFlow {
   /// Opens the Add sheet ("Scan or add"), or the limit notice when the Base
   /// drawer is full, then routes to the camera, the pickers or the form.
-  static Future<void> start(BuildContext context) async {
+  static Future<void> start(BuildContext context, {ItemKind kind = ItemKind.bill}) async {
     if (await _showLimitIfNeeded(context) || !context.mounted) return;
     final choice = await showAddSheet(
       context,
       used: context.read<ItemRepository>().activeCount,
+      initialKind: kind,
     );
     if (!context.mounted || choice == null) return;
     switch (choice.action) {
@@ -41,9 +42,9 @@ abstract final class AddFlow {
     }
   }
 
-  static Future<void> camera(BuildContext context) async {
+  static Future<void> camera(BuildContext context, {ItemKind? kind}) async {
     if (await _showLimitIfNeeded(context) || !context.mounted) return;
-    context.push(Routes.camera);
+    context.push(Routes.camera, extra: kind);
   }
 
   static Future<List<PendingFile>> chooseOriginals(BuildContext context) async {

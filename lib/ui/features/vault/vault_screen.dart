@@ -7,6 +7,7 @@ import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/item_status.dart';
+import '../../../domain/models/item.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -189,8 +190,8 @@ class _VaultViewState extends State<_VaultView> {
                       if (empty)
                         _inset(
                           VaultEmpty(
-                            onScan: () => AddFlow.camera(context),
-                            onStart: (_) => AddFlow.start(context),
+                            onScan: () => AddFlow.camera(context, kind: ItemKind.bill),
+                            onStart: (kind) => AddFlow.start(context, kind: kind),
                           ),
                           top: Pd.s6,
                         )

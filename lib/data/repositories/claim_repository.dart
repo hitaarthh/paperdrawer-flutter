@@ -119,10 +119,7 @@ class ClaimRepository extends ChangeNotifier {
         _getOpen(id);
         entry.validate(now);
         final picked = entry.photo;
-        if (picked != null && picked.isPdf) {
-          throw const FormatException('Choose a photo up to 20 MB.');
-        }
-        final photo = picked == null ? null : await _files.import(id, picked);
+        final photo = picked == null ? null : await _files.import(id, picked, claimPhoto: true);
         try {
           await _db.transaction((txn) async {
             final eventId = await _event(
@@ -341,9 +338,9 @@ class ClaimRepository extends ChangeNotifier {
     String text, {
     String reference = '',
   }) async {
-    final id = const Uuid().v4();
+    final eventId = const Uuid().v4();
     await txn.insert('claim_events', {
-      'id': id,
+      'id': eventId,
       'claim_id': id,
       'on_date': isoDate(date),
       'kind': kind.name,
@@ -351,7 +348,7 @@ class ClaimRepository extends ChangeNotifier {
       'reference': reference,
       'created_at': DateTime.now().millisecondsSinceEpoch,
     });
-    return id;
+    return eventId;
   }
 
   static String _note(String note, String fallback) =>

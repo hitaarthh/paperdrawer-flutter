@@ -33,21 +33,23 @@ class FileStore {
 
   /// Copies [file] into the drawer for [itemId]. The picked file is left
   /// where it was; picker and camera files are temporary.
-  Future<Attachment> import(String itemId, PendingFile file) async {
+  Future<Attachment> import(String itemId, PendingFile file, {bool claimPhoto = false}) async {
     final source = File(file.path);
     final ext = p
         .extension(file.name.isEmpty ? file.path : file.name)
         .toLowerCase();
-    if (!attachmentExtensions.contains(ext) || !await source.exists()) {
-      throw const FormatException('Choose a photo or PDF up to 20 MB.');
+    final message = claimPhoto ? 'Choose a photo up to 20 MB.' : 'Choose a photo or PDF up to 20 MB.';
+    if (!attachmentExtensions.contains(ext) || (claimPhoto && ext == '.pdf') || !await source.exists()) {
+      throw FormatException(message);
     }
     final bytes = await source.length();
     if (bytes == 0 || bytes > maxAttachmentBytes) {
-      throw const FormatException('Choose a photo or PDF up to 20 MB.');
+      throw FormatException(message);
     }
 
     final id = const Uuid().v4();
-    final target = File(p.join(_attachments.path, '$itemId-$id$ext'));
+    final folder = claimPhoto ? p.join(root.path, 'claim-photos') : _attachments.path;
+    final target = File(p.join(folder, '$itemId-$id$ext'));
     await target.parent.create(recursive: true);
     try {
       await source.copy(target.path);

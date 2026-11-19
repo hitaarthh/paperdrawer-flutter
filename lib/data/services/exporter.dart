@@ -33,7 +33,7 @@ class Exporter {
       zip.create(output.path);
       try {
         final json = const JsonEncoder.withIndent('  ').convert({
-          'version': 2,
+          'version': 3,
           'items': items.map(_encodeItem).toList(),
           'claims': claims.map(_encodeClaim).toList(),
         });
@@ -42,6 +42,14 @@ class Exporter {
           for (final attachment in item.attachments) {
             final path = _files.absolute(_files.relative(attachment.path));
             await zip.addFile(File(path), _archivePath(item, attachment));
+          }
+        }
+        for (final claim in claims) {
+          for (final event in claim.events) {
+            if (event.photo case final photo?) {
+              final path = _files.absolute(_files.relative(photo.path));
+              await zip.addFile(File(path), _claimPhotoPath(claim, photo));
+            }
           }
         }
       } finally {
@@ -70,6 +78,9 @@ class Exporter {
       if (amount != null) 'Amount: ${money(amount, draft.currency)}',
       if (draft.returnUntil case final date?) 'Return by: ${longDate(date)}',
       if (draft.coverUntil case final date?) 'Cover ends: ${longDate(date)}',
+      if (draft.componentWarrantyUntil case final date?)
+        '${draft.componentWarrantyName.isEmpty ? 'Component' : draft.componentWarrantyName} '
+            'warranty ends: ${longDate(date)}',
       if (draft.notes.isNotEmpty) draft.notes,
       if (claim != null) ...[
         '',
@@ -93,6 +104,9 @@ class Exporter {
   String _archivePath(Item item, Attachment file) =>
       'originals/${item.id}/${file.id}-${_safeName(file.name)}';
 
+  String _claimPhotoPath(Claim claim, Attachment file) =>
+      'claim-photos/${claim.id}/${file.id}-${_safeName(file.name)}';
+
   String _safeName(String name) =>
       name.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-');
 
@@ -110,6 +124,8 @@ class Exporter {
     'starts_on': _date(item.draft.startsOn),
     'return_until': _date(item.draft.returnUntil),
     'cover_until': _date(item.draft.coverUntil),
+    'component_warranty_until': _date(item.draft.componentWarrantyUntil),
+    'component_warranty_name': item.draft.componentWarrantyName,
     'remind': item.draft.remind,
     'created_at': item.createdAt.toUtc().toIso8601String(),
     'archived_at': item.archivedAt?.toUtc().toIso8601String(),
@@ -139,6 +155,7 @@ class Exporter {
     'last_heard_on': _date(claim.lastHeardOn),
     'settled_on': _date(claim.settledOn),
     'nudge_days': claim.nudgeDays,
+    'follow_up_at': claim.followUp?.toUtc().toIso8601String(),
     'events': [
       for (final event in claim.events)
         {
@@ -146,6 +163,9 @@ class Exporter {
           'on': isoDate(event.on),
           'kind': event.kind.name,
           'text': event.text,
+          'reference': event.reference,
+          if (event.photo case final photo?)
+            'photo': {'name': photo.name, 'path': _claimPhotoPath(claim, photo), 'bytes': photo.bytes},
         },
     ],
   };

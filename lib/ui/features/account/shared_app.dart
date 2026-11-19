@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -120,5 +122,4 @@ class _SharedAppState extends State<_SharedApp> with WidgetsBindingObserver {
     ),
   );
 }
-import 'dart:async';
 

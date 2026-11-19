@@ -28,11 +28,12 @@ Future<AddSheetChoice?> showAddSheet(
   required int used,
   bool shared = false,
   bool onBasePlan = true,
+  ItemKind initialKind = ItemKind.bill,
 }) => showPdCustomSheet<AddSheetChoice>(
   context,
   semanticLabel: 'Scan or add',
   builder: (context) =>
-      AddSheet(used: used, shared: shared, onBasePlan: onBasePlan),
+      AddSheet(used: used, shared: shared, onBasePlan: onBasePlan, initialKind: initialKind),
 );
 
 /// The Add sheet's content. Shown inside [showPdCustomSheet], which owns the
@@ -43,6 +44,7 @@ class AddSheet extends StatefulWidget {
     required this.used,
     this.shared = false,
     this.onBasePlan = true,
+    this.initialKind = ItemKind.bill,
     super.key,
   });
 
@@ -50,13 +52,14 @@ class AddSheet extends StatefulWidget {
   final int used;
   final bool shared;
   final bool onBasePlan;
+  final ItemKind initialKind;
 
   @override
   State<AddSheet> createState() => _AddSheetState();
 }
 
 class _AddSheetState extends State<AddSheet> {
-  var _kind = ItemKind.bill;
+  late var _kind = widget.initialKind;
 
   void _choose(AddSheetAction action) =>
       Navigator.pop(context, AddSheetChoice(action, _kind));
