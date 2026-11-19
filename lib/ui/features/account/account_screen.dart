@@ -132,11 +132,13 @@ class _AccountScreenState extends State<AccountScreen> {
       setState(() => _resent = true);
     } on AuthException catch (error) {
       if (!mounted) return;
-      setState(() => _error = switch (error.code) {
-        'over_email_send_rate_limit' || 'over_request_rate_limit' =>
-          'Wait a moment before requesting another link.',
-        _ => 'Couldn’t send a new link. Try again.',
-      });
+      setState(
+        () => _error = switch (error.code) {
+          'over_email_send_rate_limit' || 'over_request_rate_limit' =>
+            'Wait a moment before requesting another link.',
+          _ => 'Couldn’t send a new link. Try again.',
+        },
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _error = 'Couldn’t send a new link. Try again.');
@@ -335,7 +337,10 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_error case final error?)
       Text(error, style: PdType.callout.copyWith(color: Pd.signal)),
     if (_resent)
-      const Text('A new confirmation link was requested.', style: PdType.callout),
+      const Text(
+        'A new confirmation link was requested.',
+        style: PdType.callout,
+      ),
     PdButton.primary(
       key: const ValueKey('account-back-to-sign-in'),
       label: 'Back to sign in',

@@ -55,43 +55,45 @@ class ReminderInbox extends StatelessWidget {
       onBack: () => context.canPop()
           ? context.pop()
           : context.go(fromDrawer ? Routes.vault : Routes.home),
-      children: shared ? _sharedNotifications(context) : _localReminders(context),
+      children: shared
+          ? _sharedNotifications(context)
+          : _localReminders(context),
     );
   }
 
   List<Widget> _localReminders(BuildContext context) {
     final settings = context.watch<SettingsRepository>();
     final reminders = settings.remindersOn
-          ? planReminders(
-              items: context.watch<ItemRepository>().active,
-              leadDays: settings.leadDays,
-              now: context.watch<Today>().instant,
-            )
-          : const [];
-    return [
-        if (reminders.isEmpty)
-          DashedTile(
-            title: settings.remindersOn
-                ? 'No upcoming notifications'
-                : 'Notifications are off',
-            body: settings.remindersOn
-                ? 'Set a reminder on a file to see it here.'
-                : 'Turn them on in Settings to get reminders on this iPhone.',
+        ? planReminders(
+            items: context.watch<ItemRepository>().active,
+            leadDays: settings.leadDays,
+            now: context.watch<Today>().instant,
           )
-        else ...[
-          Text('Upcoming', style: PdType.title2),
-          PdListGroup(
-            children: [
-              for (final reminder in reminders)
-                PdListRow(
-                  title: reminder.title,
-                  value: DateFormat('EEE, d MMM · h:mm a').format(reminder.at),
-                  chevron: true,
-                  onTap: () => context.push(reminder.location),
-                ),
-            ],
-          ),
-        ],
+        : const [];
+    return [
+      if (reminders.isEmpty)
+        DashedTile(
+          title: settings.remindersOn
+              ? 'No upcoming notifications'
+              : 'Notifications are off',
+          body: settings.remindersOn
+              ? 'Set a reminder on a file to see it here.'
+              : 'Turn them on in Settings to get reminders on this iPhone.',
+        )
+      else ...[
+        Text('Upcoming', style: PdType.title2),
+        PdListGroup(
+          children: [
+            for (final reminder in reminders)
+              PdListRow(
+                title: reminder.title,
+                value: DateFormat('EEE, d MMM · h:mm a').format(reminder.at),
+                chevron: true,
+                onTap: () => context.push(reminder.location),
+              ),
+          ],
+        ),
+      ],
     ];
   }
 
@@ -119,17 +121,22 @@ class ReminderInbox extends StatelessWidget {
               PdListRow(
                 key: ValueKey('notification-${notification.id}'),
                 title: notification.itemName,
-                value: '${notification.label} · '
+                value:
+                    '${notification.label} · '
                     '${DateFormat('d MMM yyyy').format(notification.deadline)}',
                 tag: notification.isRead ? null : 'Unread',
                 chevron: true,
                 onTap: () async {
                   try {
-                    if (!await inbox.open(notification) || !context.mounted) return;
+                    if (!await inbox.open(notification) || !context.mounted)
+                      return;
                     context.push(Routes.item(notification.itemId));
                   } catch (_) {
                     if (!context.mounted) return;
-                    showPdSnackbar(context, 'Couldn’t open this reminder. Try again.');
+                    showPdSnackbar(
+                      context,
+                      'Couldn’t open this reminder. Try again.',
+                    );
                   }
                 },
               ),

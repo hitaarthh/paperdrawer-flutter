@@ -13,73 +13,81 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
-  testWidgets('opening a reminder marks it read and opens the item at 130% text', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 3;
-    tester.view.physicalSize = const Size(1179, 2556);
-    tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
-    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
-    addTearDown(tester.view.reset);
-    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  testWidgets(
+    'opening a reminder marks it read and opens the item at 130% text',
+    (tester) async {
+      tester.view.devicePixelRatio = 3;
+      tester.view.physicalSize = const Size(1179, 2556);
+      tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    final service = _InboxService();
-    addTearDown(service.client.dispose);
-    final inbox = SharedInboxRepository(service)..setOwner('alice');
-    addTearDown(inbox.dispose);
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (_, _) => const Scaffold(body: DrawerNotificationButton()),
+      final service = _InboxService();
+      addTearDown(service.client.dispose);
+      final inbox = SharedInboxRepository(service)..setOwner('alice');
+      addTearDown(inbox.dispose);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: DrawerNotificationButton()),
+          ),
+          GoRoute(
+            path: Routes.notifications,
+            builder: (_, _) => const ReminderInbox(shared: true),
+          ),
+          GoRoute(
+            path: '/vault/item/:id',
+            builder: (_, state) =>
+                Scaffold(body: Text('Item ${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: inbox,
+          child: MaterialApp.router(theme: pdTheme(), routerConfig: router),
         ),
-        GoRoute(
-          path: Routes.notifications,
-          builder: (_, _) => const ReminderInbox(shared: true),
-        ),
-        GoRoute(
-          path: '/vault/item/:id',
-          builder: (_, state) => Scaffold(body: Text('Item ${state.pathParameters['id']}')),
-        ),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: inbox,
-        child: MaterialApp.router(theme: pdTheme(), routerConfig: router),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(inbox.unread, 1);
-    await tester.tap(find.byKey(const ValueKey('drawer-notifications')));
-    await tester.pumpAndSettle();
-    expect(find.text('A receipt for the living room television'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('notification-deadline')));
-    await tester.pumpAndSettle();
-    expect(service.marked, ['alice/deadline']);
-    expect(inbox.unread, 0);
-    expect(find.text('Item television'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      );
+      await tester.pumpAndSettle();
+      expect(inbox.unread, 1);
+      await tester.tap(find.byKey(const ValueKey('drawer-notifications')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('A receipt for the living room television'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('notification-deadline')));
+      await tester.pumpAndSettle();
+      expect(service.marked, ['alice/deadline']);
+      expect(inbox.unread, 0);
+      expect(find.text('Item television'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-  test('a fetch from the previous account cannot populate the next inbox', () async {
-    final service = _InboxService();
-    addTearDown(service.client.dispose);
-    final stale = Completer<List<SharedNotification>>();
-    service.aliceResponse = stale.future;
-    final inbox = SharedInboxRepository(service)..setOwner('alice');
-    addTearDown(inbox.dispose);
-    final aliceLoad = inbox.refresh();
+  test(
+    'a fetch from the previous account cannot populate the next inbox',
+    () async {
+      final service = _InboxService();
+      addTearDown(service.client.dispose);
+      final stale = Completer<List<SharedNotification>>();
+      service.aliceResponse = stale.future;
+      final inbox = SharedInboxRepository(service)..setOwner('alice');
+      addTearDown(inbox.dispose);
+      final aliceLoad = inbox.refresh();
 
-    inbox.setOwner('bob');
-    await inbox.refresh();
-    stale.complete([_InboxService.reminder(false)]);
-    await aliceLoad;
+      inbox.setOwner('bob');
+      await inbox.refresh();
+      stale.complete([_InboxService.reminder(false)]);
+      await aliceLoad;
 
-    expect(inbox.loaded, isTrue);
-    expect(inbox.items, isEmpty);
-  });
+      expect(inbox.loaded, isTrue);
+      expect(inbox.items, isEmpty);
+    },
+  );
 }
 
 class _InboxService extends SharedInboxService {
@@ -107,5 +115,6 @@ class _InboxService extends SharedInboxService {
   }
 
   @override
-  Future<void> markRead(String owner, String id) async => marked.add('$owner/$id');
+  Future<void> markRead(String owner, String id) async =>
+      marked.add('$owner/$id');
 }

@@ -29,7 +29,9 @@ class SharedSession extends ChangeNotifier {
     this.capture = const CaptureService(),
   }) : _service = service ?? SharedVaultService(account.client),
        _inboxService = inboxService,
-       inbox = inboxService == null ? null : SharedInboxRepository(inboxService) {
+       inbox = inboxService == null
+           ? null
+           : SharedInboxRepository(inboxService) {
     _subscription = account.changes.listen(
       (_) => _onAccount(),
       onError: (Object _, StackTrace _) => _onAccount(),

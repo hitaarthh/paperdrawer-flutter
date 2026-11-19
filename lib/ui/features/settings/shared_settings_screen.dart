@@ -158,9 +158,7 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
           initials: initials,
         ),
         plan: vault == null ? null : (vault.onBasePlan ? 'Base · Free' : 'Pro'),
-        notifications: profile == null
-            ? null
-            : 'In-app',
+        notifications: profile == null ? null : 'In-app',
         version: _version,
         onRefresh: session.refresh,
       ),

@@ -25,7 +25,10 @@ void main() {
     expect(tester.widget<MeterBar>(find.byType(MeterBar)).fraction, 0);
     await _tap(tester, 'back-button');
     await _tap(tester, 'settings-open-notifications');
-    expect(find.text('Bill reminders appear in Notifications.'), findsOneWidget);
+    expect(
+      find.text('Bill reminders appear in Notifications.'),
+      findsOneWidget,
+    );
 
     await _tap(tester, 'shared-settings-lead-7');
     expect(service.writes, isEmpty);
@@ -49,7 +52,10 @@ void main() {
     (tester) async {
       final (session, _) = await _openSettings(tester, scale: 1.3);
       await _tap(tester, 'settings-open-notifications');
-      expect(find.text('Bill reminders appear in Notifications.'), findsOneWidget);
+      expect(
+        find.text('Bill reminders appear in Notifications.'),
+        findsOneWidget,
+      );
       await _tap(tester, 'back-button');
       await _tap(tester, 'settings-data');
       await _tap(tester, 'shared-settings-export');
