@@ -46,7 +46,11 @@ class ReminderInbox extends StatelessWidget {
     final String emptyTitle;
     final String emptyBody;
     if (shared) {
-      final emailReminders = context.watch<SharedSession>().vault?.profile?.emailReminders;
+      final emailReminders = context
+          .watch<SharedSession>()
+          .vault
+          ?.profile
+          ?.emailReminders;
       reminders = const [];
       emptyTitle = 'No device notifications';
       emptyBody = emailReminders == true

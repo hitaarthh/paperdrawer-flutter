@@ -287,7 +287,6 @@ class _WidgetGalleryState extends State<WidgetGallery> {
       currentIndex: _tab,
       onTap: (index) => setState(() => _tab = index),
       onScan: _showAdd,
-      claimsBadge: 2,
     ),
   );
 }

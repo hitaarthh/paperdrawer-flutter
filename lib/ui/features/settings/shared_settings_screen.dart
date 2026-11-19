@@ -1,24 +1,19 @@
-import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/theme/type.dart';
-import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/list_row.dart';
-import '../../core/widgets/nav.dart';
 import '../../core/widgets/snackbar.dart';
 import '../account/shared_session.dart';
-import '../reminders/notification_preview.dart' show PaperGrain;
 import 'shared_reminder_settings.dart';
 import 'shared_settings_widgets.dart';
 
 class SharedSettingsScreen extends StatefulWidget {
-  const SharedSettingsScreen({this.notificationsOnly = false, super.key});
+  const SharedSettingsScreen({this.destination, super.key});
 
-  final bool notificationsOnly;
+  final SettingsDestination? destination;
 
   @override
   State<SharedSettingsScreen> createState() => _SharedSettingsScreenState();
@@ -72,12 +67,55 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
     final profile = session.vault?.profile;
     final canEditReminders =
         !_signingOut && !session.loading && !session.savingReminders;
-    if (widget.notificationsOnly) {
-      return PdPushedScaffold(
-        backLabel: 'Settings',
-        glassBack: true,
-        onBack: () =>
-            context.canPop() ? context.pop() : context.go(Routes.settings),
+    final vault = session.vault;
+    final name = session.displayName;
+    final initials = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .take(2)
+        .map((word) => word.characters.first.toUpperCase())
+        .join();
+    return switch (widget.destination) {
+      SettingsDestination.account => SettingsSubpage(
+        title: 'Account',
+        children: [
+          PdListGroup(
+            children: [
+              PdListRow(
+                title: 'Name',
+                value: name,
+                leadingIcon: LucideIcons.user,
+              ),
+              if (session.email case final email?)
+                PdListRow(
+                  title: 'Email',
+                  value: email,
+                  leadingIcon: LucideIcons.mail,
+                ),
+            ],
+          ),
+          const SizedBox(height: Pd.s5),
+          PdButton.secondary(
+            key: const ValueKey('account-sign-out'),
+            label: 'Sign out',
+            busy: _signingOut,
+            onPressed: () => _signOut(session),
+          ),
+        ],
+      ),
+      SettingsDestination.plan => SettingsSubpage(
+        title: 'Plan',
+        children: [
+          SettingsPlanCard(
+            used: vault?.items.length,
+            onBase: vault?.onBasePlan ?? true,
+            failed: session.failed,
+            onRetry: session.refresh,
+          ),
+        ],
+      ),
+      SettingsDestination.notifications => SettingsSubpage(
         title: 'Reminders & notifications',
         children: [
           SharedReminderSettings(
@@ -93,137 +131,48 @@ class _SharedSettingsScreenState extends State<SharedSettingsScreen> {
             onOpenWeb: () => _openWeb(session, '/settings#reminders'),
           ),
         ],
-      );
-    }
-    return Scaffold(
-      backgroundColor: Pd.bg,
-      body: CustomPaint(
-        painter: const PaperGrain(),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Pd.maxContent),
-            child: Column(
-              children: [
-                PdBrandBar(onMarkTap: () => context.go('/vault')),
-                Expanded(
-                  child: RefreshIndicator.adaptive(
-                    onRefresh: session.refresh,
-                    child: ListView(
-                      key: const PageStorageKey('shared-settings-scroll'),
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(
-                        Pd.margin,
-                        Pd.s2,
-                        Pd.margin,
-                        Pd.s8 + MediaQuery.paddingOf(context).bottom,
-                      ),
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: Pd.s6,
-                          children: [
-                            Semantics(
-                              header: true,
-                              child: Text('Settings', style: PdType.heroTitle),
-                            ),
-                            SettingsSection(
-                              title: 'Account',
-                              description: 'Your Paper Drawer account.',
-                              children: [
-                                SharedSettingsAccount(
-                                  name: session.displayName,
-                                  email: session.email,
-                                  signingOut: _signingOut,
-                                  onSignOut: () => _signOut(session),
-                                ),
-                              ],
-                            ),
-                            SettingsSection(
-                              title: 'Plan',
-                              description:
-                                  'What you get, and how much of it you use.',
-                              children: [
-                                SharedSettingsPlan(
-                                  vault: session.vault,
-                                  failed: session.failed,
-                                  onRetry: session.refresh,
-                                ),
-                              ],
-                            ),
-                            PdListGroup(
-                              children: [
-                                PdListRow(
-                                  key: const ValueKey(
-                                    'settings-open-notifications',
-                                  ),
-                                  title: 'Reminders & notifications',
-                                  chevron: true,
-                                  onTap: () => context.push(
-                                    Routes.settingsNotifications,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SettingsSection(
-                              title: 'Your data',
-                              description:
-                                  'Export your drawer or delete your account.',
-                              children: [
-                                SharedSettingsDataAction(
-                                  title: 'Export your drawer',
-                                  description: 'Download a backup of your Paper Drawer data and original documents on the web.',
-                                  button: PdButton.secondary(
-                                    key: const ValueKey(
-                                      'shared-settings-export',
-                                    ),
-                                    label: 'Download export',
-                                    onPressed: () =>
-                                        _openWeb(session, '/settings#data'),
-                                  ),
-                                ),
-                                SharedSettingsDataAction(
-                                  title: 'Delete account',
-                                  description: 'Permanently removes your account and its saved data. You’ll confirm on the web.',
-                                  button: PdButton.destructive(
-                                    key: const ValueKey(
-                                      'shared-settings-delete',
-                                    ),
-                                    label: 'Delete account',
-                                    onPressed: () =>
-                                        _openWeb(session, '/delete-account'),
-                                  ),
-                                  separated: true,
-                                ),
-                              ],
-                            ),
-                            PdListGroup(
-                              children: [
-                                PdListRow(
-                                  key: const ValueKey('settings-legal'),
-                                  title: 'Legal & about',
-                                  chevron: true,
-                                  onTap: () => context.push(Routes.legal),
-                                ),
-                                FutureBuilder(
-                                  future: _version,
-                                  builder: (context, state) => PdListRow(
-                                    title: 'Version',
-                                    value: state.data ?? '—',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
-    );
+      SettingsDestination.data => SettingsSubpage(
+        title: 'Your data',
+        children: [
+          const SharedSettingsDetail(
+            'Download a backup of your originals and saved data on the web.',
+          ),
+          const SizedBox(height: Pd.s4),
+          SettingsMenu(
+            children: [
+              PdListRow(
+                key: const ValueKey('shared-settings-export'),
+                title: 'Download export',
+                leadingIcon: LucideIcons.download,
+                chevron: true,
+                onTap: () => _openWeb(session, '/settings#data'),
+              ),
+              PdListRow(
+                key: const ValueKey('shared-settings-delete'),
+                title: 'Delete account',
+                leadingIcon: LucideIcons.trash2,
+                destructive: true,
+                chevron: true,
+                onTap: () => _openWeb(session, '/delete-account'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      null => SettingsOverview(
+        account: SettingsAccountCard(
+          name: name,
+          description: session.email,
+          initials: initials,
+        ),
+        plan: vault == null ? null : (vault.onBasePlan ? 'Base · Free' : 'Pro'),
+        notifications: profile == null
+            ? null
+            : (profile.emailReminders ? 'Email on' : 'Off'),
+        version: _version,
+        onRefresh: session.refresh,
+      ),
+    };
   }
 }

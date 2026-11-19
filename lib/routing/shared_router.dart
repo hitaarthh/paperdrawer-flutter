@@ -11,6 +11,7 @@ import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/intro/intro_flow.dart';
 import '../ui/features/reminders/reminder_inbox.dart';
 import '../ui/features/settings/legal_settings_screen.dart';
+import '../ui/features/settings/shared_settings_widgets.dart';
 import '../ui/features/settings/shared_settings_screen.dart';
 import '../ui/features/vault/shared_vault_screen.dart';
 import 'router.dart';
@@ -59,7 +60,6 @@ GoRouter buildSharedRouter(SharedSession session) {
               body: child,
               bottomNavigationBar: PdTabBar(
                 currentIndex: shell.currentIndex,
-                homeFirst: true,
                 onTap: (index) => shell.goBranch(
                   index,
                   initialLocation: index == shell.currentIndex,
@@ -115,12 +115,13 @@ GoRouter buildSharedRouter(SharedSession session) {
                 path: '/settings',
                 builder: (context, state) => const SharedSettingsScreen(),
                 routes: [
-                  GoRoute(
-                    path: 'notifications',
-                    parentNavigatorKey: navigatorKey,
-                    builder: (context, state) =>
-                        const SharedSettingsScreen(notificationsOnly: true),
-                  ),
+                  for (final destination in SettingsDestination.values)
+                    GoRoute(
+                      path: destination.name,
+                      parentNavigatorKey: navigatorKey,
+                      builder: (context, state) =>
+                          SharedSettingsScreen(destination: destination),
+                    ),
                   ...legalRoutes(navigatorKey),
                 ],
               ),

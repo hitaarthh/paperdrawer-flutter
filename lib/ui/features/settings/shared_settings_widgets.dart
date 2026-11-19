@@ -40,10 +40,16 @@ class SettingsOverview extends StatelessWidget {
       controller: controller,
       physics: refresh == null ? null : const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
-        Pd.margin, Pd.s5, Pd.margin, Pd.s8 + MediaQuery.paddingOf(context).bottom,
+        Pd.margin,
+        Pd.s5,
+        Pd.margin,
+        Pd.s8 + MediaQuery.paddingOf(context).bottom,
       ),
       children: [
-        Semantics(header: true, child: Text('Settings', style: PdType.heroTitle)),
+        Semantics(
+          header: true,
+          child: Text('Settings', style: PdType.heroTitle),
+        ),
         const SizedBox(height: Pd.s5),
         account,
         const SizedBox(height: Pd.s5),
@@ -102,7 +108,9 @@ class SettingsOverview extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: Pd.maxContent),
-            child: refresh == null ? list : RefreshIndicator.adaptive(onRefresh: refresh, child: list),
+            child: refresh == null
+                ? list
+                : RefreshIndicator.adaptive(onRefresh: refresh, child: list),
           ),
         ),
       ),
@@ -111,7 +119,11 @@ class SettingsOverview extends StatelessWidget {
 }
 
 class SettingsSubpage extends StatelessWidget {
-  const SettingsSubpage({required this.title, required this.children, super.key});
+  const SettingsSubpage({
+    required this.title,
+    required this.children,
+    super.key,
+  });
 
   final String title;
   final List<Widget> children;
@@ -121,7 +133,8 @@ class SettingsSubpage extends StatelessWidget {
     title: title,
     backLabel: 'Settings',
     glassBack: true,
-    onBack: () => context.canPop() ? context.pop() : context.go(Routes.settings),
+    onBack: () =>
+        context.canPop() ? context.pop() : context.go(Routes.settings),
     children: children,
   );
 }
@@ -136,7 +149,8 @@ class SettingsMenu extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       for (final (index, child) in children.indexed) ...[
-        if (index > 0) const SizedBox(height: 1, child: ColoredBox(color: Pd.hairline)),
+        if (index > 0)
+          const SizedBox(height: 1, child: ColoredBox(color: Pd.hairline)),
         child,
       ],
     ],
@@ -144,7 +158,12 @@ class SettingsMenu extends StatelessWidget {
 }
 
 class SettingsAccountCard extends StatelessWidget {
-  const SettingsAccountCard({required this.name, required this.description, this.initials, super.key});
+  const SettingsAccountCard({
+    required this.name,
+    required this.description,
+    this.initials,
+    super.key,
+  });
 
   final String name;
   final String? description;
@@ -167,13 +186,23 @@ class SettingsAccountCard extends StatelessWidget {
               child: SizedBox.square(
                 dimension: Pd.dockControlHeight,
                 child: DecoratedBox(
-                  decoration: const BoxDecoration(color: Pd.ink, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                    color: Pd.ink,
+                    shape: BoxShape.circle,
+                  ),
                   child: Center(
                     child: initials == null
-                        ? const Icon(LucideIcons.smartphone, color: Pd.lime, size: Pd.iconMd)
+                        ? const Icon(
+                            LucideIcons.smartphone,
+                            color: Pd.lime,
+                            size: Pd.iconMd,
+                          )
                         : FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(initials!, style: PdType.monoButton.copyWith(color: Pd.lime)),
+                            child: Text(
+                              initials!,
+                              style: PdType.monoButton.copyWith(color: Pd.lime),
+                            ),
                           ),
                   ),
                 ),
@@ -184,13 +213,21 @@ class SettingsAccountCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: Pd.s1,
                 children: [
-                  Text('ACCOUNT', style: PdType.label.copyWith(color: Pd.inkMuted)),
+                  Text(
+                    'ACCOUNT',
+                    style: PdType.label.copyWith(color: Pd.inkMuted),
+                  ),
                   Text(name, style: PdType.title2.copyWith(color: Pd.ink)),
-                  if (description case final detail?) Text(detail, style: PdType.detail.copyWith(color: Pd.ink2)),
+                  if (description case final detail?)
+                    Text(detail, style: PdType.detail.copyWith(color: Pd.ink2)),
                 ],
               ),
             ),
-            const Icon(LucideIcons.chevronRight, color: Pd.inkMuted, size: Pd.iconSm),
+            const Icon(
+              LucideIcons.chevronRight,
+              color: Pd.inkMuted,
+              size: Pd.iconSm,
+            ),
           ],
         ),
       ),

@@ -33,10 +33,8 @@ class VaultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
-    create: (context) => VaultViewModel(
-      context.read<ItemRepository>(),
-      context.read<Today>(),
-    ),
+    create: (context) =>
+        VaultViewModel(context.read<ItemRepository>(), context.read<Today>()),
     child: _VaultView(reviewOld: reviewOld, showDue: showDue, addedId: addedId),
   );
 }

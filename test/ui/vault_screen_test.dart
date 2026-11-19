@@ -64,6 +64,7 @@ void main() {
         expect(find.text('5 FILES'), findsOneWidget);
         expect(find.text('DUE NEXT'), findsNothing);
         expect(find.byType(VaultTicket), findsNothing);
+        expect(find.text('IN CLAIM'), findsNothing);
         await tester.ensureVisible(_key('vault-filter-expired'));
         await tester.pumpAndSettle();
         expect(find.text('EXPIRED 0'), findsOneWidget);
@@ -169,57 +170,40 @@ void main() {
       },
     );
 
-    testWidgets(
-      'a Home ticket opens its item, and an open claim opens its ledger',
-      (tester) async {
-        await _launch(
-          tester,
-          _fullItems(),
-          claims: _claims(),
-          startAtHome: true,
-        );
-
-        await _tap(tester, 'home-ticket-earbuds/returnWindow');
-        expect(_key('item-edit'), findsOneWidget);
-        expect(_key('drawer-notifications'), findsNothing);
-        await _tap(tester, 'back-button');
-        expect(_key('coming-up-list'), findsOneWidget);
-
-        await tester.scrollUntilVisible(
-          _key('home-claim-claim-1').hitTestable(),
-          180,
-          scrollable: find.descendant(
-            of: _key('coming-up-list'),
-            matching: find.byType(Scrollable),
-          ),
-        );
-        await _tap(tester, 'home-claim-claim-1');
-        expect(find.text('Laptop repair claim'), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      },
-    );
-
-    testWidgets('Home scrolls the last claim clear of the glass bar', (
+    testWidgets('a Home ticket opens its item without claim controls', (
       tester,
     ) async {
-      final claims = _Claims([
-        for (var i = 0; i < 6; i++)
-          Claim(
-            id: 'claim-$i',
-            itemLabel: 'Item number $i with a longer name',
-            type: ClaimType.repair,
-            want: ClaimWant.repair,
-            problem: 'The hinge cracked.',
-            openedOn: addDays(_today, -i),
-            stepSince: _today,
-            step: 0,
-            followUp: i == 0 ? DateTime(2026, 11, 21, 9) : null,
+      await _launch(tester, _fullItems(), claims: _claims(), startAtHome: true);
+
+      await _tap(tester, 'home-ticket-earbuds/returnWindow');
+      expect(_key('item-edit'), findsOneWidget);
+      expect(_key('drawer-notifications'), findsNothing);
+      await _tap(tester, 'back-button');
+      expect(_key('coming-up-list'), findsOneWidget);
+
+      expect(_key('home-claim-claim-1'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Home scrolls the last deadline clear of the glass bar', (
+      tester,
+    ) async {
+      final items = _Items([
+        for (var i = 0; i < 8; i++)
+          Item(
+            id: 'due-$i',
+            createdAt: _today,
+            draft: ItemDraft(
+              kind: ItemKind.bill,
+              name: 'Item number $i with a longer name',
+              coverUntil: addDays(_today, i),
+            ),
           ),
       ]);
       await _launch(
         tester,
-        _fullItems(),
-        claims: claims,
+        items,
+        claims: _claims(),
         startAtHome: true,
         scale: 1.3,
       );
@@ -227,19 +211,14 @@ void main() {
         of: _key('coming-up-list'),
         matching: find.byType(Scrollable),
       );
+      final last = _key('home-ticket-due-7/warranty');
       await tester.scrollUntilVisible(
-        _key('home-claim-claim-0'),
-        180,
-        scrollable: scroll,
-      );
-      expect(find.text('FOLLOW UP SAT 21 NOV'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        _key('home-claim-claim-5'),
-        250,
+        last.hitTestable(),
+        240,
         scrollable: scroll,
       );
       await tester.pumpAndSettle();
-      expect(_key('home-claim-claim-5').hitTestable(), findsOneWidget);
+      expect(last.hitTestable(), findsOneWidget);
       expect(_key('claims-tab'), findsNothing);
       expect(tester.takeException(), isNull);
     });

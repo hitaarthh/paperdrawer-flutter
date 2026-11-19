@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/services/capture_service.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
@@ -7,6 +8,7 @@ import 'package:paperdrawer/data/services/shared_vault_service.dart';
 import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/domain/models/shared_vault.dart';
+import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/core/widgets/icons.dart';
@@ -16,24 +18,22 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
-  testWidgets('intro steps through Keep, Remember, Claim to account creation', (
+  testWidgets('intro steps through Keep and Remember to account creation', (
     tester,
   ) async {
     await _launch(tester, scale: 1);
     expect(find.text('Keep it.'), findsOneWidget);
-    expect(find.bySemanticsLabel('Step 1 of 3'), findsOneWidget);
+    expect(find.bySemanticsLabel('Step 1 of 2'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('intro-next')));
     await tester.pumpAndSettle();
     expect(find.text('Remember it.'), findsOneWidget);
-    expect(find.bySemanticsLabel('Step 2 of 3'), findsOneWidget);
+    expect(find.bySemanticsLabel('Step 2 of 2'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('intro-next')));
-    await tester.pumpAndSettle();
-    expect(find.text('Claim it.'), findsOneWidget);
+    expect(find.text('Claim it.'), findsNothing);
     expect(find.byKey(const ValueKey('intro-skip')), findsNothing);
 
-    await tester.tap(find.text('Start your vault'));
+    await tester.tap(find.text('Start your drawer'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('account-name')), findsOneWidget);
     expect(find.text('Create account'), findsOneWidget);
@@ -157,7 +157,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('shared Home shows the latest claim entry and follow-up', (
+  testWidgets('signed-in Home and notifications omit legacy claim data', (
     tester,
   ) async {
     final session = _SharedVaultSession();
@@ -188,28 +188,16 @@ void main() {
     );
     await _launchDrawer(tester, session);
     expect(find.byKey(const ValueKey('claims-tab')), findsNothing);
-    final claim = find.byKey(const ValueKey('home-claim-hospital'));
-    await tester.scrollUntilVisible(
-      claim.hitTestable(),
-      170,
-      scrollable: find.descendant(
-        of: find.byKey(const ValueKey('coming-up-list')),
-        matching: find.byType(Scrollable),
-      ),
-    );
-    expect(
-      find.textContaining('Insurer requested the discharge summary.'),
-      findsOneWidget,
-    );
-    expect(find.text('FOLLOW UP SAT 21 NOV'), findsOneWidget);
-    await tester.tap(claim);
+    expect(find.text('Hospital bill reimbursement'), findsNothing);
+    final router = GoRouter.of(tester.element(find.text('Coming up')));
+    router.go(Routes.claim('hospital'));
     await tester.pumpAndSettle();
-    expect(find.text('CLAIM LEDGER'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('back-button')));
+    expect(find.text('Coming up'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('drawer-notifications')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('scan-or-add')));
-    await tester.pumpAndSettle();
-    expect(find.text('Add a file'), findsOneWidget);
+    expect(find.text('No device notifications'), findsOneWidget);
+    expect(find.text('Hospital bill reimbursement'), findsNothing);
+    expect(session.vault!.claims.single.id, 'hospital');
     expect(session.opened, isNull);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -234,6 +222,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('VAULT'), findsNothing);
+    expect(find.text('Claims on this item'), findsNothing);
     expect(find.byKey(const ValueKey('item-delete')), findsOneWidget);
     expect(
       tester.widgetList<PdIcon>(find.byType(PdIcon)).map((icon) => icon.glyph),
@@ -246,7 +235,7 @@ void main() {
   });
 
   testWidgets(
-    'shared claims settle in the app and display the logged outcome',
+    'the legacy claim widget can still render saved data in isolation',
     (tester) async {
       final service = _DetailService();
       final session = SharedSession(_SignedInAccount(), service: service);

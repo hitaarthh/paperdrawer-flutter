@@ -11,8 +11,8 @@ import 'package:paperdrawer/ui/features/intro/app_opening.dart';
 
 const _artwork = ValueKey('opening-artwork');
 const _wordmark = 'PaperDrawer';
-const _ticketCopy = 'Never lose a claim to a missing bill.';
-const _tagline = 'KEEP IT · REMEMBER IT · CLAIM IT';
+const _ticketCopy = 'Your important papers, in one place.';
+const _tagline = 'KEEP IT · REMEMBER IT';
 
 void main() {
   setUpAll(() async {

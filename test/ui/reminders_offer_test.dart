@@ -196,7 +196,6 @@ Future<_App> _launch(
   final reminders = ReminderScheduler(
     gateway: gateway,
     items: items,
-    claims: claims,
     settings: settings,
     today: today,
   );

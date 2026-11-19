@@ -104,9 +104,7 @@ class VaultViewModel extends ChangeNotifier {
     if (!ids.contains(_justAddedId)) _justAddedId = null;
     _knownIds = ids;
     _summaries =
-        _items.active
-            .map((item) => ItemSummary.of(item, _today.value))
-            .toList()
+        _items.active.map((item) => ItemSummary.of(item, _today.value)).toList()
           ..sort((a, b) {
             final rank = a.sortRank.compareTo(b.sortRank);
             return rank == 0

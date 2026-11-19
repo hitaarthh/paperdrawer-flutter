@@ -70,13 +70,11 @@ void main() {
           currentIndex: 0,
           onTap: (_) {},
           onScan: () {},
-          claimsBadge: 3,
         ),
       ),
       1.3,
     );
     final scan = find.byKey(const ValueKey('scan-or-add'));
-    final vault = find.byKey(const ValueKey('vault-tab'));
     tester.view.physicalSize = const Size(960, 1920);
     await tester.pumpAndSettle();
     expect(tester.getSize(scan).shortestSide, greaterThanOrEqualTo(48));
@@ -87,8 +85,10 @@ void main() {
     tester.view.physicalSize = const Size(2400, 1920);
     await tester.pumpAndSettle();
     final controls = tester
-        .getRect(vault)
-        .expandToInclude(tester.getRect(scan));
+        .getRect(find.byKey(const ValueKey('home-tab')))
+        .expandToInclude(
+          tester.getRect(find.byKey(const ValueKey('settings-tab'))),
+        );
     expect(controls.width, lessThanOrEqualTo(440));
     expect(controls.center.dx, 400);
 
@@ -149,13 +149,12 @@ void main() {
             currentIndex: 0,
             onTap: (_) {},
             onScan: () {},
-            claimsBadge: 3,
           ),
         ),
         scale,
       );
       expect(tester.takeException(), isNull);
-      expect(find.bySemanticsLabel('Claims, 3 need action'), findsOneWidget);
+      expect(find.bySemanticsLabel('Home'), findsOneWidget);
       final ticket = find.byType(CountdownTicket);
       await tester.timedDrag(
         ticket,

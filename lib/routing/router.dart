@@ -12,6 +12,7 @@ import '../ui/features/item/item_detail_screen.dart';
 import '../ui/features/reminders/reminders_screen.dart';
 import '../ui/features/reminders/reminder_inbox.dart';
 import '../ui/features/settings/legal_settings_screen.dart';
+import '../ui/features/settings/shared_settings_widgets.dart';
 import '../ui/features/settings/archive_screen.dart';
 import '../ui/features/settings/settings_screen.dart';
 import '../ui/features/shell/app_shell.dart';
@@ -23,6 +24,9 @@ abstract final class Routes {
   static const vault = '/vault';
   static const claims = '/claims';
   static const settings = '/settings';
+  static const settingsAccount = '/settings/account';
+  static const settingsPlan = '/settings/plan';
+  static const settingsData = '/settings/data';
   static const settingsNotifications = '/settings/notifications';
   static const legal = '/settings/legal';
   static const licenses = '/settings/legal/licenses';
@@ -97,12 +101,13 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
               path: Routes.settings,
               builder: (context, state) => const SettingsScreen(),
               routes: [
-                GoRoute(
-                  path: 'notifications',
-                  parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) =>
-                      const SettingsScreen(notificationsOnly: true),
-                ),
+                for (final destination in SettingsDestination.values)
+                  GoRoute(
+                    path: destination.name,
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) =>
+                        SettingsScreen(destination: destination),
+                  ),
                 ...legalRoutes(rootNavigatorKey),
                 GoRoute(
                   path: 'archive',

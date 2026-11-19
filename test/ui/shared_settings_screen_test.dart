@@ -21,8 +21,10 @@ void main() {
     final (session, service) = await _openSettings(tester);
     expect(find.text('Alex River'), findsOneWidget);
     expect(find.text('AR'), findsOneWidget);
+    await _tap(tester, 'settings-plan');
     expect(find.text('0 OF 25 ITEMS'), findsOneWidget);
     expect(tester.widget<MeterBar>(find.byType(MeterBar)).fraction, 0);
+    await _tap(tester, 'back-button');
     await _tap(tester, 'settings-open-notifications');
     expect(_emailSwitch(tester).value, isTrue);
 
@@ -58,22 +60,25 @@ void main() {
       expect(session.webPaths.last, '/settings#reminders');
       expect(find.byType(PdSwitch), findsOneWidget);
       await _tap(tester, 'back-button');
+      await _tap(tester, 'settings-data');
       await _tap(tester, 'shared-settings-export');
       expect(session.webPaths.last, '/settings#data');
       await _tap(tester, 'shared-settings-delete');
       expect(session.webPaths.last, '/delete-account');
+      await _tap(tester, 'back-button');
       await _tap(tester, 'settings-legal');
       expect(find.text('Privacy Policy'), findsOneWidget);
       expect(find.text('Terms of Service'), findsOneWidget);
       expect(find.text('Open-source licenses'), findsOneWidget);
       expect(find.text('Paper Drawer website'), findsOneWidget);
       await _tap(tester, 'back-button');
-      expect(find.text('0.1.0'), findsOneWidget);
+      expect(find.text('Version 0.1.0'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
-      await _tap(tester, 'brand-mark');
+      await _tap(tester, 'vault-tab');
       expect(find.text('Your drawer'), findsOneWidget);
       await _tap(tester, 'settings-tab');
+      await _tap(tester, 'settings-account');
       await _tap(tester, 'account-sign-out');
       expect(find.text('Keep it.'), findsOneWidget);
     },

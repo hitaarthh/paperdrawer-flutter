@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/app.dart';
 import 'package:paperdrawer/data/repositories/claim_repository.dart';
@@ -17,8 +17,7 @@ import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/item_status.dart';
 import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
-import 'package:paperdrawer/ui/core/widgets/stamp.dart';
-import 'package:paperdrawer/ui/features/claims/claim_detail_screen.dart';
+import 'package:paperdrawer/routing/router.dart';
 
 final _today = DateTime.utc(2026, 11, 18);
 
@@ -87,7 +86,7 @@ void main() {
   });
 
   testWidgets(
-    'Home deadlines, Vault filters, ledgers and archive work at 130% text scale',
+    'Home deadlines, Drawer filters and archive work at 130% text scale',
     (tester) async {
       final items = _Items([
         Item(
@@ -149,18 +148,9 @@ void main() {
       expect(_key('vault-item-due'), findsOneWidget);
       expect(_key('vault-item-policy'), findsNothing);
       await _tap(tester, 'home-tab');
-      await _scrollHome(tester, 'home-claim-claim-1');
-      await _tap(tester, 'home-claim-claim-1');
-      expect(find.text('Family health policy insurance claim'), findsOneWidget);
-      expect(find.widgetWithText(PdStamp, 'OPEN'), findsOneWidget);
-      expect(find.text('Time to go one step up'), findsNothing);
-      await _tap(tester, 'back-button');
+      expect(find.text('Open claims'), findsNothing);
       await _tap(tester, 'settings-tab');
-      await tester.scrollUntilVisible(
-        _key('settings-archive').hitTestable(),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
+      await _tap(tester, 'settings-data');
       await _tap(tester, 'settings-archive');
       expect(find.text('Activa PUC'), findsOneWidget);
       await _tap(tester, 'restore-item-archived');
@@ -170,165 +160,57 @@ void main() {
     },
   );
 
-  testWidgets(
-    'legacy claim guidance can still open a draft and record a sent message',
-    (tester) async {
-      final opened = addDays(_today, -14);
-      final claims = _Claims([
-        Claim(
-          id: 'laptop',
-          itemLabel: 'Laptop',
-          type: ClaimType.repair,
-          want: ClaimWant.repair,
-          problem: 'The hinge is loose.',
-          reference: 'SR-55821',
-          openedOn: opened,
-          stepSince: opened,
-          step: 0,
-          events: [
-            ClaimEvent(
-              id: 'opened',
-              on: opened,
-              kind: ClaimEventKind.opened,
-              text: 'Claim opened',
-            ),
-          ],
-        ),
-      ]);
-      final actions = _ClaimActions();
-      await _launch(
-        tester,
-        _Items([]),
-        claims: claims,
-        actions: actions,
-        scale: 1.3,
-      );
-      await _tap(tester, 'home-claim-laptop');
-      await _tap(tester, 'claim-actions');
-      await tester.tap(find.text('Claim guidance'));
-      await tester.pumpAndSettle();
-      final backLabel = find.descendant(
-        of: _key('back-button'),
-        matching: find.text('CLAIMS'),
-      );
-      expect(
-        tester.renderObject<RenderParagraph>(backLabel).didExceedMaxLines,
-        isFalse,
-      );
-      expect(
-        find.text('WARRANTY REPAIR · LAPTOP · OPENED 4 NOV 2026'),
-        findsOneWidget,
-      );
-      expect(find.text('Time to go one step up'), findsOneWidget);
-      final scroll = find
-          .descendant(
-            of: find.byType(ClaimDetailScreen),
-            matching: find.byWidgetPredicate(
-              (widget) =>
-                  widget is Scrollable &&
-                  widget.axisDirection == AxisDirection.down,
-            ),
-          )
-          .first;
-
-      await tester.scrollUntilVisible(
-        _key('open-claim-mail'),
-        200,
-        scrollable: scroll,
-      );
-      await _tap(tester, 'open-claim-mail');
-      expect(actions.opened?.scheme, 'mailto');
-      expect(actions.opened?.queryParameters['body'], contains('SR-55821'));
-      expect(claims.lastSent, isNull);
-
-      await _tap(tester, 'copy-claim-message');
-      expect(actions.copied, startsWith('To: Grievance officer'));
-      await _tap(tester, 'claim-log-sent');
-      expect(claims.lastSent, ('laptop', 1));
-
-      await tester.scrollUntilVisible(
-        _key('claim-log-update'),
-        220,
-        scrollable: scroll,
-      );
-      expect(find.text('RECOMMENDED NEXT'), findsOneWidget);
-      expect(find.text('Claim opened'), findsOneWidget);
-      await _tap(tester, 'claim-log-update');
-      await tester.tap(find.text('Add a note'));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        _key('claim-log-text'),
-        'Asked for a repair date.',
-      );
-      await tester.pump();
-      await _tap(tester, 'save-claim-log');
-      expect(claims.lastNote, ('laptop', 'Asked for a repair date.'));
-
-      await _tap(tester, 'mark-claim-settled');
-      expect(find.text('HOW WAS IT RESOLVED?'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets('settled claims remain available from Home at 130% text scale', (
-    tester,
-  ) async {
-    Claim claim(String id, String name, int age, {int? settledDaysAgo}) {
-      final opened = addDays(_today, -age);
-      return Claim(
-        id: id,
-        itemLabel: name,
+  testWidgets('saved claim links resolve to Home at 130% text', (tester) async {
+    final claims = _Claims([
+      Claim(
+        id: 'laptop',
+        itemLabel: 'Laptop',
         type: ClaimType.repair,
         want: ClaimWant.repair,
-        problem: 'It stopped working.',
-        openedOn: opened,
-        stepSince: opened,
+        problem: 'The hinge is loose.',
+        openedOn: _today,
+        stepSince: _today,
         step: 0,
-        settledOn: settledDaysAgo == null
-            ? null
-            : addDays(_today, -settledDaysAgo),
-      );
-    }
-
-    final claims = _Claims([
-      claim('waiting', 'Mixer', 4),
-      claim('settled', 'Headphones', 12, settledDaysAgo: 2),
-      claim('late', 'Laptop with a loose hinge', 14),
+      ),
     ]);
     await _launch(tester, _Items([]), claims: claims, scale: 1.3);
-    expect(_key('claims-tab'), findsNothing);
-    expect(_key('home-claim-settled'), findsNothing);
-    await _scrollHome(tester, 'home-claim-history');
-    await _tap(tester, 'home-claim-history');
-    expect(find.text('Claim history'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      _key('home-claim-settled'),
-      180,
-      scrollable: find
-          .byWidgetPredicate(
-            (widget) =>
-                widget is Scrollable &&
-                widget.axisDirection == AxisDirection.down,
-          )
-          .first,
-    );
-    expect(find.text('SETTLED MON 16 NOV'), findsOneWidget);
-    await _tap(tester, 'back-button');
-    await _tap(tester, 'scan-or-add');
-    expect(find.text('Add a file'), findsOneWidget);
+    final router = GoRouter.of(tester.element(find.text('Coming up')));
+    for (final link in [
+      Routes.claims,
+      Routes.claim('laptop'),
+      Routes.claimGuidance('laptop'),
+      Routes.startClaim('laptop'),
+    ]) {
+      router.go(Routes.settings);
+      await tester.pumpAndSettle();
+      router.go(link);
+      await tester.pumpAndSettle();
+      expect(find.text('Coming up'), findsOneWidget);
+      expect(find.textContaining('claim', findRichText: true), findsNothing);
+    }
+    expect(claims.claims.single.itemLabel, 'Laptop');
     expect(tester.takeException(), isNull);
   });
-}
 
-Future<void> _scrollHome(WidgetTester tester, String target) async {
-  await tester.scrollUntilVisible(
-    _key(target).hitTestable(),
-    180,
-    scrollable: find.descendant(
-      of: _key('coming-up-list'),
-      matching: find.byType(Scrollable),
-    ),
-  );
+  testWidgets('on-device Settings opens account, plan and data at 130%', (
+    tester,
+  ) async {
+    await _launch(tester, _Items([]), scale: 1.3);
+    await _tap(tester, 'settings-tab');
+    expect(find.text('Settings'), findsOneWidget);
+    expect(_key('drawer-notifications'), findsNothing);
+    await _tap(tester, 'settings-account');
+    expect(find.text('Account'), findsOneWidget);
+    expect(find.text('On this iPhone'), findsOneWidget);
+    await _tap(tester, 'back-button');
+    await _tap(tester, 'settings-plan');
+    expect(find.text('0 OF 25 ITEMS'), findsOneWidget);
+    await _tap(tester, 'back-button');
+    await _tap(tester, 'settings-data');
+    expect(_key('settings-export'), findsOneWidget);
+    expect(_key('settings-clear'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Finder _key(String key) => find.byKey(ValueKey(key));
@@ -465,49 +347,6 @@ class _Items extends ChangeNotifier implements ItemRepository {
 class _Claims extends ChangeNotifier implements ClaimRepository {
   _Claims(this.claims);
 
-  (String, int?)? lastSent;
-  (String, String)? lastNote;
-
-  @override
-  Future<Claim> openLedger(Item item, DateTime today) async {
-    final claim = Claim(
-      id: 'new-claim',
-      itemId: item.id,
-      itemLabel: item.name,
-      type: ClaimType.repair,
-      want: ClaimWant.repair,
-      problem: '',
-      openedOn: today,
-      step: 0,
-      stepSince: today,
-      nudgeDays: 0,
-      events: [
-        ClaimEvent(
-          id: 'opening',
-          on: today,
-          kind: ClaimEventKind.opened,
-          text: 'Claim opened',
-        ),
-      ],
-    );
-    claims.add(claim);
-    notifyListeners();
-    return claim;
-  }
-
-  @override
-  Future<void> load() async {}
-
-  @override
-  Future<void> logSent(String id, DateTime today, {int? step}) async {
-    lastSent = (id, step);
-  }
-
-  @override
-  Future<void> addNote(String id, DateTime today, String text) async {
-    lastNote = (id, text);
-  }
-
   @override
   final List<Claim> claims;
   @override
@@ -542,21 +381,6 @@ class _Actions extends DrawerActions {
 
   @override
   Future<String?> appVersion() async => '0.1.0';
-}
-
-class _ClaimActions extends _Actions {
-  Uri? opened;
-  String? copied;
-
-  @override
-  Future<void> openLink(Uri url) async {
-    opened = url;
-  }
-
-  @override
-  Future<void> copyText(String text) async {
-    copied = text;
-  }
 }
 
 class _FilesCapture extends CaptureService {

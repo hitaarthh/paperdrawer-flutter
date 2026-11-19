@@ -56,7 +56,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         currentIndex: widget.navigationShell.currentIndex,
         onTap: _select,
         onScan: () => AddFlow.manual(context),
-        homeFirst: true,
       ),
     );
   }

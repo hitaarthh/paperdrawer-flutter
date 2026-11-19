@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/tokens.dart';
 
-enum PdGlyph { vault, claims, settings, scan, back, home, add }
+enum PdGlyph { vault, settings, scan, back, home, add }
 
 class PdIcon extends StatelessWidget {
   const PdIcon(
@@ -66,38 +66,6 @@ class _GlyphPainter extends CustomPainter {
         canvas.drawLine(const Offset(3, 12), const Offset(21, 12), stroke);
         canvas.drawLine(const Offset(10, 7.5), const Offset(14, 7.5), stroke);
         canvas.drawLine(const Offset(10, 16.5), const Offset(14, 16.5), stroke);
-      case PdGlyph.claims:
-        // Each end has a semicircular cutout centred between the two corners.
-        final shape = Path()
-          ..moveTo(3, 7)
-          ..quadraticBezierTo(3, 5, 5, 5)
-          ..lineTo(19, 5)
-          ..quadraticBezierTo(21, 5, 21, 7)
-          ..lineTo(21, 10)
-          ..arcToPoint(
-            const Offset(21, 14),
-            radius: const Radius.circular(2),
-            clockwise: false,
-          )
-          ..lineTo(21, 17)
-          ..quadraticBezierTo(21, 19, 19, 19)
-          ..lineTo(5, 19)
-          ..quadraticBezierTo(3, 19, 3, 17)
-          ..lineTo(3, 14)
-          ..arcToPoint(
-            const Offset(3, 10),
-            radius: const Radius.circular(2),
-            clockwise: false,
-          )
-          ..close();
-        canvas.drawPath(shape, stroke);
-        for (double y = 5; y < 19; y += 4.5) {
-          canvas.drawLine(
-            Offset(14, y),
-            Offset(14, (y + 2).clamp(5, 19)),
-            stroke,
-          );
-        }
       case PdGlyph.settings:
         canvas.drawLine(const Offset(4, 7), const Offset(13, 7), stroke);
         canvas.drawLine(const Offset(17, 7), const Offset(20, 7), stroke);

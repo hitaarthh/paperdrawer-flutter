@@ -1,11 +1,12 @@
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../data/services/drawer_actions.dart';
 import '../../../routing/router.dart';
 import '../../core/widgets/list_row.dart';
-import '../../core/widgets/nav.dart';
 import '../../core/widgets/snackbar.dart';
+import 'shared_settings_widgets.dart';
 
 class LegalSettingsScreen extends StatelessWidget {
   const LegalSettingsScreen({super.key});
@@ -23,32 +24,32 @@ class LegalSettingsScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => PdPushedScaffold(
-    title: 'Legal & about',
-    backLabel: 'Settings',
-    glassBack: true,
-    onBack: () =>
-        context.canPop() ? context.pop() : context.go(Routes.settings),
+  Widget build(BuildContext context) => SettingsSubpage(
+    title: 'Legal',
     children: [
-      PdListGroup(
+      SettingsMenu(
         children: [
           PdListRow(
             title: 'Privacy Policy',
+            leadingIcon: LucideIcons.shield,
             chevron: true,
             onTap: () => _open(context, '/privacy'),
           ),
           PdListRow(
             title: 'Terms of Service',
+            leadingIcon: LucideIcons.fileText,
             chevron: true,
             onTap: () => _open(context, '/terms'),
           ),
           PdListRow(
             title: 'Open-source licenses',
+            leadingIcon: LucideIcons.bookOpen,
             chevron: true,
             onTap: () => context.push(Routes.licenses),
           ),
           PdListRow(
             title: 'Paper Drawer website',
+            leadingIcon: LucideIcons.globe,
             chevron: true,
             onTap: () => _open(context, '/'),
           ),

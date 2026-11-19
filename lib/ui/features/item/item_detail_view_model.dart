@@ -10,12 +10,7 @@ import '../../../domain/item_status.dart';
 import '../../../domain/models/item.dart';
 
 class ItemDetailViewModel extends ChangeNotifier {
-  ItemDetailViewModel(
-    this.id,
-    this._items,
-    this._today,
-    this._actions,
-  ) {
+  ItemDetailViewModel(this.id, this._items, this._today, this._actions) {
     _items.addListener(notifyListeners);
     _today.addListener(notifyListeners);
   }
@@ -31,9 +26,7 @@ class ItemDetailViewModel extends ChangeNotifier {
   Item? get item => _items.byId(id);
   ItemSummary? get summary {
     final item = this.item;
-    return item == null
-        ? null
-        : ItemSummary.of(item, _today.value);
+    return item == null ? null : ItemSummary.of(item, _today.value);
   }
 
   Future<bool> archive(bool value) => _run(

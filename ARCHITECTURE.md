@@ -16,26 +16,17 @@ the web app. iOS session data is stored in the app's Keychain. Signup verificati
 uses the existing web callback and password reset uses the web sign-in flow.
 `SharedSession` resets the in-memory vault on account changes.
 
-`SharedVaultService` reads bills, bill parts, documents, claims, events and
-originals with the current user's session and owner RLS. The shared router gates
-`/home`, `/vault`, `/claims`, `/settings` and the Add routes behind the account.
-Add uses the native camera, Photos and Files pickers, or manual entry. Text
-recognition runs on the phone. Save writes through the existing `save_bill` or
-`save_document` RPC and can attach one original in the owner's private Vault
-folder. Bills require a purchase date and documents require an end date. The
-form uses USD to match the shared vault. Each form keeps its item ID on retry.
+`SharedVaultService` reads bills, bill parts, documents, originals and account
+settings with the current user's session and owner RLS. The shared router gates
+`/home`, `/vault`, `/settings` and the Add routes behind the account.
+Add opens the manual Files form. Save writes through the existing `save_bill` or
+`save_document` RPC with one original in the owner's private storage.
+Bills require a purchase date and documents require an end date. The form uses
+USD to match the shared drawer. Each form keeps its item ID on retry.
 A confirmed save adds the item to the shared snapshot and opens its detail.
-Shared item edits open the web form. On iPhone, an item opens its claim ledger
-through `open_claim_ledger`. The `add_claim_ledger_entry` RPC commits the entry,
-photo metadata and any follow-up together. The iPhone uploads photos to the
-owner's private Vault folder and keeps the same event ID on retry. The
-`set_claim_follow_up` and `settle_claim` RPCs update an open ledger. A confirmed
-write updates the shared snapshot. These RPCs require migration `20261118000014`.
-`SharedSettingsScreen` reads the signed-in user's profile
-and plan usage from the shared vault snapshot. It saves email reminder timing
-(30, 7 or 2 days) and delivery preferences to the owner's `profiles` row.
-The iPhone asks for notification permission when the user sets a follow-up.
-Shared follow-ups schedule local notifications and clear on settlement or sign-out.
+Shared item edits open the web form. Account settings save email reminder
+timing (30, 7 or 2 days) and delivery preferences to the owner's `profiles` row.
+The shared build clears pending claim notifications left by earlier versions at launch.
 Shared vault exports and account deletion open the existing web flows. Originals are downloaded
 into the temporary directory as needed. The shared build does not open the
 SQLite database or transfer existing device-only originals. The unconfigured
@@ -84,7 +75,7 @@ lib/
     features/vault/             VaultViewModel, VaultScreen
     features/add/               AddFlow, CameraScreen, ReadingScreen, ItemFormViewModel, ItemFormScreen
     features/item/              ItemDetailScreen (+ view model), AttachmentViewer
-    features/claims/            ClaimsViewModel, ClaimsScreen, ClaimDetailScreen, StartClaimScreen
+    features/claims/            Legacy screens retained as source, outside the Phase 1 navigation
     features/settings/          SettingsScreen, SharedSettingsScreen, ArchiveScreen
 ```
 
@@ -153,21 +144,21 @@ Claim photos accept the same image types and live in `root/claim-photos/`.
 - `TextRecognizer` (abstract): `Future<List<String>> recognize(String path)`; `PlatformTextRecognizer` uses MethodChannel `app.paperdrawer.mobile/text`, method `recognize`, args `{'path': String}` → `List<String>` lines (Apple Vision; PDFs: first 3 pages via PDFKit). Never throws: returns `[]` on failure.
 - `CaptureService.inspect(PendingFile)` reads the original's size and provides preview bytes for a supported image. `pickLedgerPhoto()` picks one image from the device photo library. The camera session supports capture and torch control.
 - `ScanReading readBill(List<String> lines, {required DateTime today, String currency = 'INR'})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and separate comprehensive and component warranty durations. The amount is read in the requested currency. `ScanReading.read` identifies populated fields.
-- `ReminderScheduler`: `ReminderScheduler({required NotificationGateway gateway, required ItemRepository items, required ClaimRepository claims, required SettingsRepository settings, required Today today})`; `void start()` (listens to the repositories, debounced reschedule); `Future<bool> requestPermission()`; `Stream<String> get taps` (go_router locations); `Future<String?> launchLocation()`. Pure planner `List<PlannedReminder> planReminders({items, claims, leadDays, now})` is unit-tested. Open claims schedule a notification when they have a future follow-up set by the user. See the Notifications section in design/mobile-system/screens.md for notification copy. Payload = location: `/vault/item/<id>` or `/claims/<id>`.
+- `ReminderScheduler` observes items and reminder preferences and schedules device notifications with `planReminders({items, leadDays, now})`. It clears old pending notifications before rescheduling. Each new payload opens `/vault/item/<id>`. The planner retains an optional legacy claim argument for regression coverage.
 - `Exporter`: `Future<File> exportEverything({required List<Item> items, required List<Claim> claims})` → zip (`paperdrawer-export-<yyyy-mm-dd>.zip` with `paperdrawer.json`, `originals/` and any `claim-photos/`); `Future<List<XFile>> claimKit(Item item, {Claim? claim})` → originals + `<name>-claim-kit.txt` summary.
 - `buildLedgerPdf` generates an on-device PDF with the entries, references, serial number and names of the files on record. Originals remain available through the claim kit and attachment controls.
 
 ## Routes (`routing/router.dart`)
 
-The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders in the local build and legacy claim follow-ups in the signed-in build. Item details and Settings subpages cover the dock.
+The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders for on-device items. The signed-in build explains how to manage account email reminders. Item details and Settings subpages cover the dock.
 
-Add opens the manual, Files-first form at `/add`. Local `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. The signed-in build uses its existing server contract, account email reminders, and web editor. Settings provides `/settings/notifications`, `/settings/archive` (local), and `/settings/legal`. The legal screen opens the canonical `www.paperdrawer.app` pages.
+Add opens the manual, Files-first form at `/add`. Local `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. The signed-in build uses its existing server contract, account email reminders, and web editor. Settings opens with an Account card and navigation rows for Plan, Reminders & notifications, Your data, and Legal. Account, Plan, and Your data have their own Settings routes at `/settings/account`, `/settings/plan`, and `/settings/data`. Notices and legal documents are available under `/settings/notifications` and `/settings/legal`. Local Archive is linked from Your data. Legal opens the canonical `www.paperdrawer.app` pages.
 
-The existing `/claims` history, `/claims/:id` ledger and notification destination, `/claims/:id/guidance`, and legacy claim creation route remain compatible with saved records. The older camera, reading, and review screens remain reachable at `/add/camera`, `/add/reading`, and `/add/details`. `CaptureReadingArgs` carries the originals and chosen kind. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill. Both routers use `buildAddRoutes`.
+Old claim links redirect to Home in both builds. Phase 1 leaves saved legacy claim records intact and retains them in complete backups. The older camera, reading, and review screens remain reachable at `/add/camera`, `/add/reading`, and `/add/details`. `CaptureReadingArgs` carries the originals and chosen kind. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill. Both routers use `buildAddRoutes`.
 
 ## UI kit (`ui/core/widgets/`)
 
-- `icons.dart`: `enum PdGlyph { vault, claims, settings, scan }`; `PdIcon(PdGlyph, {double size = 24, Color color = Pd.text})`; `PaperDrawerMark({double size = 28})`.
+- `icons.dart`: `enum PdGlyph { vault, settings, scan, back, home, add }`; `PdIcon(PdGlyph, {double size = 24, Color color = Pd.text})`; `PaperDrawerMark({double size = 28})`.
 - `brand_bar.dart`: `PdBrandBar({Widget? trailing, VoidCallback? onMarkTap})`: the iOS top bar with `PaperDrawerMark(size: 21)` + "PaperDrawer" wordmark (`PdType.wordmark`), adds the top safe-area inset, 44 tall, screen-margin sides; with `onMarkTap` it is a button (`ValueKey('brand-mark')`), otherwise a header. `PdBrandAction({required String label, required VoidCallback? onPressed, IconData? icon})`: compact lime trailing action (44 tall, radius-sm, 18pt icon, 15/600 label, lime-pressed on press).
 - `button.dart` provides `PdButton.primary`, `.secondary`, `.destructive`, `.onPaper` and `.text`. Each takes `label`, `onPressed`, `icon`, `expand`, `busy` and `key`. Primary uses lime, body-strong type and a 52-point minimum height. Secondary, destructive and on-paper buttons use uppercase mono labels. Destructive uses a signal outline and label. Text uses lime body-strong type and supports `monospaced: true` for uppercase mono labels. All have a 48-point minimum tap target.
 - `chips.dart`: `PdFilterChip({label, int? count, selected, onTap})`, `PdChoiceChip({label, selected, onTap, bool onPaper = true})`, `PdChipRow({children})` (horizontal scroll, screen-margin edge padding).
