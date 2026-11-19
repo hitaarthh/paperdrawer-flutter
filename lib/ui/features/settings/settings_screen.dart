@@ -13,15 +13,19 @@ import '../../../domain/item_status.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
+import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../shell/tab_reselect.dart';
 import 'settings_view_model.dart';
+import 'shared_settings_widgets.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({this.notificationsOnly = false, super.key});
+
+  final bool notificationsOnly;
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider(
@@ -33,12 +37,14 @@ class SettingsScreen extends StatelessWidget {
       context.read<DrawerActions>(),
       context.read<ReminderScheduler?>(),
     ),
-    child: const _SettingsView(),
+    child: _SettingsView(notificationsOnly: notificationsOnly),
   );
 }
 
 class _SettingsView extends StatefulWidget {
-  const _SettingsView();
+  const _SettingsView({required this.notificationsOnly});
+
+  final bool notificationsOnly;
 
   @override
   State<_SettingsView> createState() => _SettingsViewState();
@@ -46,16 +52,16 @@ class _SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<_SettingsView> {
   final _scroll = ScrollController();
-  late final _reselect = context.read<TabReselect>();
+  late final _reselect = widget.notificationsOnly ? null : context.read<TabReselect>();
 
   @override
   void initState() {
     super.initState();
-    _reselect.addListener(_onReselect);
+    _reselect?.addListener(_onReselect);
   }
 
   void _onReselect() {
-    if (_reselect.index != 2 || !_scroll.hasClients) return;
+    if (_reselect?.index != 2 || !_scroll.hasClients) return;
     if (MediaQuery.disableAnimationsOf(context)) {
       _scroll.jumpTo(0);
     } else {
@@ -69,7 +75,7 @@ class _SettingsViewState extends State<_SettingsView> {
 
   @override
   void dispose() {
-    _reselect.removeListener(_onReselect);
+    _reselect?.removeListener(_onReselect);
     _scroll.dispose();
     super.dispose();
   }
@@ -123,17 +129,19 @@ class _SettingsViewState extends State<_SettingsView> {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<SettingsViewModel>();
-    return PdLargeTitleScaffold(
-      title: 'Settings',
-      heroTag: 'settings',
-      controller: _scroll,
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: Pd.margin),
-          sliver: SliverList.list(
-            children: [
+    if (widget.notificationsOnly) {
+      return PdPushedScaffold(
+        backLabel: 'Settings',
+        glassBack: true,
+        onBack: () => context.canPop() ? context.pop() : context.go(Routes.settings),
+        title: 'Reminders & notifications',
+        children: [
+          Text(
+            'Choose when Paper Drawer sends reminders to this iPhone. Times set on individual files take priority.',
+            style: PdType.detail.copyWith(color: Pd.textMuted),
+          ),
+          const SizedBox(height: Pd.s4),
               PdListGroup(
-                header: 'Reminders',
                 children: [
                   PdListRow(
                     title: 'Device notifications',
@@ -151,92 +159,113 @@ class _SettingsViewState extends State<_SettingsView> {
                   ),
                   PdListRow(
                     key: const ValueKey('settings-reminder-lead'),
-                    title: 'Remind me before',
+                    title: 'Automatic reminders',
                     value: daysWord(model.leadDays),
                     onTap: model.busy ? null : () => _chooseLead(model),
                     chevron: true,
                   ),
                 ],
               ),
-              const SizedBox(height: Pd.s6),
-              PdListGroup(
-                header: 'Plan',
-                children: [
-                  PdListRow(
-                    title: 'Base',
-                    value: '${model.active} of $baseItemLimit items',
-                  ),
-                  PdListRow(
-                    title: 'Pro waitlist',
-                    value: 'Coming soon',
-                    onTap: () => showPdSheet<void>(
-                      context,
-                      title: 'Paper Drawer Pro',
-                      subtitle: 'The Pro waitlist is opening soon.',
+
+        ],
+      );
+    }
+    return Scaffold(
+      backgroundColor: Pd.bg,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: Pd.maxContent),
+          child: Column(
+            children: [
+              PdBrandBar(onMarkTap: () => context.go(Routes.vault)),
+              Expanded(
+                child: ListView(
+                  controller: _scroll,
+                  padding: EdgeInsets.fromLTRB(Pd.margin, Pd.s3, Pd.margin,
+                    Pd.s8 + MediaQuery.paddingOf(context).bottom),
+                  children: [
+                    Semantics(header: true, child: Text('Settings', style: PdType.heroTitle)),
+                    const SizedBox(height: Pd.s6),
+                    const SettingsSection(
+                      title: 'Account',
+                      description: 'Your drawer is stored on this iPhone.',
+                      children: [PdListGroup(children: [PdListRow(title: 'On this iPhone')])],
                     ),
-                    chevron: true,
-                  ),
-                ],
-              ),
-              const SizedBox(height: Pd.s6),
-              PdListGroup(
-                header: 'Your data',
-                children: [
-                  PdListRow(
-                    key: const ValueKey('settings-archive'),
-                    title: 'Archive',
-                    value: model.archived.toString(),
-                    chevron: true,
-                    onTap: () => context.push(Routes.archive),
-                  ),
-                  Builder(
-                    builder: (anchor) => PdListRow(
-                      key: const ValueKey('settings-export'),
-                      title: 'Export everything',
-                      chevron: true,
-                      onTap: model.busy
-                          ? null
-                          : () =>
-                                _perform(model, model.export(_origin(anchor))),
+                    const SizedBox(height: Pd.s6),
+                    SettingsSection(
+                      title: 'Plan',
+                      children: [
+                        PdListGroup(children: [
+                          PdListRow(title: 'Base · Free', value: '${model.active} of $baseItemLimit items'),
+                        ]),
+                      ],
                     ),
-                  ),
-                  PdListRow(
-                    key: const ValueKey('settings-clear'),
-                    title: 'Clear this drawer',
-                    destructive: true,
-                    onTap: model.busy ? null : () => _erase(model),
-                  ),
-                ],
-              ),
-              const SizedBox(height: Pd.s6),
-              PdListGroup(
-                header: 'About',
-                children: [
-                  PdListRow(
-                    title: 'Privacy',
-                    chevron: true,
-                    onTap: () => showPdSheet<void>(
-                      context,
-                      title: 'Privacy',
-                      subtitle: 'Your documents and claims stay on this device. Share or export them from your drawer whenever you choose.',
+                    const SizedBox(height: Pd.s6),
+                    PdListGroup(
+                      children: [
+                        PdListRow(
+                          key: const ValueKey('settings-open-notifications'),
+                          title: 'Reminders & notifications',
+                          value: model.remindersOn ? 'On' : 'Off',
+                          chevron: true,
+                          onTap: () => context.push(Routes.settingsNotifications),
+                        ),
+                      ],
                     ),
-                  ),
-                  FutureBuilder(
-                    future: model.version,
-                    builder: (context, state) =>
-                        PdListRow(title: 'Version', value: state.data ?? '—'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: Pd.s5),
-              Text(
-                'Paper Drawer gives general guidance. For legal advice, speak to a qualified professional.',
-                style: PdType.footnote.copyWith(color: Pd.textMuted),
+                    const SizedBox(height: Pd.s6),
+                    SettingsSection(
+                      title: 'Your data',
+                      description: 'Manage and export the files stored on this iPhone.',
+                      children: [
+                        PdListGroup(
+                          children: [
+                            PdListRow(
+                              key: const ValueKey('settings-archive'),
+                              title: 'Archive',
+                              value: model.archived.toString(),
+                              chevron: true,
+                              onTap: () => context.push(Routes.archive),
+                            ),
+                            Builder(
+                              builder: (anchor) => PdListRow(
+                                key: const ValueKey('settings-export'),
+                                title: 'Export everything',
+                                chevron: true,
+                                onTap: model.busy ? null : () => _perform(model, model.export(_origin(anchor))),
+                              ),
+                            ),
+                            PdListRow(
+                              key: const ValueKey('settings-clear'),
+                              title: 'Clear this drawer',
+                              destructive: true,
+                              onTap: model.busy ? null : () => _erase(model),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: Pd.s6),
+                    PdListGroup(
+                      children: [
+                        PdListRow(
+                          key: const ValueKey('settings-legal'),
+                          title: 'Legal & about',
+                          chevron: true,
+                          onTap: () => context.push(Routes.legal),
+                        ),
+                        FutureBuilder(
+                          future: model.version,
+                          builder: (context, state) => PdListRow(title: 'Version', value: state.data ?? '—'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

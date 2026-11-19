@@ -23,7 +23,7 @@ class SharedAccountConfig {
   static const _key = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
   static const _web = String.fromEnvironment(
     'PAPERDRAWER_WEB_URL',
-    defaultValue: 'https://paperdrawer.app',
+    defaultValue: 'https://www.paperdrawer.app',
   );
   static const _confirm = String.fromEnvironment('PAPERDRAWER_CONFIRM_ORIGIN');
 

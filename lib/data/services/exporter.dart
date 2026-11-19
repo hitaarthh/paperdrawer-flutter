@@ -130,6 +130,8 @@ class Exporter {
     'component_warranty_until': _date(item.draft.componentWarrantyUntil),
     'component_warranty_name': item.draft.componentWarrantyName,
     'remind': item.draft.remind,
+    'reminder_at': item.draft.reminderAt?.toUtc().toIso8601String(),
+    'coverage_renews': item.draft.coverageRenews,
     'created_at': item.createdAt.toUtc().toIso8601String(),
     'archived_at': item.archivedAt?.toUtc().toIso8601String(),
     'attachments': [

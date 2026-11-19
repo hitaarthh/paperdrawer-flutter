@@ -7,16 +7,16 @@ import '../../core/theme/type.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/meter.dart';
 
-class SharedSettingsSection extends StatelessWidget {
-  const SharedSettingsSection({
+class SettingsSection extends StatelessWidget {
+  const SettingsSection({
     required this.title,
-    required this.description,
+    this.description,
     required this.children,
     super.key,
   });
 
   final String title;
-  final String description;
+  final String? description;
   final List<Widget> children;
 
   @override
@@ -34,7 +34,7 @@ class SharedSettingsSection extends StatelessWidget {
           spacing: Pd.s1,
           children: [
             Semantics(header: true, child: Text(title, style: PdType.title2)),
-            SharedSettingsDetail(description),
+            if (description case final text?) SharedSettingsDetail(text),
           ],
         ),
         ...children,
@@ -166,14 +166,12 @@ class SharedSettingsPlan extends StatelessWidget {
     required this.vault,
     required this.failed,
     required this.onRetry,
-    required this.onSeePlans,
     super.key,
   });
 
   final SharedVault? vault;
   final bool failed;
   final VoidCallback onRetry;
-  final VoidCallback onSeePlans;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +213,7 @@ class SharedSettingsPlan extends StatelessWidget {
             if (onBase) ...[
               MeterBar(fraction: used / baseItemLimit),
               const SharedSettingsDetail(
-                'Reminders, claims and export stay available when your vault is full.',
+                'Reminders and export stay available when your drawer is full.',
               ),
             ] else
               const SharedSettingsDetail('Your plan includes unlimited items.'),
@@ -226,33 +224,11 @@ class SharedSettingsPlan extends StatelessWidget {
                 failed ? 'Couldn’t load plan usage.' : 'Loading plan usage…',
               ),
             ),
-          Row(
-            spacing: Pd.s2,
-            children: [
-              Expanded(
-                child: used == null && failed
-                    ? Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: SharedSettingsLink(
-                          label: 'Retry',
-                          onPressed: onRetry,
-                        ),
-                      )
-                    : onBase
-                    ? const SharedSettingsDetail(
-                        'PRO WAITLIST COMING SOON',
-                        mono: true,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              SharedSettingsLink(
-                key: const ValueKey('shared-settings-plans'),
-                label: 'See plans',
-                accent: true,
-                onPressed: onSeePlans,
-              ),
-            ],
-          ),
+          if (used == null && failed)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: SharedSettingsLink(label: 'Retry', onPressed: onRetry),
+            ),
         ],
       ),
     );
@@ -296,55 +272,3 @@ class SharedSettingsDataAction extends StatelessWidget {
   );
 }
 
-class SharedSettingsFooter extends StatelessWidget {
-  const SharedSettingsFooter({
-    required this.version,
-    required this.onPrivacy,
-    required this.onTerms,
-    super.key,
-  });
-
-  final Future<String?> version;
-  final VoidCallback onPrivacy;
-  final VoidCallback onTerms;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    spacing: Pd.s2,
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Flexible(
-        child: Wrap(
-          spacing: Pd.s2,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            SharedSettingsLink(
-              key: const ValueKey('shared-settings-privacy'),
-              label: 'Privacy',
-              onPressed: onPrivacy,
-            ),
-            const ExcludeSemantics(
-              child: SharedSettingsDetail('·', mono: true),
-            ),
-            SharedSettingsLink(
-              key: const ValueKey('shared-settings-terms'),
-              label: 'Terms',
-              onPressed: onTerms,
-            ),
-          ],
-        ),
-      ),
-      Flexible(
-        child: FutureBuilder(
-          future: version,
-          builder: (context, snapshot) {
-            if (snapshot.data case final String version) {
-              return SharedSettingsDetail('VERSION $version', mono: true);
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-      ),
-    ],
-  );
-}

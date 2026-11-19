@@ -15,7 +15,6 @@ import '../../core/widgets/button.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/nav.dart';
-import '../../core/widgets/paper.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/vault_ticket.dart';

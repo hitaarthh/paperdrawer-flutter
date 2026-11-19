@@ -14,6 +14,7 @@ import '../ui/features/home/coming_up_screen.dart';
 import '../ui/features/item/item_detail_screen.dart';
 import '../ui/features/reminders/reminders_screen.dart';
 import '../ui/features/reminders/reminder_inbox.dart';
+import '../ui/features/settings/legal_settings_screen.dart';
 import '../ui/features/settings/archive_screen.dart';
 import '../ui/features/settings/settings_screen.dart';
 import '../ui/features/shell/app_shell.dart';
@@ -25,6 +26,9 @@ abstract final class Routes {
   static const vault = '/vault';
   static const claims = '/claims';
   static const settings = '/settings';
+  static const settingsNotifications = '/settings/notifications';
+  static const legal = '/settings/legal';
+  static const licenses = '/settings/legal/licenses';
   static const archive = '/settings/archive';
   static const add = '/add';
   static const camera = '/add/camera';
@@ -121,6 +125,12 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
               path: Routes.settings,
               builder: (context, state) => const SettingsScreen(),
               routes: [
+                GoRoute(
+                  path: 'notifications',
+                  parentNavigatorKey: rootNavigatorKey,
+                  builder: (context, state) => const SettingsScreen(notificationsOnly: true),
+                ),
+                ...legalRoutes(rootNavigatorKey),
                 GoRoute(
                   path: 'archive',
                   builder: (context, state) => const ArchiveScreen(),

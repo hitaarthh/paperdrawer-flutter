@@ -74,16 +74,6 @@ class SharedReminderSettings extends StatelessWidget {
                       onChanged: onEmailChanged,
                     ),
             ),
-            const _ReminderChannel(
-              title: 'Notifications on this phone',
-              detail: 'Coming soon',
-              control: PdSwitch(value: false),
-            ),
-            const _ReminderChannel(
-              title: 'WhatsApp',
-              detail: 'Coming soon with Pro',
-              control: PdSwitch(value: false),
-            ),
           ],
         ),
         Align(
