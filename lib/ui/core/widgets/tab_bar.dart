@@ -1,4 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+// The native plugin reads Flutter's original Material Theme.
+// ignore: deprecated_member_use
+import 'package:flutter/material.dart' as legacy show Theme, ThemeData;
+import 'package:native_liquid_glass/native_liquid_glass.dart';
 
 import '../theme/tokens.dart';
 import '../theme/type.dart';
@@ -24,6 +28,26 @@ class PdTabBar extends StatelessWidget {
     ('Settings', PdGlyph.settings),
   ];
 
+  static const _nativeTabs = [
+    LiquidGlassTabItem(
+      label: 'Home',
+      icon: NativeLiquidGlassIcon.sfSymbol('house'),
+    ),
+    LiquidGlassTabItem(
+      label: 'Drawer',
+      icon: NativeLiquidGlassIcon.sfSymbol('archivebox'),
+    ),
+    LiquidGlassTabItem(
+      label: 'Settings',
+      icon: NativeLiquidGlassIcon.sfSymbol('slider.horizontal.3'),
+    ),
+  ];
+
+  static const _nativeAdd = LiquidGlassTabItem(
+    label: 'Add',
+    icon: NativeLiquidGlassIcon.sfSymbol('plus'),
+  );
+
   int get _selectedSlot => currentIndex == 2 ? 3 : currentIndex;
 
   @override
@@ -40,23 +64,36 @@ class PdTabBar extends StatelessWidget {
           heightFactor: 1,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: Pd.dockMaxWidth),
-            child: DecoratedBox(
-              decoration: const BoxDecoration(
-                borderRadius: _radius,
-                boxShadow: Pd.shadowFab,
-              ),
-              child: PdGlassSurface(
-                child: Padding(
-                  padding: const EdgeInsets.all(Pd.s1),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(child: _selection(context)),
-                      _controls(),
-                    ],
+            child: NativeLiquidGlassUtils.supportsLiquidGlass
+                ? legacy.Theme(
+                    data: legacy.ThemeData.dark(),
+                    child: LiquidGlassTabBar(
+                      items: _nativeTabs,
+                      iosActionButton: onScan == null ? null : _nativeAdd,
+                      currentIndex: currentIndex,
+                      onTabSelected: onTap,
+                      onActionButtonPressed: onScan,
+                      height: Pd.dockControlHeight,
+                      selectedItemColor: Pd.lime,
+                    ),
+                  )
+                : DecoratedBox(
+                    decoration: const BoxDecoration(
+                      borderRadius: _radius,
+                      boxShadow: Pd.shadowFab,
+                    ),
+                    child: PdGlassSurface(
+                      child: Padding(
+                        padding: const EdgeInsets.all(Pd.s1),
+                        child: Stack(
+                          children: [
+                            Positioned.fill(child: _selection(context)),
+                            _controls(),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
           ),
         ),
       ),

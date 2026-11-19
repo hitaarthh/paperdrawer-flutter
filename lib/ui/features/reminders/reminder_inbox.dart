@@ -26,6 +26,7 @@ class DrawerNotificationButton extends StatelessWidget {
     key: const ValueKey('drawer-notifications'),
     label: 'Notifications',
     icon: const Icon(LucideIcons.bell),
+    systemIcon: 'bell',
     onPressed: () => context.push(Routes.notifications, extra: fromDrawer),
   );
 }

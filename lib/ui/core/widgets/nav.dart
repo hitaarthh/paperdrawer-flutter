@@ -163,6 +163,7 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                           key: const ValueKey('close-button'),
                           label: widget.backLabel,
                           icon: const Icon(LucideIcons.x),
+                          systemIcon: 'xmark',
                           onPressed: widget.onBack,
                         ),
                       ] else ...[
@@ -172,6 +173,7 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
                             child: widget.glassBack
                                 ? PdGlassIcon(
                                     key: const ValueKey('back-button'),
+                                    systemIcon: 'chevron.backward',
                                     icon: Transform.flip(
                                       flipX:
                                           Directionality.of(context) ==

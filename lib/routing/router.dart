@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../domain/models/item.dart';
+import '../ui/core/widgets/glass.dart';
 import '../ui/features/add/add_details_args.dart';
 import '../ui/features/add/camera_screen.dart';
 import '../ui/features/add/item_form_screen.dart';
@@ -52,6 +53,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 GoRouter buildRouter({String? initialLocation}) => GoRouter(
   navigatorKey: rootNavigatorKey,
+  observers: pdGlassNavigatorObservers(),
   initialLocation: initialLocation ?? Routes.home,
   routes: [
     StatefulShellRoute.indexedStack(

@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:native_liquid_glass/native_liquid_glass.dart';
 
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
@@ -39,30 +40,62 @@ class ItemDetailActions extends StatelessWidget {
   final VoidCallback? onDelete;
 
   @override
-  Widget build(BuildContext context) => PdGlassSurface(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          PdGlassIcon(
-            key: const ValueKey('item-edit'),
-            icon: const Icon(LucideIcons.pencil),
+  Widget build(BuildContext context) {
+    if (NativeLiquidGlassUtils.supportsLiquidGlass) {
+      return LiquidGlassToolbar(
+        height: Pd.tapMin,
+        width: 2 * Pd.tapMin + 2 * Pd.s1,
+        itemSpacing: Pd.tapMin - Pd.s5,
+        padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
+        items: [
+          LiquidGlassToolbarItem(
+            id: 'edit',
             label: 'Edit item',
-            onPressed: onEdit,
-            inSurface: false,
+            icon: const NativeLiquidGlassIcon.sfSymbol('pencil'),
+            iconSize: Pd.s5,
+            enabled: onEdit != null,
           ),
-          PdGlassIcon(
-            key: const ValueKey('item-delete'),
-            icon: const Icon(LucideIcons.trash2),
+          LiquidGlassToolbarItem(
+            id: 'delete',
             label: 'Delete item',
-            onPressed: onDelete,
-            inSurface: false,
+            icon: const NativeLiquidGlassIcon.sfSymbol('trash'),
+            iconSize: Pd.s5,
+            enabled: onDelete != null,
           ),
         ],
+        onItemTapped: (id) {
+          if (id == 'edit') onEdit?.call();
+          if (id == 'delete') onDelete?.call();
+        },
+      );
+    }
+    return PdGlassSurface(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PdGlassIcon(
+              key: const ValueKey('item-edit'),
+              icon: const Icon(LucideIcons.pencil),
+              label: 'Edit item',
+              systemIcon: 'pencil',
+              onPressed: onEdit,
+              inSurface: false,
+            ),
+            PdGlassIcon(
+              key: const ValueKey('item-delete'),
+              icon: const Icon(LucideIcons.trash2),
+              label: 'Delete item',
+              systemIcon: 'trash',
+              onPressed: onDelete,
+              inSurface: false,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class ItemDeadlineTicket extends StatelessWidget {

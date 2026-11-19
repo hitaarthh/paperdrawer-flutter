@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../ui/core/widgets/glass.dart';
 import '../ui/core/theme/tokens.dart';
 import '../ui/core/widgets/tab_bar.dart';
 import '../ui/features/account/account_screen.dart';
@@ -20,6 +21,7 @@ GoRouter buildSharedRouter(SharedSession session) {
   final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shared root');
   return GoRouter(
     navigatorKey: navigatorKey,
+    observers: pdGlassNavigatorObservers(),
     initialLocation: '/home',
     refreshListenable: session,
     redirect: (context, state) {

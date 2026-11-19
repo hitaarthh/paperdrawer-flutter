@@ -1,8 +1,14 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:native_liquid_glass/native_liquid_glass.dart';
 
 import '../theme/tokens.dart';
+
+List<NavigatorObserver> pdGlassNavigatorObservers() => [
+  if (NativeLiquidGlassUtils.supportsLiquidGlass)
+    LiquidGlassNavigatorObserver(),
+];
 
 class PdGlassSurface extends StatelessWidget {
   const PdGlassSurface({required this.child, super.key});
@@ -48,6 +54,7 @@ class PdGlassSurface extends StatelessWidget {
 class PdGlassIcon extends StatelessWidget {
   const PdGlassIcon({
     required this.icon,
+    required this.systemIcon,
     required this.label,
     required this.onPressed,
     this.inSurface = true,
@@ -55,12 +62,30 @@ class PdGlassIcon extends StatelessWidget {
   });
 
   final Widget icon;
+  final String systemIcon;
   final String label;
   final VoidCallback? onPressed;
   final bool inSurface;
 
   @override
   Widget build(BuildContext context) {
+    if (inSurface && NativeLiquidGlassUtils.supportsLiquidGlass) {
+      return LiquidGlassToolbar(
+        items: [
+          LiquidGlassToolbarItem(
+            id: systemIcon,
+            icon: NativeLiquidGlassIcon.sfSymbol(systemIcon),
+            iconSize: Pd.s5,
+            label: label,
+            enabled: onPressed != null,
+          ),
+        ],
+        height: Pd.tapMin,
+        width: Pd.tapMin,
+        itemSpacing: Pd.tapMin - Pd.s5,
+        onItemTapped: (_) => onPressed?.call(),
+      );
+    }
     final control = Semantics(
       button: true,
       enabled: onPressed != null,
