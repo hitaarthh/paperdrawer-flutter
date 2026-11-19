@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:paperdrawer/data/services/capture_service.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
 import 'package:paperdrawer/data/services/shared_vault_service.dart';
 import 'package:paperdrawer/domain/formats.dart';
@@ -125,7 +126,10 @@ void main() {
     await tester.ensureVisible(manual);
     await tester.tap(manual);
     await tester.pumpAndSettle();
-    expect(session.opened, '/bills/new');
+    expect(find.text('Check the details'), findsOneWidget);
+    expect(session.opened, isNull);
+    await tester.tap(find.byKey(const ValueKey('back-button')));
+    await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byKey(const ValueKey('vault-search')),
@@ -138,7 +142,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('empty shared vault opens the web add flow from the receipt', (
+  testWidgets('empty shared vault opens the native camera from the receipt', (
     tester,
   ) async {
     final session = _SharedVaultSession()
@@ -152,7 +156,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(add);
     await tester.pumpAndSettle();
-    expect(session.opened, '/add?type=bill');
+    expect(find.text('Camera unavailable'), findsOneWidget);
+    expect(session.opened, isNull);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -213,7 +218,8 @@ void main() {
     await tester.ensureVisible(manual);
     await tester.tap(manual);
     await tester.pumpAndSettle();
-    expect(session.opened, '/bills/new');
+    expect(find.text('Check the details'), findsOneWidget);
+    expect(session.opened, isNull);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -320,8 +326,11 @@ Future<void> _launchDrawer(WidgetTester tester, SharedSession session) async {
   addTearDown(session.dispose);
   addTearDown(router.dispose);
   await tester.pumpWidget(
-    ChangeNotifierProvider.value(
-      value: session,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: session),
+        Provider<CaptureService>.value(value: session.capture),
+      ],
       child: MaterialApp.router(routerConfig: router, theme: pdTheme()),
     ),
   );
@@ -367,7 +376,8 @@ void _setPhoneSize(WidgetTester tester, double scale) {
 }
 
 class _SharedVaultSession extends SharedSession {
-  _SharedVaultSession() : super(_SignedOutAccount());
+  _SharedVaultSession()
+    : super(_SignedOutAccount(), capture: const _UnavailableCamera());
 
   String? opened;
 
@@ -376,6 +386,15 @@ class _SharedVaultSession extends SharedSession {
 
   @override
   Future<void> openWeb(String path) async => opened = path;
+}
+
+class _UnavailableCamera extends CaptureService {
+  const _UnavailableCamera();
+
+  @override
+  Future<CaptureSession> openCamera() async {
+    throw const FormatException('There’s no camera available on this device.');
+  }
 }
 
 class _SignedOutAccount extends SharedAccount {
