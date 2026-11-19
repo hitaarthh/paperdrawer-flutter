@@ -276,10 +276,16 @@ class _ManualItemFormState extends State<ManualItemForm> {
             DashedTile(
               title: 'Couldn’t load this item',
               body: 'Check your connection and try again.',
-              action: PdButton.text(label: 'Try again', onPressed: session!.refresh),
+              action: PdButton.text(
+                label: 'Try again',
+                onPressed: session!.refresh,
+              ),
             )
           else
-            const DashedTile(title: 'Item unavailable', body: 'Return to your drawer.'),
+            const DashedTile(
+              title: 'Item unavailable',
+              body: 'Return to your drawer.',
+            ),
         ],
       );
     }
@@ -288,7 +294,8 @@ class _ManualItemFormState extends State<ManualItemForm> {
       builder: (context, _) {
         final picked = form.added.firstOrNull;
         final existing = _sharedItem?.originals.firstOrNull?.name;
-        final name = picked?.name ?? existing ?? form.retained.firstOrNull?.name;
+        final name =
+            picked?.name ?? existing ?? form.retained.firstOrNull?.name;
         final allowsMeaning =
             !widget.shared &&
             (form.kind == ItemKind.policy || form.kind == ItemKind.agreement);
@@ -319,7 +326,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
               ),
               if (_sharedEdit && picked != null)
                 PdButton.text(
-                  label: existing == null ? 'Remove selected file' : 'Keep current file',
+                  label: existing == null
+                      ? 'Remove selected file'
+                      : 'Keep current file',
                   onPressed: _blocked ? null : () => form.removeAdded(picked),
                 ),
               if (_fileError case final error?)
@@ -346,9 +355,11 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 key: const ValueKey('item-kind-picker'),
                 label: 'Type',
                 value: _kindLabel(form.kind),
-                onTap: _sharedEdit ? null : () {
-                  if (!_blocked) _chooseKind(form);
-                },
+                onTap: _sharedEdit
+                    ? null
+                    : () {
+                        if (!_blocked) _chooseKind(form);
+                      },
               ),
               if (widget.shared && form.kind == ItemKind.bill) ...[
                 const SizedBox(height: Pd.s4),

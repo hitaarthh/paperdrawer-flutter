@@ -66,11 +66,12 @@ class SharedVaultService {
     PendingFile? original,
     String? uploadId,
   }) async {
-    await SharedItemWrite(_client).edit(
-      userId, item, draft, original: original, uploadId: uploadId,
-    );
+    await SharedItemWrite(_client)
+        .edit(userId, item, draft, original: original, uploadId: uploadId);
     final updated = await _fetchItem(
-      userId, item.item.id, bill: item.item.kind == ItemKind.bill,
+      userId,
+      item.item.id,
+      bill: item.item.kind == ItemKind.bill,
     );
     return updated ??
         (throw const FormatException('This item is no longer in your drawer.'));

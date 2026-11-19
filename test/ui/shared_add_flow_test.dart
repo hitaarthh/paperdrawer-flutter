@@ -116,7 +116,109 @@ void main() {
     expect(session.webOpens, 0);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'shared Edit opens in-app, prefills the bill, and keeps its file',
+    (tester) async {
+      final item = _savedItem(ItemKind.bill);
+      final (session, service, _) = await _launch(tester, items: [item]);
+      GoRouter.of(tester.element(find.text('Coming up')))
+          .push(Routes.homeItem('saved'));
+      await tester.pumpAndSettle();
+      await _tap(tester, 'item-edit');
+      expect(find.text('Edit item'), findsOneWidget);
+      expect(_text(tester, 'item-name'), 'Saved bill');
+      expect(find.text('original.pdf'), findsOneWidget);
+      expect(find.text('15 Oct 2026'), findsOneWidget);
+      expect(find.text('15 Oct 2027'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const ValueKey('item-name')),
+        'Unsaved',
+      );
+      await _tap(tester, 'close-button');
+      expect(service.attempts, isEmpty);
+      expect(find.text('Saved bill'), findsOneWidget);
+
+      await _tap(tester, 'item-edit');
+      await tester.enterText(
+        find.byKey(const ValueKey('item-name')),
+        'Updated bill',
+      );
+      await _tap(tester, 'save-to-drawer');
+      expect(find.text('Updated bill'), findsOneWidget);
+      expect(service.attempts, ['saved']);
+      expect(service.original, isNull);
+      expect(session.vault!.items.single.originals, same(item.originals));
+      expect(session.vault!.items.single.details, same(item.details));
+      expect(session.webOpens, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('shared Edit retries a replacement on the same record', (
+    tester,
+  ) async {
+    final (session, service, _) = await _launch(
+      tester,
+      items: [_savedItem(ItemKind.policy)],
+    );
+    GoRouter.of(tester.element(find.text('Coming up')))
+        .push(Routes.item('saved'));
+    await tester.pumpAndSettle();
+    await _tap(tester, 'item-edit');
+    expect(_text(tester, 'item-name'), 'Saved policy');
+    expect(find.text('15 Oct 2027'), findsOneWidget);
+    await _tap(tester, 'choose-original');
+    await tester.tap(find.text('Keep current file'));
+    await tester.pumpAndSettle();
+    expect(find.text('original.pdf'), findsOneWidget);
+    await _tap(tester, 'choose-original');
+    await tester.enterText(
+      find.byKey(const ValueKey('item-name')),
+      'Updated policy',
+    );
+    service.rejectNext = true;
+    await _tap(tester, 'save-to-drawer');
+    expect(
+      find.text('Your changes couldn’t be saved. Try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('policy.pdf'), findsOneWidget);
+    expect(_text(tester, 'item-name'), 'Updated policy');
+    expect(session.vault!.items.single.originals.single.name, 'original.pdf');
+    await _tap(tester, 'save-to-drawer');
+    expect(service.attempts, ['saved', 'saved']);
+    expect(service.uploadIds.first, isNotNull);
+    expect(service.uploadIds.toSet(), hasLength(1));
+    expect(session.vault!.items.single.originals.single.name, 'policy.pdf');
+    expect(find.text('Updated policy'), findsOneWidget);
+    expect(session.webOpens, 0);
+    expect(tester.takeException(), isNull);
+  });
 }
+
+SharedItem _savedItem(ItemKind kind) => SharedItem(
+  Item(
+    id: 'saved',
+    createdAt: DateTime.utc(2026, 10, 15),
+    draft: ItemDraft(
+      kind: kind,
+      name: kind == ItemKind.bill ? 'Saved bill' : 'Saved policy',
+      startsOn: DateTime.utc(2026, 10, 15),
+      coverUntil: DateTime.utc(2027, 10, 15),
+      currency: 'USD',
+    ),
+  ),
+  const [
+    SharedOriginal(
+      name: 'original.pdf',
+      path: 'owner/original.pdf',
+      mime: 'application/pdf',
+    ),
+  ],
+  const [('Other details', 'Existing details')],
+  updatedAt: '2026-10-15T10:22:00Z',
+);
 
 String? _text(WidgetTester tester, String key) => tester
     .widget<CupertinoTextField>(find.byKey(ValueKey(key)))
@@ -131,14 +233,17 @@ Future<void> _tap(WidgetTester tester, String key) async {
   await tester.pumpAndSettle();
 }
 
-Future<(_Session, _VaultService, _Capture)> _launch(WidgetTester tester) async {
+Future<(_Session, _VaultService, _Capture)> _launch(
+  WidgetTester tester, {
+  List<SharedItem> items = const [],
+}) async {
   tester.view.devicePixelRatio = 3;
   tester.view.physicalSize = const Size(1179, 2556);
   tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
   tester.platformDispatcher.textScaleFactorTestValue = 1.3;
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  final service = _VaultService();
+  final service = _VaultService(items);
   final capture = _Capture();
   final session = _Session(_Account(), service, capture);
   final router = buildSharedRouter(session);
@@ -178,16 +283,48 @@ class _Session extends SharedSession {
 }
 
 class _VaultService extends SharedVaultService {
-  _VaultService() : super(_UnusedClient());
+  _VaultService(this.items) : super(_UnusedClient());
 
+  final List<SharedItem> items;
   final attempts = <String>[];
+  final uploadIds = <String?>[];
   bool rejectNext = false;
   PendingFile? original;
   ItemDraft? draft;
 
   @override
   Future<SharedVault> fetch(String userId) async =>
-      const SharedVault(items: [], claims: []);
+      SharedVault(items: items, claims: const []);
+
+  @override
+  Future<SharedItem> updateItem(
+    String userId,
+    SharedItem item,
+    ItemDraft draft, {
+    PendingFile? original,
+    String? uploadId,
+  }) async {
+    attempts.add(item.item.id);
+    uploadIds.add(uploadId);
+    if (rejectNext) {
+      rejectNext = false;
+      throw StateError('Connection interrupted');
+    }
+    this.original = original;
+    return SharedItem(
+      Item(id: item.item.id, createdAt: item.item.createdAt, draft: draft),
+      original == null
+          ? item.originals
+          : [
+              SharedOriginal(
+                name: original.name,
+                path: 'owner/${original.name}',
+                mime: 'application/pdf',
+              ),
+            ],
+      item.details,
+    );
+  }
 
   @override
   Future<SharedItem> createItem(

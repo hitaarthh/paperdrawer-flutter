@@ -51,6 +51,7 @@ class SharedSession extends ChangeNotifier {
   final Today today = Today();
   final followUps = SharedClaimReminders();
   final _actions = const DrawerActions();
+  final _routingAccount = ValueNotifier<String?>(null);
   String? _userId;
   int _accountGeneration = 0;
   String? get email => account.user?.email;
@@ -63,6 +64,7 @@ class SharedSession extends ChangeNotifier {
   }
 
   bool get signedIn => _userId != null;
+  Listenable get routingAccountChanges => _routingAccount;
   SharedVault? vault;
   bool loading = false;
   bool failed = false;
@@ -216,7 +218,11 @@ class SharedSession extends ChangeNotifier {
         uploadId = original == null ? null : const Uuid().v4();
       }
       return _service.updateItem(
-        owner, item, draft, original: original, uploadId: uploadId,
+        owner,
+        item,
+        draft,
+        original: original,
+        uploadId: uploadId,
       );
     });
   }
@@ -232,7 +238,9 @@ class SharedSession extends ChangeNotifier {
       }
       final snapshot = vault;
       if (snapshot == null || claimBusy) {
-        throw const FormatException('The drawer is busy. Try again in a moment.');
+        throw const FormatException(
+          'The drawer is busy. Try again in a moment.',
+        );
       }
       _savingItem = true;
       notifyListeners();
@@ -242,13 +250,19 @@ class SharedSession extends ChangeNotifier {
           throw const FormatException('Sign in to see this item.');
         }
         final entries = [...snapshot.items];
-        final index = entries.indexWhere((other) => other.item.id == saved.item.id);
+        final index = entries.indexWhere(
+          (other) => other.item.id == saved.item.id,
+        );
         if (index < 0) {
           entries.insert(0, saved);
         } else {
           entries[index] = saved;
         }
-        vault = SharedVault(items: entries, claims: snapshot.claims, profile: snapshot.profile);
+        vault = SharedVault(
+          items: entries,
+          claims: snapshot.claims,
+          profile: snapshot.profile,
+        );
         if (inbox case final notifications?) unawaited(notifications.refresh());
         return saved.item;
       } finally {
@@ -281,6 +295,7 @@ class SharedSession extends ChangeNotifier {
         );
       }
       _refreshPending = true;
+      today.refresh();
       if (inbox case final notifications?) unawaited(notifications.refresh());
       return true;
     } finally {
@@ -386,6 +401,7 @@ class SharedSession extends ChangeNotifier {
     _savingItem = false;
     inbox?.setOwner(owner);
     if (previous != null) _syncFollowUps();
+    _routingAccount.value = owner;
     notifyListeners();
     if (previous != null) unawaited(_clearDownloads(previous));
     if (owner == null) return;
@@ -462,6 +478,7 @@ class SharedSession extends ChangeNotifier {
     }
     inbox?.dispose();
     if (_userId case final userId?) unawaited(_clearDownloads(userId));
+    _routingAccount.dispose();
     followUps.dispose();
     today.dispose();
     super.dispose();

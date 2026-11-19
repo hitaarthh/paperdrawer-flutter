@@ -176,7 +176,9 @@ class SharedItemWrite {
     if (draft.kind != ItemKind.bill) {
       final end = draft.coverUntil;
       if (end == null) {
-        throw const FormatException('Choose when this document ends or renews.');
+        throw const FormatException(
+          'Choose when this document ends or renews.',
+        );
       }
       return {'name': name, 'end_on': isoDate(end)};
     }

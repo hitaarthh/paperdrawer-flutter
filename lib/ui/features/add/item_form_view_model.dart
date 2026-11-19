@@ -20,6 +20,7 @@ class ItemFormViewModel extends ChangeNotifier {
     _startsOn = saved?.startsOn ?? reading?.startsOn;
     final start = saved?.startsOn;
     final warrantyEnd = saved?.coverUntil;
+    final returnEnd = saved?.returnUntil;
     // Shared bills store durations. Moving the purchase date carries the
     // existing warranty with it until the user chooses a new end date.
     final savedWarrantyMonths =
@@ -30,8 +31,12 @@ class ItemFormViewModel extends ChangeNotifier {
       subtype: saved?.subtype ?? '',
       coverUntil: saved?.coverUntil ?? reading?.coverUntil,
       returnUntil: saved?.returnUntil,
+      returnDays: shared && _kind == ItemKind.bill && start != null && returnEnd != null
+          ? daysBetween(start, returnEnd)
+          : null,
       coverageRenews: saved?.coverageRenews,
-      warrantyMonths: savedWarrantyMonths ??
+      warrantyMonths:
+          savedWarrantyMonths ??
           (_kind == ItemKind.bill ? reading?.warrantyMonths : null),
       componentWarrantyUntil: saved?.componentWarrantyUntil,
       componentWarrantyName:
@@ -396,6 +401,7 @@ class _KindDetails {
     this.subtype = '',
     this.coverUntil,
     this.returnUntil,
+    this.returnDays,
     this.coverageRenews,
     this.warrantyMonths,
     this.componentWarrantyUntil,

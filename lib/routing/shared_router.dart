@@ -24,7 +24,8 @@ GoRouter buildSharedRouter(SharedSession session) {
     navigatorKey: navigatorKey,
     observers: pdGlassNavigatorObservers(),
     initialLocation: '/home',
-    refreshListenable: session,
+    // Vault updates can land during a pop. Only account changes affect redirects.
+    refreshListenable: session.routingAccountChanges,
     redirect: (context, state) {
       final signingIn = const {
         '/intro',

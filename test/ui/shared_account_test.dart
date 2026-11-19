@@ -222,7 +222,9 @@ void main() {
       tester.widgetList<PdIcon>(find.byType(PdIcon)).map((icon) => icon.glyph),
       contains(PdGlyph.back),
     );
-    expect(find.byKey(const ValueKey('item-edit')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('item-edit')));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit item'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -259,11 +261,10 @@ void main() {
         find.text('Record unavailable', skipOffstage: false),
         findsNothing,
       );
-      final loading = find.text('Loading your drawer…', skipOffstage: false);
-      for (final element in loading.evaluate()) {
-        debugPrint('Loading in: ${element.findAncestorWidgetOfExactType<SharedItemScreen>()?.id}');
-      }
-      debugPrint('Route after start of pop: ${router.state.uri}');
+      expect(
+        find.text('Loading your drawer…', skipOffstage: false),
+        findsNothing,
+      );
 
       await tester.pumpAndSettle();
       expect(find.text(heading), findsOneWidget);
