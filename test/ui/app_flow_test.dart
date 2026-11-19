@@ -57,6 +57,62 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'item details cover a stationary drawer and scroll under actions',
+    (tester) async {
+      final items = _Items([
+        Item(
+          id: 'bill',
+          createdAt: _today,
+          draft: ItemDraft(
+            kind: ItemKind.bill,
+            name: 'Wireless earbuds',
+            notes: List.filled(
+              30,
+              'A note about the original purchase.',
+            ).join(' '),
+          ),
+        ),
+      ]);
+      await _launch(tester, items, scale: 1.3);
+      await _tap(tester, 'vault-tab');
+      final card = _key('vault-item-bill');
+      final position = tester.getTopLeft(card);
+
+      await tester.tap(card);
+      await tester.pump();
+      await tester.pump(Pd.sheetDuration ~/ 2);
+      expect(tester.getTopLeft(card), position);
+      await tester.pumpAndSettle();
+
+      final back = _key('back-button');
+      final edit = _key('item-edit');
+      final backRect = tester.getRect(back);
+      final editRect = tester.getRect(edit);
+      final detailTitle = find.text('Wireless earbuds');
+      expect(tester.getTopLeft(detailTitle).dy, greaterThan(backRect.bottom));
+      final list = find.byType(ListView);
+      tester
+          .state<ScrollableState>(
+            find.descendant(of: list, matching: find.byType(Scrollable)),
+          )
+          .position
+          .jumpTo(Pd.tapMin);
+      await tester.pumpAndSettle();
+      expect(tester.getRect(back), backRect);
+      expect(tester.getRect(edit), editRect);
+      expect(tester.getTopLeft(detailTitle).dy, lessThan(backRect.bottom));
+
+      await tester.tap(back);
+      await tester.pump();
+      await tester.pump(Pd.sheetDuration ~/ 2);
+      expect(tester.getTopLeft(card), position);
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(card), position);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('add, edit, open and delete an original from the drawer', (
     tester,
   ) async {

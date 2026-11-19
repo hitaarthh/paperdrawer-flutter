@@ -101,9 +101,10 @@ class PdPushedScaffold extends StatefulWidget {
     this.onBack,
     this.glassBack = false,
     this.closeOnRight = false,
+    this.scrollBehindHeader = false,
     this.controller,
     super.key,
-  });
+  }) : assert(!scrollBehindHeader || (glassBack && !closeOnRight));
 
   final String backLabel;
   final String? kicker;
@@ -116,6 +117,7 @@ class PdPushedScaffold extends StatefulWidget {
   final VoidCallback? onBack;
   final bool glassBack;
   final bool closeOnRight;
+  final bool scrollBehindHeader;
   final ScrollController? controller;
 
   @override
@@ -134,160 +136,32 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
           constraints: const BoxConstraints(maxWidth: Pd.maxContent),
           child: Column(
             children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  border: _scrolled
-                      ? const Border(bottom: BorderSide(color: Pd.hairline))
-                      : null,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: widget.glassBack || widget.closeOnRight
-                        ? Pd.margin
-                        : Pd.s3,
+              if (!widget.scrollBehindHeader)
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: _scrolled
+                        ? const Border(bottom: BorderSide(color: Pd.hairline))
+                        : null,
                   ),
-                  child: Row(
-                    children: [
-                      if (widget.closeOnRight) ...[
-                        Expanded(
-                          child: Semantics(
-                            header: true,
-                            child: Text(
-                              widget.title ?? '',
-                              style: widget.titleStyle ?? PdType.trackerTitle,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: Pd.s3),
-                        PdGlassIcon(
-                          key: const ValueKey('close-button'),
-                          label: widget.backLabel,
-                          icon: const Icon(LucideIcons.x),
-                          systemIcon: 'xmark',
-                          onPressed: widget.onBack,
-                        ),
-                      ] else ...[
-                        Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: widget.glassBack
-                                ? PdGlassIcon(
-                                    key: const ValueKey('back-button'),
-                                    systemIcon: 'chevron.backward',
-                                    icon: Transform.flip(
-                                      flipX:
-                                          Directionality.of(context) ==
-                                          TextDirection.rtl,
-                                      child: const PdIcon(
-                                        PdGlyph.back,
-                                        size: Pd.s5,
-                                        color: Pd.text,
-                                      ),
-                                    ),
-                                    label: 'Back to ${widget.backLabel}',
-                                    onPressed:
-                                        widget.onBack ??
-                                        () => Navigator.maybePop(context),
-                                  )
-                                : CupertinoButton(
-                                    key: const ValueKey('back-button'),
-                                    padding: const EdgeInsets.only(
-                                      right: Pd.s2,
-                                    ),
-                                    minimumSize: const Size.square(Pd.tapMin),
-                                    pressedOpacity: 0.7,
-                                    focusColor: Pd.lime,
-                                    onPressed:
-                                        widget.onBack ??
-                                        () {
-                                          if (GoRouter.maybeOf(context)
-                                              case final router?) {
-                                            if (router.canPop()) router.pop();
-                                          } else {
-                                            Navigator.maybePop(context);
-                                          }
-                                        },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Transform.flip(
-                                          flipX:
-                                              Directionality.of(context) ==
-                                              TextDirection.rtl,
-                                          child: PdIcon(
-                                            PdGlyph.back,
-                                            color:
-                                                widget.backStyle?.color ??
-                                                Pd.lime,
-                                            size: Pd.s5,
-                                          ),
-                                        ),
-                                        const SizedBox(width: Pd.s1),
-                                        Flexible(
-                                          child: Text(
-                                            widget.backLabel,
-                                            style:
-                                                widget.backStyle ??
-                                                PdType.navBack.copyWith(
-                                                  color: Pd.lime,
-                                                ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        ...widget.actions,
-                      ],
-                    ],
-                  ),
+                  child: _header(context),
                 ),
-              ),
               Expanded(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (notification) {
-                    if (notification.depth != 0 ||
-                        notification.metrics.axis != Axis.vertical) {
-                      return false;
-                    }
-                    final scrolled = notification.metrics.extentBefore > 0;
-                    if (scrolled != _scrolled) {
-                      setState(() => _scrolled = scrolled);
-                    }
-                    return false;
-                  },
-                  child: ListView(
-                    controller: widget.controller,
-                    padding: const EdgeInsets.fromLTRB(
-                      Pd.margin,
-                      Pd.s3,
-                      Pd.margin,
-                      Pd.s6,
-                    ),
-                    children: [
-                      if (widget.kicker case final kicker?) ...[
-                        Text(
-                          kicker,
-                          style: PdType.label.copyWith(color: Pd.textMuted),
-                        ),
-                        const SizedBox(height: Pd.s2),
-                      ],
-                      if (!widget.closeOnRight && widget.title != null) ...[
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            widget.title!,
-                            style: widget.titleStyle ?? PdType.title1,
+                child: widget.scrollBehindHeader
+                    ? Stack(
+                        children: [
+                          Positioned.fill(child: _list()),
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: _header(context),
                           ),
-                        ),
-                        const SizedBox(height: Pd.s5),
-                      ],
-                      ...widget.children,
-                    ],
-                  ),
-                ),
+                        ],
+                      )
+                    : NotificationListener<ScrollNotification>(
+                        onNotification: _onScroll,
+                        child: _list(),
+                      ),
               ),
               if (widget.bottom case final bottom?)
                 Padding(
@@ -304,6 +178,131 @@ class _PdPushedScaffoldState extends State<PdPushedScaffold> {
         ),
       ),
     ),
+  );
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    final scrolled = notification.metrics.extentBefore > 0;
+    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+    return false;
+  }
+
+  Widget _header(BuildContext context) => Padding(
+    padding: EdgeInsets.symmetric(
+      horizontal: widget.glassBack || widget.closeOnRight ? Pd.margin : Pd.s3,
+    ),
+    child: Row(
+      children: [
+        if (widget.closeOnRight) ...[
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                widget.title ?? '',
+                style: widget.titleStyle ?? PdType.trackerTitle,
+              ),
+            ),
+          ),
+          const SizedBox(width: Pd.s3),
+          PdGlassIcon(
+            key: const ValueKey('close-button'),
+            label: widget.backLabel,
+            icon: const Icon(LucideIcons.x),
+            systemIcon: 'xmark',
+            onPressed: widget.onBack,
+          ),
+        ] else ...[
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: widget.glassBack
+                  ? PdGlassIcon(
+                      key: const ValueKey('back-button'),
+                      systemIcon: 'chevron.backward',
+                      icon: Transform.flip(
+                        flipX: Directionality.of(context) == TextDirection.rtl,
+                        child: const PdIcon(
+                          PdGlyph.back,
+                          size: Pd.s5,
+                          color: Pd.text,
+                        ),
+                      ),
+                      label: 'Back to ${widget.backLabel}',
+                      onPressed:
+                          widget.onBack ?? () => Navigator.maybePop(context),
+                    )
+                  : CupertinoButton(
+                      key: const ValueKey('back-button'),
+                      padding: const EdgeInsets.only(right: Pd.s2),
+                      minimumSize: const Size.square(Pd.tapMin),
+                      pressedOpacity: 0.7,
+                      focusColor: Pd.lime,
+                      onPressed:
+                          widget.onBack ??
+                          () {
+                            if (GoRouter.maybeOf(context) case final router?) {
+                              if (router.canPop()) router.pop();
+                            } else {
+                              Navigator.maybePop(context);
+                            }
+                          },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Transform.flip(
+                            flipX:
+                                Directionality.of(context) == TextDirection.rtl,
+                            child: PdIcon(
+                              PdGlyph.back,
+                              color: widget.backStyle?.color ?? Pd.lime,
+                              size: Pd.s5,
+                            ),
+                          ),
+                          const SizedBox(width: Pd.s1),
+                          Flexible(
+                            child: Text(
+                              widget.backLabel,
+                              style:
+                                  widget.backStyle ??
+                                  PdType.navBack.copyWith(color: Pd.lime),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+          ...widget.actions,
+        ],
+      ],
+    ),
+  );
+
+  Widget _list() => ListView(
+    controller: widget.controller,
+    padding: EdgeInsets.fromLTRB(
+      Pd.margin,
+      Pd.s3 + (widget.scrollBehindHeader ? Pd.tapMin : 0),
+      Pd.margin,
+      Pd.s6,
+    ),
+    children: [
+      if (widget.kicker case final kicker?) ...[
+        Text(kicker, style: PdType.label.copyWith(color: Pd.textMuted)),
+        const SizedBox(height: Pd.s2),
+      ],
+      if (!widget.closeOnRight && widget.title != null) ...[
+        Semantics(
+          header: true,
+          child: Text(widget.title!, style: widget.titleStyle ?? PdType.title1),
+        ),
+        const SizedBox(height: Pd.s5),
+      ],
+      ...widget.children,
+    ],
   );
 }
 

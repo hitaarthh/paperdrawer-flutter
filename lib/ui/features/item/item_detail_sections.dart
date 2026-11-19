@@ -41,7 +41,7 @@ class ItemDetailActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (pdNativeGlassVisible(context)) {
+    if (NativeLiquidGlassUtils.supportsLiquidGlass) {
       return LiquidGlassToolbar(
         height: Pd.tapMin,
         width: 2 * Pd.tapMin + 2 * Pd.s1,

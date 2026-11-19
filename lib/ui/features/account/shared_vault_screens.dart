@@ -122,7 +122,13 @@ class SharedItemScreen extends StatelessWidget {
         .where((entry) => entry.item.id == id)
         .firstOrNull;
     if (item == null) {
-      return _missing(context, session, _backLabel, _backRoute);
+      return _missing(
+        context,
+        session,
+        _backLabel,
+        _backRoute,
+        itemDetail: true,
+      );
     }
     final summary = ItemSummary.of(item.item, session.today.value);
     final original = item.originals.firstOrNull;
@@ -130,6 +136,7 @@ class SharedItemScreen extends StatelessWidget {
     return PdPushedScaffold(
       backLabel: _backLabel,
       glassBack: true,
+      scrollBehindHeader: true,
       onBack: () => _back(context),
       title: item.item.name,
       titleStyle: PdType.trackerTitle,
@@ -606,9 +613,12 @@ Widget _missing(
   BuildContext context,
   SharedSession session,
   String back,
-  String route,
-) => PdPushedScaffold(
+  String route, {
+  bool itemDetail = false,
+}) => PdPushedScaffold(
   backLabel: back,
+  glassBack: itemDetail,
+  scrollBehindHeader: itemDetail,
   onBack: () => context.canPop() ? context.pop() : context.go(route),
   children: [
     if (session.loading)

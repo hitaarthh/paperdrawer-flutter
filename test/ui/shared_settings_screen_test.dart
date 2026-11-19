@@ -8,7 +8,6 @@ import 'package:paperdrawer/domain/models/shared_profile.dart';
 import 'package:paperdrawer/domain/models/shared_vault.dart';
 import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
-import 'package:paperdrawer/ui/core/widgets/list_row.dart';
 import 'package:paperdrawer/ui/core/widgets/meter.dart';
 import 'package:paperdrawer/ui/features/account/shared_session.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +25,7 @@ void main() {
     expect(tester.widget<MeterBar>(find.byType(MeterBar)).fraction, 0);
     await _tap(tester, 'back-button');
     await _tap(tester, 'settings-open-notifications');
-    expect(_emailSwitch(tester).value, isTrue);
+    expect(find.text('Bill reminders appear in Notifications.'), findsOneWidget);
 
     await _tap(tester, 'shared-settings-lead-7');
     expect(service.writes, isEmpty);
@@ -34,20 +33,14 @@ void main() {
     expect(service.writes, [(2, null)]);
     expect(session.vault!.profile!.leadDays, 2);
 
-    await _tap(tester, 'shared-settings-email-reminders');
-    expect(service.writes, [(2, null), (null, false)]);
-    expect(_emailSwitch(tester).value, isFalse);
-
     service.rejectWrite = true;
-    final email = find.byKey(const ValueKey('shared-settings-email-reminders'));
-    await tester.tap(email);
+    await tester.tap(find.byKey(const ValueKey('shared-settings-lead-30')));
     await tester.pump();
     expect(
       find.text('Couldn’t save reminder settings. Try again.'),
       findsOneWidget,
     );
-    expect(_emailSwitch(tester).value, isFalse);
-    expect(_emailSwitch(tester).onChanged, isNotNull);
+    expect(session.vault!.profile!.leadDays, 2);
     expect(tester.takeException(), isNull);
   });
 
@@ -56,9 +49,7 @@ void main() {
     (tester) async {
       final (session, _) = await _openSettings(tester, scale: 1.3);
       await _tap(tester, 'settings-open-notifications');
-      await _tap(tester, 'shared-settings-web-reminders');
-      expect(session.webPaths.last, '/settings#reminders');
-      expect(find.byType(PdSwitch), findsOneWidget);
+      expect(find.text('Bill reminders appear in Notifications.'), findsOneWidget);
       await _tap(tester, 'back-button');
       await _tap(tester, 'settings-data');
       await _tap(tester, 'shared-settings-export');
@@ -84,10 +75,6 @@ void main() {
     },
   );
 }
-
-PdSwitch _emailSwitch(WidgetTester tester) => tester.widget<PdSwitch>(
-  find.byKey(const ValueKey('shared-settings-email-reminders')),
-);
 
 Future<void> _tap(WidgetTester tester, String name) async {
   final target = find.byKey(ValueKey(name));

@@ -66,7 +66,7 @@ class PdTabBar extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: Pd.dockMaxWidth),
               child: NativeLiquidGlassUtils.supportsLiquidGlass
-                  ? _nativeDock(context)
+                  ? _nativeDock()
                   : _flutterDock(context),
             ),
           ),
@@ -75,25 +75,19 @@ class PdTabBar extends StatelessWidget {
     );
   }
 
-  Widget _nativeDock(BuildContext context) => SizedBox(
-    // Keep the scroll inset steady, including the plugin's glass overflow.
+  Widget _nativeDock() => SizedBox(
+    // Reserve the plugin's glass overflow even before UIKit has laid out the bar.
     height: Pd.dockControlHeight + Pd.s5,
-    child: Visibility(
-      // Keep the same UIKit view ready for the return from a covered route.
-      // Offstage keeps it out of Flutter's moving render surface.
-      visible: pdNativeGlassVisible(context),
-      maintainState: true,
-      child: legacy.Theme(
-        data: _nativeTheme,
-        child: LiquidGlassTabBar(
-          items: _nativeTabs,
-          iosActionButton: onScan == null ? null : _nativeAdd,
-          currentIndex: currentIndex,
-          onTabSelected: onTap,
-          onActionButtonPressed: onScan,
-          height: Pd.dockControlHeight,
-          selectedItemColor: Pd.lime,
-        ),
+    child: legacy.Theme(
+      data: _nativeTheme,
+      child: LiquidGlassTabBar(
+        items: _nativeTabs,
+        iosActionButton: onScan == null ? null : _nativeAdd,
+        currentIndex: currentIndex,
+        onTabSelected: onTap,
+        onActionButtonPressed: onScan,
+        height: Pd.dockControlHeight,
+        selectedItemColor: Pd.lime,
       ),
     ),
   );

@@ -1,7 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../ui/core/theme/tokens.dart';
-import '../ui/core/widgets/glass.dart';
 
 /// Keeps both pages live while navigating around native platform views.
 class PdPage<T> extends CupertinoPage<T> {
@@ -35,6 +34,9 @@ class _PdPageRoute<T> extends PageRoute<T>
   String? get title => _page.title;
 
   @override
-  Widget buildContent(BuildContext context) =>
-      PdGlassRouteBoundary(child: _page.child);
+  // Slide only the page being pushed or popped. Keep the list under it still.
+  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) => false;
+
+  @override
+  Widget buildContent(BuildContext context) => _page.child;
 }

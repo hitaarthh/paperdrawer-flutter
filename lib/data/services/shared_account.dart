@@ -110,6 +110,10 @@ class SharedAccount {
   Future<void> signIn(String email, String password) =>
       client.auth.signInWithPassword(email: email, password: password);
 
+  String get _confirmationUrl => (config.confirmationOrigin ?? config.web)
+      .resolve('/auth/confirm')
+      .toString();
+
   Future<bool> signUp(String name, String email, String password) async {
     String? timezone;
     try {
@@ -120,12 +124,18 @@ class SharedAccount {
     final response = await client.auth.signUp(
       email: email,
       password: password,
-      emailRedirectTo: (config.confirmationOrigin ?? config.web)
-          .resolve('/auth/confirm')
-          .toString(),
+      emailRedirectTo: _confirmationUrl,
       data: {'name': name, 'timezone': ?timezone},
     );
     return response.session != null;
+  }
+
+  Future<void> resendConfirmation(String email) async {
+    await client.auth.resend(
+      type: OtpType.signup,
+      email: email,
+      emailRedirectTo: _confirmationUrl,
+    );
   }
 
   Future<void> signOut() => client.auth.signOut(scope: SignOutScope.local);

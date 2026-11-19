@@ -37,6 +37,7 @@ class _AccountScreenState extends State<AccountScreen> {
   late bool _creating = widget.startCreating;
   bool _busy = false;
   bool _showPassword = false;
+  bool _resent = false;
   String? _error;
 
   /// The address a confirmation link went to, once sign-up needs one.
@@ -84,11 +85,19 @@ class _AccountScreenState extends State<AccountScreen> {
         }
       } else {
         await widget.session.account.signIn(email, password);
+        if (!mounted) return;
       }
       TextInput.finishAutofillContext();
     } on AuthException catch (error) {
       if (!mounted) return;
-      setState(() => _error = _authError(error.code));
+      setState(() {
+        if (error.code == 'email_not_confirmed') {
+          _password.clear();
+          _sentTo = email;
+        } else {
+          _error = _authError(error.code);
+        }
+      });
     } catch (_) {
       if (!mounted) return;
       setState(
@@ -101,7 +110,6 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   String _authError(String? code) => switch (code) {
-    'email_not_confirmed' => 'Confirm your email first, then sign in.',
     'invalid_credentials' => 'That email or password didn’t match.',
     'user_already_exists' || 'email_exists' =>
       'An account with this email already exists. Sign in instead.',
@@ -111,6 +119,31 @@ class _AccountScreenState extends State<AccountScreen> {
     _ =>
       'Couldn’t ${_creating ? 'create your account' : 'sign in'}. Check your details and try again.',
   };
+
+  Future<void> _resendConfirmation(String email) async {
+    if (_busy || _resent) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.session.account.resendConfirmation(email);
+      if (!mounted) return;
+      setState(() => _resent = true);
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() => _error = switch (error.code) {
+        'over_email_send_rate_limit' || 'over_request_rate_limit' =>
+          'Wait a moment before requesting another link.',
+        _ => 'Couldn’t send a new link. Try again.',
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Couldn’t send a new link. Try again.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   Future<void> _openWeb(String path, String failure) async {
     try {
@@ -126,6 +159,7 @@ class _AccountScreenState extends State<AccountScreen> {
     setState(() {
       _creating = creating;
       _sentTo = null;
+      _resent = false;
       _error = null;
     });
   }
@@ -282,7 +316,7 @@ class _AccountScreenState extends State<AccountScreen> {
       body: Text.rich(
         TextSpan(
           children: [
-            const TextSpan(text: 'We sent a confirmation link to '),
+            const TextSpan(text: 'Look for the confirmation link for '),
             TextSpan(
               text: email,
               style: PdType.callout.copyWith(
@@ -292,17 +326,26 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
             ),
             const TextSpan(
-              text: '. Open it to activate your vault, then come back here to sign in. Didn’t get it? Check your spam folder.',
+              text: '. Open the confirmation link, then come back here to sign in. Check your spam folder if you can’t find it.',
             ),
           ],
         ),
       ),
     ),
+    if (_error case final error?)
+      Text(error, style: PdType.callout.copyWith(color: Pd.signal)),
+    if (_resent)
+      const Text('A new confirmation link was requested.', style: PdType.callout),
     PdButton.primary(
       key: const ValueKey('account-back-to-sign-in'),
       label: 'Back to sign in',
       expand: true,
-      onPressed: () => _switch(false),
+      onPressed: _busy ? null : () => _switch(false),
+    ),
+    PdButton.text(
+      key: const ValueKey('account-resend-confirmation'),
+      label: 'Resend confirmation link',
+      onPressed: _busy || _resent ? null : () => _resendConfirmation(email),
     ),
   ];
 }

@@ -102,6 +102,7 @@ class _ItemDetailView extends StatelessWidget {
       return PdPushedScaffold(
         backLabel: _backLabel,
         glassBack: true,
+        scrollBehindHeader: true,
         title: 'Item unavailable',
         onBack: () => _back(context),
         children: const [
@@ -130,6 +131,7 @@ class _ItemDetailView extends StatelessWidget {
     return PdPushedScaffold(
       backLabel: _backLabel,
       glassBack: true,
+      scrollBehindHeader: true,
       onBack: () => _back(context),
       title: item.name,
       titleStyle: PdType.trackerTitle,
