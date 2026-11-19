@@ -60,6 +60,33 @@ class SharedVaultService {
         (throw StateError('Saved item unavailable'));
   }
 
+  Future<void> deleteItem(String userId, SharedItem item) async {
+    if (_client.auth.currentUser?.id != userId) {
+      throw const FormatException('Sign in to delete this item.');
+    }
+    final id = item.item.id;
+    final bill = item.item.kind == ItemKind.bill;
+    final current = await _fetchItem(userId, id, bill: bill);
+    if (current == null) return;
+    final deleted = await _client
+        .from(bill ? 'bills' : 'documents')
+        .delete()
+        .eq('user_id', userId)
+        .eq('id', id)
+        .select('id');
+    if (deleted.isEmpty) return;
+    final paths = [
+      for (final original in current.originals)
+        if (original.path.startsWith('$userId/')) original.path,
+    ];
+    if (paths.isEmpty) return;
+    try {
+      await _client.storage.from('vault').remove(paths);
+    } catch (_) {
+      // The record has been deleted. Storage cleanup matches the web flow.
+    }
+  }
+
   Future<SharedItem?> _fetchItem(
     String userId,
     String id, {

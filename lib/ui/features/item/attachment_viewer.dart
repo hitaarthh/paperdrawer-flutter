@@ -14,6 +14,7 @@ class AttachmentViewer extends StatefulWidget {
     required this.thumbnail,
     required this.onOpen,
     this.featured = false,
+    this.onPaper = false,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class AttachmentViewer extends StatefulWidget {
   final Future<Uint8List?> Function(Attachment) thumbnail;
   final VoidCallback? onOpen;
   final bool featured;
+  final bool onPaper;
 
   @override
   State<AttachmentViewer> createState() => _AttachmentViewerState();
@@ -44,7 +46,7 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
       child: Icon(
         document.isPdf ? LucideIcons.fileText : LucideIcons.image,
         size: Pd.iconMd,
-        color: Pd.textMuted,
+        color: widget.onPaper ? Pd.inkMuted : Pd.textMuted,
       ),
     );
     return SizedBox(
@@ -62,11 +64,11 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                height: widget.featured ? 200 : Pd.s12 + Pd.s6,
+                height: document.isPdf ? Pd.s12 : (widget.featured ? 160 : Pd.s12 + Pd.s6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(Pd.rSm),
                   child: ColoredBox(
-                    color: Pd.surface2,
+                    color: widget.onPaper ? Pd.paper2 : Pd.surface2,
                     child: FutureBuilder(
                       future: _preview,
                       builder: (context, state) {
@@ -86,7 +88,7 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
               const SizedBox(height: Pd.s1),
               Text(
                 document.name,
-                style: PdType.footnote,
+                style: PdType.footnote.copyWith(color: widget.onPaper ? Pd.ink : Pd.text),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

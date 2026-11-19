@@ -1,14 +1,14 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
+import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/drawer_actions.dart';
 import '../../../data/services/exporter.dart';
 import '../../../data/services/today.dart';
-import '../../../domain/models/item.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -21,8 +21,6 @@ import '../../core/widgets/snackbar.dart';
 import 'attachment_viewer.dart';
 import 'item_detail_sections.dart';
 import 'item_detail_view_model.dart';
-
-enum _ItemAction { archive, restore, delete }
 
 class ItemDetailScreen extends StatelessWidget {
   const ItemDetailScreen({required this.id, this.fromHome = false, super.key});
@@ -48,7 +46,7 @@ class _ItemDetailView extends StatelessWidget {
   const _ItemDetailView({required this.fromHome});
 
   final bool fromHome;
-  String get _backLabel => fromHome ? 'Home' : 'Vault';
+  String get _backLabel => fromHome ? 'Home' : 'Drawer';
 
   void _back(BuildContext context) {
     if (context.canPop()) {
@@ -75,63 +73,16 @@ class _ItemDetailView extends StatelessWidget {
     }
   }
 
-  Future<void> _actions(
-    BuildContext context,
-    ItemDetailViewModel model,
-    Item item,
-  ) async {
-    if (model.busy) return;
-    final action = await showPdActions<_ItemAction>(
+  Future<void> _delete(BuildContext context, ItemDetailViewModel model) async {
+    final confirmed = await showPdConfirm(
       context,
-      title: item.name,
-      actions: [
-        if (item.isArchived)
-          const PdAction(label: 'Restore to vault', value: _ItemAction.restore)
-        else
-          const PdAction(label: 'Move to archive', value: _ItemAction.archive),
-        const PdAction(
-          label: 'Delete item',
-          value: _ItemAction.delete,
-          destructive: true,
-        ),
-      ],
+      title: 'Delete this item?',
+      message: 'This permanently removes the item and its originals from this iPhone.',
+      confirmLabel: 'Delete item',
+      destructive: true,
     );
-    if (!context.mounted) return;
-    switch (action) {
-      case _ItemAction.archive:
-        await _perform(
-          context,
-          model,
-          model.archive(true),
-          success: 'Moved to archive',
-          pop: true,
-        );
-      case _ItemAction.restore:
-        await _perform(
-          context,
-          model,
-          model.archive(false),
-          success: 'Restored to vault',
-        );
-      case _ItemAction.delete:
-        final confirmed = await showPdConfirm(
-          context,
-          title: 'Delete this item?',
-          message: 'This permanently removes the item and its originals. Its claim history stays on Home.',
-          confirmLabel: 'Delete item',
-          destructive: true,
-        );
-        if (!context.mounted || !confirmed) return;
-        await _perform(
-          context,
-          model,
-          model.delete(),
-          success: 'Item deleted',
-          pop: true,
-        );
-      case null:
-        break;
-    }
+    if (!context.mounted || !confirmed) return;
+    await _perform(context, model, model.delete(), success: 'Item deleted', pop: true);
   }
 
   Rect? _origin(BuildContext context) {
@@ -141,20 +92,6 @@ class _ItemDetailView extends StatelessWidget {
         : null;
   }
 
-  Future<void> _openLedger(
-    BuildContext context,
-    ItemDetailViewModel model,
-    Item item,
-  ) async {
-    final claim = model.claim ?? await model.openLedger(item);
-    if (!context.mounted) return;
-    if (claim != null) {
-      context.push(Routes.claim(claim.id));
-    } else if (model.error case final error?) {
-      showPdSnackbar(context, error);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final model = context.watch<ItemDetailViewModel>();
@@ -162,6 +99,7 @@ class _ItemDetailView extends StatelessWidget {
     if (summary == null) {
       return PdPushedScaffold(
         backLabel: _backLabel,
+        glassBack: true,
         title: 'Item unavailable',
         onBack: () => _back(context),
         children: const [
@@ -173,144 +111,127 @@ class _ItemDetailView extends StatelessWidget {
       );
     }
     final item = summary.item;
-    final claim = model.claim;
     final original = item.attachments.firstOrNull;
+    final openOriginal = original == null || model.busy
+        ? null
+        : () => _perform(context, model, model.open(original));
+    final remind = item.draft.remind && !item.isArchived;
+    final settings = context.watch<SettingsRepository>();
+    final reminderAt = item.draft.reminderAt;
+    final reminder = switch ((remind, reminderAt)) {
+      (false, _) => 'None',
+      (true, final DateTime at) => DateFormat('d MMM yyyy · h:mm a').format(at.toLocal()),
+      (true, null) => 'Automatic',
+    };
     return PdPushedScaffold(
       backLabel: _backLabel,
+      glassBack: true,
       onBack: () => _back(context),
-      kicker: itemDetailKicker(summary),
       title: item.name,
+      titleStyle: PdType.trackerTitle,
       actions: [
-        PdButton.text(
-          label: 'Edit',
-          onPressed: model.busy
-              ? null
-              : () => context.push(Routes.edit(item.id)),
-        ),
-        PdNavIcon(
-          key: const ValueKey('item-actions'),
-          icon: const Icon(LucideIcons.ellipsis),
-          semanticLabel: 'Item options',
-          onTap: () => _actions(context, model, item),
+        ItemDetailActions(
+          onEdit: model.busy ? null : () => context.push(Routes.edit(item.id)),
+          onDelete: model.busy ? null : () => _delete(context, model),
         ),
       ],
+      bottom: original == null ? null : PdButton.primary(
+        label: 'Open original',
+        expand: true,
+        onPressed: openOriginal,
+      ),
       children: [
-        ItemReturnTicket(summary),
-        if (original != null) ...[
-          Text('Original on file', style: PdType.title2),
-          const SizedBox(height: Pd.s3),
-          AttachmentViewer(
+        ItemDeadlineTicket(summary),
+        ItemOriginalPaper(
+          summary,
+          rows: itemRecord(summary),
+          fileFormat: original == null ? null : (original.isPdf ? 'PDF' : 'IMAGE'),
+          original: original == null ? null : AttachmentViewer(
             key: ValueKey('attachment-${original.id}'),
             attachment: original,
             thumbnail: model.thumbnail,
             featured: true,
-            onOpen: model.busy
+            onPaper: true,
+            onOpen: openOriginal,
+          ),
+        ),
+        for (final attachment in item.attachments.skip(1))
+          PdListRow(
+            key: ValueKey('attachment-${attachment.id}'),
+            title: attachment.name,
+            chevron: true,
+            onTap: model.busy
                 ? null
-                : () => _perform(context, model, model.open(original)),
+                : () => _perform(context, model, model.open(attachment)),
           ),
-          Wrap(
-            spacing: Pd.s2,
-            runSpacing: Pd.s1,
-            children: [
-              PdButton.secondary(
-                label: 'Open full size',
-                onPressed: model.busy
-                    ? null
-                    : () => _perform(context, model, model.open(original)),
-              ),
-              Builder(
-                builder: (anchor) => PdButton.secondary(
-                  key: const ValueKey('item-share'),
-                  label: 'Share originals',
-                  onPressed: model.busy
-                      ? null
-                      : () => _perform(
-                          context,
-                          model,
-                          model.shareOriginals(item, _origin(anchor)),
-                        ),
-                ),
-              ),
-            ],
-          ),
-          for (final attachment in item.attachments.skip(1))
+        const SizedBox(height: Pd.s5),
+        PdListGroup(
+          children: [
             PdListRow(
-              key: ValueKey('attachment-${attachment.id}'),
-              title: attachment.name,
-              chevron: true,
-              onTap: model.busy
-                  ? null
-                  : () => _perform(context, model, model.open(attachment)),
-            ),
-          const SizedBox(height: Pd.s6),
-        ],
-        ItemCoverage(summary),
-        ItemClaimKit(
-          description: original == null
-              ? 'Share your saved details and coverage dates.'
-              : 'Share your saved details, coverage dates, and original documents.',
-          actions: [
-            if (claim != null || !item.isArchived)
-              PdButton.primary(
-                key: const ValueKey('item-claim'),
-                label: claim == null ? 'Open a claim' : 'View claim ledger',
-                expand: true,
-                onPressed: model.busy
-                    ? null
-                    : () => _openLedger(context, model, item),
-              )
-            else
-              PdButton.primary(
-                key: const ValueKey('item-restore'),
-                label: 'Restore to vault',
-                onPressed: model.busy
-                    ? null
-                    : () => _perform(
-                        context,
-                        model,
-                        model.archive(false),
-                        success: 'Restored to vault',
-                      ),
-              ),
-            Builder(
-              builder: (anchor) => PdButton.secondary(
-                key: const ValueKey('item-export-kit'),
-                label: 'Share claim kit',
-                expand: true,
-                onPressed: model.busy
-                    ? null
-                    : () => _perform(
-                        context,
-                        model,
-                        model.exportKit(item, _origin(anchor)),
-                      ),
-              ),
+              title: 'Reminder',
+              value: remind && !settings.remindersOn ? '$reminder · Paused' : reminder,
             ),
           ],
         ),
-        if (model.itemClaims.isNotEmpty) ...[
-          PdListGroup(
-            header: 'Claims on this item',
-            children: [
-              for (final entry in model.itemClaims)
-                PdListRow(
-                  title: entry.title,
-                  value: entry.isOpen ? 'Open' : 'Settled',
-                  chevron: true,
-                  onTap: () => context.push(Routes.claim(entry.id)),
-                ),
-            ],
-          ),
+        if (summary.windows.length > 1) ...[
           const SizedBox(height: Pd.s6),
-        ] else if (!item.isArchived)
-          const ItemClaimHistoryEmpty(),
-        ItemRecord(itemRecord(summary)),
+          ItemCoverage(summary),
+        ],
         if (item.draft.notes.isNotEmpty) ...[
           const SizedBox(height: Pd.s5),
           Text('Notes', style: PdType.title2),
           const SizedBox(height: Pd.s2),
           Text(item.draft.notes, style: PdType.body),
         ],
+        if (model.itemClaims.isNotEmpty) ...[
+          const SizedBox(height: Pd.s5),
+          PdListGroup(
+            header: 'Claims on this item',
+            children: [
+              for (final entry in model.itemClaims)
+                PdListRow(
+                  key: ValueKey('item-claim-${entry.id}'),
+                  title: entry.title,
+                  value: entry.isOpen ? 'Open' : 'Settled',
+                  chevron: true,
+                  onTap: () => context.push(Routes.claim(entry.id)),
+                ),
+              Builder(
+                builder: (anchor) => PdListRow(
+                  key: const ValueKey('item-export-kit'),
+                  title: 'Share claim kit',
+                  onTap: model.busy ? null : () => _perform(
+                    context, model, model.exportKit(item, _origin(anchor)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: Pd.s5),
+        PdListGroup(
+          children: [
+            if (original != null)
+              Builder(
+                builder: (anchor) => PdListRow(
+                  key: const ValueKey('item-share'),
+                  title: 'Share originals',
+                  onTap: model.busy ? null : () => _perform(
+                    context, model, model.shareOriginals(item, _origin(anchor)),
+                  ),
+                ),
+              ),
+            PdListRow(
+              key: ValueKey(item.isArchived ? 'item-restore' : 'item-archive'),
+              title: item.isArchived ? 'Restore to drawer' : 'Move to archive',
+              onTap: model.busy ? null : () => _perform(
+                context, model, model.archive(!item.isArchived),
+                success: item.isArchived ? 'Restored to drawer' : 'Moved to archive',
+                pop: !item.isArchived,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

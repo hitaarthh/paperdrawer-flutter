@@ -73,24 +73,34 @@ class SharedItemScreen extends StatelessWidget {
   final String id;
   final bool fromHome;
 
-  String get _backLabel => fromHome ? 'HOME' : 'VAULT';
+  String get _backLabel => fromHome ? 'Home' : 'Drawer';
   String get _backRoute => fromHome ? '/home' : '/vault';
 
-  Future<void> _openLedger(
-    BuildContext context,
-    SharedSession session,
-    SharedItem item,
-    SharedClaim? existing,
-  ) async {
+  void _back(BuildContext context) =>
+      context.canPop() ? context.pop() : context.go(_backRoute);
+
+  Future<void> _delete(BuildContext context, SharedSession session, SharedItem item) async {
+    final confirmed = await showPdConfirm(
+      context,
+      title: 'Delete this item?',
+      message: 'This permanently removes the item and its originals from your account.',
+      confirmLabel: 'Delete item',
+      destructive: true,
+    );
+    if (!confirmed || !context.mounted) return;
     try {
-      final claim = existing ?? await session.openLedger(item);
-      if (context.mounted) context.push('/claims/${claim.id}');
-    } on FormatException catch (error) {
-      if (context.mounted) showPdSnackbar(context, error.message);
+      await session.deleteItem(item);
+      if (context.mounted) _back(context);
     } catch (_) {
-      if (context.mounted) {
-        showPdSnackbar(context, 'The claim ledger couldn’t open. Try again.');
-      }
+      if (context.mounted) showPdSnackbar(context, 'Couldn’t delete this item. Try again.');
+    }
+  }
+
+  Future<void> _openOriginal(BuildContext context, SharedSession session, SharedOriginal file) async {
+    try {
+      await session.openOriginal(file);
+    } catch (_) {
+      if (context.mounted) showPdSnackbar(context, 'Couldn’t open this original. Try again.');
     }
   }
 
@@ -132,58 +142,56 @@ class SharedItemScreen extends StatelessWidget {
       session.today.value,
       hasOpenClaim: activeClaim != null,
     );
-    final category = item.details
-        .where((detail) => detail.$1 == 'Category')
-        .firstOrNull
-        ?.$2;
+    final original = item.originals.firstOrNull;
+    final rem = session.vault?.profile;
     return PdPushedScaffold(
       backLabel: _backLabel,
-      backStyle: PdType.monoButton,
-      onBack: () => context.canPop() ? context.pop() : context.go(_backRoute),
-      kicker: itemDetailKicker(summary, category: category),
+      glassBack: true,
+      onBack: () => _back(context),
       title: item.item.name,
       titleStyle: PdType.trackerTitle,
       actions: [
-        PdButton.text(
-          key: const ValueKey('shared-item-edit'),
-          label: 'Edit',
-          monospaced: true,
-          onPressed: () => _open(context, session, item.editPath),
+        ItemDetailActions(
+          onEdit: session.claimBusy ? null : () => _open(context, session, item.editPath),
+          onDelete: session.claimBusy ? null : () => _delete(context, session, item),
         ),
       ],
+      bottom: original == null ? null : PdButton.primary(
+        label: 'Open original',
+        expand: true,
+        onPressed: () => _openOriginal(context, session, original),
+      ),
       children: [
-        ItemReturnTicket(summary),
-        if (item.originals.isNotEmpty) ...[
-          Text('Original on file', style: PdType.title2),
-          const SizedBox(height: Pd.s3),
-          _SharedItemOriginal(file: item.originals.first, session: session),
-          _Originals(item.originals.skip(1).toList(), session),
-          const SizedBox(height: Pd.s6),
-        ],
-        ItemCoverage(summary),
-        ItemClaimKit(
-          description: item.originals.isEmpty
-              ? 'Share your saved details and coverage dates.'
-              : 'Share your saved details, coverage dates, and original documents.',
-          actions: [
-            PdButton.primary(
-              key: const ValueKey('shared-item-claim'),
-              label: activeClaim == null ? 'Open a claim' : 'View claim ledger',
-              expand: true,
-              onPressed: session.claimBusy
-                  ? null
-                  : () => _openLedger(context, session, item, activeClaim),
-            ),
-            Builder(
-              builder: (anchor) => PdButton.secondary(
-                label: 'Share claim kit',
-                expand: true,
-                onPressed: () => _shareKit(anchor, session, item),
-              ),
-            ),
+        ItemDeadlineTicket(summary),
+        ItemOriginalPaper(
+          summary,
+          fileFormat: original == null ? null : (original.mime == 'application/pdf' ? 'PDF' : 'IMAGE'),
+          original: original == null ? null : _SharedItemOriginal(file: original, session: session),
+          rows: [
+            ...itemRecord(summary),
+            for (final detail in item.details)
+              if (!const {'Invoice number', 'Serial number', 'Document number'}.contains(detail.$1))
+                detail,
           ],
         ),
+        if (item.originals.length > 1) _Originals(item.originals.skip(1).toList(), session),
+        if (summary.windows.isNotEmpty) ...[
+          const SizedBox(height: Pd.s5),
+          PdListGroup(
+            children: [
+              PdListRow(
+                title: 'Email reminders',
+                value: (rem?.emailReminders ?? false) ? '${rem!.leadDays} days before' : 'Off',
+              ),
+            ],
+          ),
+        ],
+        if (summary.windows.length > 1) ...[
+          const SizedBox(height: Pd.s6),
+          ItemCoverage(summary),
+        ],
         if (linkedClaims.isNotEmpty) ...[
+          const SizedBox(height: Pd.s5),
           PdListGroup(
             header: 'Claims on this item',
             children: [
@@ -194,21 +202,15 @@ class SharedItemScreen extends StatelessWidget {
                   chevron: true,
                   onTap: () => context.push('/claims/${claim.id}'),
                 ),
+              Builder(
+                builder: (anchor) => PdListRow(
+                  title: 'Share claim kit',
+                  onTap: () => _shareKit(anchor, session, item),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: Pd.s6),
-        ] else
-          const ItemClaimHistoryEmpty(),
-        ItemRecord([
-          ...itemRecord(summary),
-          for (final detail in item.details)
-            if (!const {
-              'Invoice number',
-              'Serial number',
-              'Document number',
-            }.contains(detail.$1))
-              detail,
-        ]),
+        ],
         if (summary.d.notes.isNotEmpty) ...[
           const SizedBox(height: Pd.s5),
           Text('Notes', style: PdType.title2),
@@ -510,63 +512,41 @@ class _SharedItemOriginalState extends State<_SharedItemOriginal> {
     const placeholder = Center(
       child: Icon(LucideIcons.fileText, color: Pd.inkMuted, size: 46),
     );
-    return DocumentPaper(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: Pd.s2,
-        children: [
-          SizedBox(
-            height: file.mime.startsWith('image/') ? 175 : 70,
-            child: FutureBuilder(
-              future: _preview,
-              builder: (context, snapshot) {
-                final bytes = snapshot.data;
-                return bytes == null
-                    ? placeholder
-                    : Image.memory(
-                        bytes,
-                        fit: BoxFit.contain,
-                        cacheWidth: 1000,
-                        errorBuilder: (_, _, _) => placeholder,
-                      );
-              },
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: Pd.s2,
+      children: [
+        SizedBox(
+          height: file.mime.startsWith('image/') ? 160 : Pd.s12,
+          child: FutureBuilder(
+            future: _preview,
+            builder: (context, snapshot) {
+              final bytes = snapshot.data;
+              return bytes == null
+                  ? placeholder
+                  : Image.memory(
+                      bytes,
+                      fit: BoxFit.contain,
+                      cacheWidth: 1000,
+                      errorBuilder: (_, _, _) => placeholder,
+                    );
+            },
           ),
-          Text(file.name, style: PdType.callout.copyWith(color: Pd.ink2)),
-          const DashedRule(),
-          Wrap(
-            spacing: Pd.s2,
-            runSpacing: Pd.s2,
-            children: [
-              PdButton.onPaper(
-                label: 'Open full size',
-                onPressed: _busy
-                    ? null
-                    : () => _handle(() => widget.session.openOriginal(file)),
-              ),
-              Builder(
-                builder: (anchor) => PdButton.onPaper(
-                  label: 'Share file',
-                  onPressed: _busy
-                      ? null
-                      : () {
-                          final box = anchor.findRenderObject();
-                          final origin = box is RenderBox && box.hasSize
-                              ? box.localToGlobal(Offset.zero) & box.size
-                              : null;
-                          _handle(
-                            () => widget.session.shareOriginal(
-                              file,
-                              origin: origin,
-                            ),
-                          );
-                        },
-                ),
-              ),
-            ],
+        ),
+        Text(file.name, style: PdType.callout.copyWith(color: Pd.ink2)),
+        Builder(
+          builder: (anchor) => PdButton.onPaper(
+            label: 'Share file',
+            onPressed: _busy ? null : () {
+              final box = anchor.findRenderObject();
+              final origin = box is RenderBox && box.hasSize
+                  ? box.localToGlobal(Offset.zero) & box.size
+                  : null;
+              _handle(() => widget.session.shareOriginal(file, origin: origin));
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

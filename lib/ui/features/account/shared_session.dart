@@ -218,6 +218,35 @@ class SharedSession extends ChangeNotifier {
     };
   }
 
+  Future<void> deleteItem(SharedItem item) async {
+    final owner = _userId;
+    if (owner == null || claimBusy) {
+      throw const FormatException('The drawer is busy. Try again in a moment.');
+    }
+    final generation = _accountGeneration;
+    _savingItem = true;
+    notifyListeners();
+    try {
+      await _service.deleteItem(owner, item);
+    } finally {
+      if (_isCurrent(generation)) {
+        _savingItem = false;
+        notifyListeners();
+      }
+    }
+    if (!_isCurrent(generation)) return;
+    final snapshot = vault;
+    if (snapshot != null) {
+      final id = item.item.id;
+      vault = SharedVault(
+        items: snapshot.items.where((entry) => entry.item.id != id).toList(),
+        claims: snapshot.claims,
+        profile: snapshot.profile,
+      );
+    }
+    await refresh();
+  }
+
   Future<SharedClaim> addLedgerEntry(String id, LedgerDraft entry) =>
       _saveLedger(
         (owner) => _service.addLedgerEntry(owner, id, entry, today.instant),
