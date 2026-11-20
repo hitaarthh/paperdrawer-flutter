@@ -9,8 +9,8 @@ import '../../core/widgets/snackbar.dart';
 import 'add_flow.dart';
 import 'add_sheet.dart';
 
-void showSharedManualAdd(BuildContext context, SharedVault vault) {
-  if (_hasRoom(context, vault)) context.push(Routes.add);
+void showSharedManualAdd(BuildContext context, SharedVault? vault) {
+  if (vault == null || _hasRoom(context, vault)) context.push(Routes.add);
 }
 
 Future<void> showSharedAdd(BuildContext context, SharedVault vault) async {

@@ -21,6 +21,19 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  testWidgets('Add accepts one tap while the signed-in drawer loads', (
+    tester,
+  ) async {
+    final load = Completer<void>();
+    final (session, _, _) = await _launch(tester, ready: load.future);
+    expect(session.loading, isTrue);
+    await tester.tap(find.byKey(const ValueKey('scan-or-add')));
+    await tester.pumpAndSettle();
+    expect(find.text('Add a file'), findsOneWidget);
+    load.complete();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('shared Add captures and keeps the review available for retry', (
     tester,
   ) async {
@@ -236,6 +249,7 @@ Future<void> _tap(WidgetTester tester, String key) async {
 Future<(_Session, _VaultService, _Capture)> _launch(
   WidgetTester tester, {
   List<SharedItem> items = const [],
+  Future<void>? ready,
 }) async {
   tester.view.devicePixelRatio = 3;
   tester.view.physicalSize = const Size(1179, 2556);
@@ -243,7 +257,7 @@ Future<(_Session, _VaultService, _Capture)> _launch(
   tester.platformDispatcher.textScaleFactorTestValue = 1.3;
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  final service = _VaultService(items);
+  final service = _VaultService(items, ready);
   final capture = _Capture();
   final session = _Session(_Account(), service, capture);
   final router = buildSharedRouter(session);
@@ -283,9 +297,10 @@ class _Session extends SharedSession {
 }
 
 class _VaultService extends SharedVaultService {
-  _VaultService(this.items) : super(_UnusedClient());
+  _VaultService(this.items, this.ready) : super(_UnusedClient());
 
   final List<SharedItem> items;
+  final Future<void>? ready;
   final attempts = <String>[];
   final uploadIds = <String?>[];
   bool rejectNext = false;
@@ -293,8 +308,10 @@ class _VaultService extends SharedVaultService {
   ItemDraft? draft;
 
   @override
-  Future<SharedVault> fetch(String userId) async =>
-      SharedVault(items: items, claims: const []);
+  Future<SharedVault> fetch(String userId) async {
+    await ready;
+    return SharedVault(items: items, claims: const []);
+  }
 
   @override
   Future<SharedItem> updateItem(

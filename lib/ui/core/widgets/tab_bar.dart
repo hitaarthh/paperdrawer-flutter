@@ -80,14 +80,16 @@ class PdTabBar extends StatelessWidget {
     height: Pd.dockControlHeight + Pd.s5,
     child: legacy.Theme(
       data: _nativeTheme,
-      child: LiquidGlassTabBar(
-        items: _nativeTabs,
-        iosActionButton: onScan == null ? null : _nativeAdd,
-        currentIndex: currentIndex,
-        onTabSelected: onTap,
-        onActionButtonPressed: onScan,
-        height: Pd.dockControlHeight,
-        selectedItemColor: Pd.lime,
+      child: PdNativeGlassTouch(
+        child: LiquidGlassTabBar(
+          items: _nativeTabs,
+          iosActionButton: onScan == null ? null : _nativeAdd,
+          currentIndex: currentIndex,
+          onTabSelected: onTap,
+          onActionButtonPressed: onScan,
+          height: Pd.dockControlHeight,
+          selectedItemColor: Pd.lime,
+        ),
       ),
     ),
   );

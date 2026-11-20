@@ -56,27 +56,18 @@ GoRouter buildSharedRouter(SharedSession session) {
       StatefulShellRoute.indexedStack(
         pageBuilder: (context, state, shell) => PdPage<void>(
           key: state.pageKey,
-          child: ListenableBuilder(
-            listenable: session,
-            builder: (context, child) {
-              final vault = session.vault;
-              return Scaffold(
-                backgroundColor: Pd.bg,
-                extendBody: true,
-                body: child,
-                bottomNavigationBar: PdTabBar(
-                  currentIndex: shell.currentIndex,
-                  onTap: (index) => shell.goBranch(
-                    index,
-                    initialLocation: index == shell.currentIndex,
-                  ),
-                  onScan: vault == null
-                      ? null
-                      : () => showSharedManualAdd(context, vault),
-                ),
-              );
-            },
-            child: shell,
+          child: Scaffold(
+            backgroundColor: Pd.bg,
+            extendBody: true,
+            body: shell,
+            bottomNavigationBar: PdTabBar(
+              currentIndex: shell.currentIndex,
+              onTap: (index) => shell.goBranch(
+                index,
+                initialLocation: index == shell.currentIndex,
+              ),
+              onScan: () => showSharedManualAdd(context, session.vault),
+            ),
           ),
         ),
         branches: [

@@ -163,7 +163,7 @@ class _SharedItemScreenState extends State<SharedItemScreen> {
       titleStyle: PdType.trackerTitle,
       actions: [
         ItemDetailActions(
-          onEdit: deleting || session.claimBusy
+          onEdit: deleting
               ? null
               : () => context.push(Routes.edit(item.item.id)),
           onDelete: deleting || session.claimBusy

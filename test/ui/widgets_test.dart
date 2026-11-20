@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/domain/item_status.dart';
@@ -8,6 +9,7 @@ import 'package:paperdrawer/ui/core/widgets/button.dart';
 import 'package:paperdrawer/ui/core/widgets/chips.dart';
 import 'package:paperdrawer/ui/core/widgets/claim_ladder.dart';
 import 'package:paperdrawer/ui/core/widgets/countdown_ticket.dart';
+import 'package:paperdrawer/ui/core/widgets/glass.dart';
 import 'package:paperdrawer/ui/core/widgets/item_card.dart';
 import 'package:paperdrawer/ui/core/widgets/limit_notice.dart';
 import 'package:paperdrawer/ui/core/widgets/list_row.dart';
@@ -103,6 +105,40 @@ void main() {
     tester.view.viewInsets = FakeViewPadding.zero;
     await tester.pumpAndSettle();
     expect(tester.element(scan), same(addControl));
+  });
+
+  testWidgets('native glass claims the touch before the finger lifts', (
+    tester,
+  ) async {
+    final calls = <String>[];
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform_views, (
+      call,
+    ) async {
+      calls.add(call.method);
+      return null;
+    });
+    addTearDown(() {
+      messenger.setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+    await root(
+      tester,
+      const Scaffold(
+        body: Center(
+          child: SizedBox.square(
+            dimension: 48,
+            child: PdNativeGlassTouch(child: UiKitView(viewType: 'test-glass')),
+          ),
+        ),
+      ),
+      1,
+    );
+    final finger = await tester.startGesture(
+      tester.getCenter(find.byType(UiKitView)),
+    );
+    await tester.pump();
+    expect(calls, contains('acceptGesture'));
+    await finger.up();
   });
 
   for (final scale in [1.0, 1.3, 2.0]) {

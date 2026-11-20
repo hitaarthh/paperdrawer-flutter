@@ -42,31 +42,33 @@ class ItemDetailActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (NativeLiquidGlassUtils.supportsLiquidGlass) {
-      return LiquidGlassToolbar(
-        height: Pd.tapMin,
-        width: 2 * Pd.tapMin + 2 * Pd.s1,
-        itemSpacing: Pd.tapMin - Pd.s5,
-        padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
-        items: [
-          LiquidGlassToolbarItem(
-            id: 'edit',
-            label: 'Edit item',
-            icon: const NativeLiquidGlassIcon.sfSymbol('pencil'),
-            iconSize: Pd.s5,
-            enabled: onEdit != null,
-          ),
-          LiquidGlassToolbarItem(
-            id: 'delete',
-            label: 'Delete item',
-            icon: const NativeLiquidGlassIcon.sfSymbol('trash'),
-            iconSize: Pd.s5,
-            enabled: onDelete != null,
-          ),
-        ],
-        onItemTapped: (id) {
-          if (id == 'edit') onEdit?.call();
-          if (id == 'delete') onDelete?.call();
-        },
+      return PdNativeGlassTouch(
+        child: LiquidGlassToolbar(
+          height: Pd.tapMin,
+          width: 2 * Pd.tapMin + 2 * Pd.s1,
+          itemSpacing: Pd.tapMin - Pd.s5,
+          padding: const EdgeInsets.symmetric(horizontal: Pd.s1),
+          items: [
+            LiquidGlassToolbarItem(
+              id: 'edit',
+              label: 'Edit item',
+              icon: const NativeLiquidGlassIcon.sfSymbol('pencil'),
+              iconSize: Pd.s5,
+              enabled: onEdit != null,
+            ),
+            LiquidGlassToolbarItem(
+              id: 'delete',
+              label: 'Delete item',
+              icon: const NativeLiquidGlassIcon.sfSymbol('trash'),
+              iconSize: Pd.s5,
+              enabled: onDelete != null,
+            ),
+          ],
+          onItemTapped: (id) {
+            if (id == 'edit') onEdit?.call();
+            if (id == 'delete') onDelete?.call();
+          },
+        ),
       );
     }
     return PdGlassSurface(

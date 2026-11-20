@@ -1,6 +1,10 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/foundation.dart' show Factory;
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart'
+    show BoxHitTestResult, RenderObject, RenderProxyBox, RenderUiKitView;
 import 'package:native_liquid_glass/native_liquid_glass.dart';
 
 import '../theme/tokens.dart';
@@ -9,6 +13,38 @@ List<NavigatorObserver> pdGlassNavigatorObservers() => [
   if (NativeLiquidGlassUtils.supportsLiquidGlass)
     LiquidGlassNavigatorObserver(),
 ];
+
+/// Lets UIKit handle touches from pointer-down on a native glass control.
+class PdNativeGlassTouch extends SingleChildRenderObjectWidget {
+  const PdNativeGlassTouch({required Widget super.child, super.key});
+
+  @override
+  RenderProxyBox createRenderObject(BuildContext context) =>
+      _NativeGlassTouchBox();
+}
+
+class _NativeGlassTouchBox extends RenderProxyBox {
+  static final _recognizers = {
+    Factory<OneSequenceGestureRecognizer>(EagerGestureRecognizer.new),
+  };
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    // native_liquid_glass 0.3.1 supplies callback-free tap recognizers, which
+    // do not enter Flutter's arena. Configure the UIKit view before hit testing
+    // because the plugin can create it asynchronously or update its recognizers.
+    if (child case final view?) _enableNativeTouch(view);
+    return super.hitTestChildren(result, position: position);
+  }
+
+  void _enableNativeTouch(RenderObject view) {
+    if (view is RenderUiKitView) {
+      view.updateGestureRecognizers(_recognizers);
+    } else {
+      view.visitChildren(_enableNativeTouch);
+    }
+  }
+}
 
 class PdGlassSurface extends StatelessWidget {
   const PdGlassSurface({required this.child, super.key});
@@ -76,12 +112,14 @@ class PdGlassIcon extends StatelessWidget {
         label: label,
         onTap: onPressed,
         excludeSemantics: true,
-        child: LiquidGlassButton.icon(
-          icon: NativeLiquidGlassIcon.sfSymbol(systemIcon),
-          size: Pd.tapMin,
-          iconSize: Pd.iconSm,
-          onPressed: onPressed,
-          interactive: !MediaQuery.disableAnimationsOf(context),
+        child: PdNativeGlassTouch(
+          child: LiquidGlassButton.icon(
+            icon: NativeLiquidGlassIcon.sfSymbol(systemIcon),
+            size: Pd.tapMin,
+            iconSize: Pd.iconSm,
+            onPressed: onPressed,
+            interactive: !MediaQuery.disableAnimationsOf(context),
+          ),
         ),
       );
     }

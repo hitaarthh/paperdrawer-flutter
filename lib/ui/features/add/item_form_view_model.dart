@@ -31,7 +31,8 @@ class ItemFormViewModel extends ChangeNotifier {
       subtype: saved?.subtype ?? '',
       coverUntil: saved?.coverUntil ?? reading?.coverUntil,
       returnUntil: saved?.returnUntil,
-      returnDays: shared && _kind == ItemKind.bill && start != null && returnEnd != null
+      returnDays:
+          shared && _kind == ItemKind.bill && start != null && returnEnd != null
           ? daysBetween(start, returnEnd)
           : null,
       coverageRenews: saved?.coverageRenews,
