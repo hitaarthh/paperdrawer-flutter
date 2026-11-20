@@ -1,14 +1,13 @@
 # Run PaperDrawer on your iPhone
 
-Use this runbook to install the shared-vault development build on your physical
-iPhone. The Mac runs the web app and Docker Supabase. The iPhone uses the same
-Supabase account, bills, documents and claims over Wi-Fi. USB is used to install
-and launch the app.
+Use this runbook to install the staging build on your physical iPhone. The app
+connects to hosted Staging-PaperDrawer over the internet. USB can be used to install
+and launch the app. Local Docker development is documented separately below.
 
 ## Rebuild and relaunch from Windows
 
-Keep the Mac awake, its Paper Drawer services running, and the paired iPhone
-connected to the Mac. On the Mac, enable **System Settings → General →
+Keep the Mac awake and the paired iPhone connected to the Mac. On the Mac,
+enable **System Settings → General →
 Sharing → Remote Login** for your Mac account and note the SSH address shown.
 On Windows, use Python 3.9 or later and the OpenSSH Client.
 
@@ -29,7 +28,25 @@ configured Git upstream before building. The default checkout is
 Run `python3 tool/deploy_iphone.py` from the Mac for the same workflow
 without SSH. Add `--build-only` to verify the signed app without installing it.
 
-## 1. Start the services on the Mac
+## 1. Configure staging on the Mac
+
+Create `.env.staging.json` in `paperdrawer-flutter` with these three fields. Get the
+project URL and publishable key from the Staging-PaperDrawer Connect panel.
+
+```json
+{
+  "SUPABASE_URL": "https://hdqdyuixrtohahwivqgn.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_...",
+  "PAPERDRAWER_WEB_URL": "https://staging.paperdrawer.app"
+}
+```
+
+Use `https://staging.paperdrawer.app` for `PAPERDRAWER_WEB_URL`. The staging
+website uses the same Supabase project. Its Auth settings allow the site’s
+`/auth/confirm` callback for signup and password reset. The mobile build uses
+the publishable key.
+
+### Optional local Docker development
 
 Start Docker Desktop, then run these commands in Terminal:
 
@@ -91,22 +108,19 @@ cd /Users/hitarth/Projects/paperdrawer/paperdrawer-flutter
 open ios/Runner.xcworkspace
 ```
 
-## 3. Build and install the shared-vault app
+## 3. Build and install the staging app
 
-Use a new Terminal tab for Flutter. If you set the device ID in another tab,
-set it again in this tab.
+Use a new Terminal tab for Flutter.
 
 ```sh
 cd /Users/hitarth/Projects/paperdrawer/paperdrawer-flutter
-flutter pub get
-export PAPERDRAWER_LAN_HOST="$(ipconfig getifaddr en0)"
-printf '%s\n' "$PAPERDRAWER_LAN_HOST"
-python3 tool/run_shared_local.py --profile --lan-host "$PAPERDRAWER_LAN_HOST" -d "$PAPERDRAWER_IPHONE_ID" --no-resident
+python3 tool/deploy_iphone.py --check
+python3 tool/deploy_iphone.py
 ```
 
-The launcher reads the two public Supabase settings from the web project's
-`.env.development.local`. The LAN address lets the phone reach the Mac. A profile
-build can be reopened from the Home Screen once installed.
+The launcher checks the staging credentials, builds a signed profile, and installs
+and launches it. A profile build can be reopened from the Home Screen once
+installed. When multiple iPhones are connected, pass `--device` with the UDID.
 
 ### If Flutter builds the app but cannot find its output
 
@@ -133,14 +147,6 @@ The install and launch commands above succeeded on the physical iPhone 16.
 - **Flutter debug mode screen**. This appears when you open a debug build from
   the Home Screen. Reinstall the profile build above to open it from its icon.
   For live debug and hot reload, launch through Flutter.
-- **Local Network permission**. Tap **Allow** when asked so the app can reach
-  Supabase on the Mac. If sign-in cannot connect, check iPhone and Mac Wi-Fi and
-  recheck the development URLs from the Mac:
-
-```sh
-curl -fsS -o /dev/null -w '%{http_code}\n' "http://$PAPERDRAWER_LAN_HOST:54321/auth/v1/health"
-curl -fsS -o /dev/null -w '%{http_code}\n' "http://$PAPERDRAWER_LAN_HOST:3000/signin"
-```
 
 To confirm installation from Terminal:
 
@@ -161,6 +167,12 @@ build. If the process is absent, use the `devicectl device process launch`
 command above.
 
 ## 4. Sign in and check the data
+
+Sign in with a staging test account. Add a bill, reopen the app offline, and check
+that the drawer is available. To exercise signup confirmation and password
+reset, use the staging web deployment and a staging test email.
+
+### Local Docker test accounts
 
 Clara’s account exists in the development Docker database.
 

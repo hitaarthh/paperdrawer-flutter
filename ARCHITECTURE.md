@@ -18,6 +18,11 @@ web account pages. A connection is required for a new sign-in. A restored
 session can use its drawer offline while the SDK retries token refresh.
 A confirmed sign-out or session revocation closes the drawer.
 
+The physical iPhone deployment launcher reads `.env.staging.json` and builds
+against Staging-PaperDrawer. Its Supabase URL is pinned to the staging project.
+Browser account routes use a web deployment backed by the same project. The
+local development launcher reads the web repo’s local Supabase configuration.
+
 `DrawerStorage` opens `paperdrawer/accounts/<project>/<user-uuid>/vault.sqlite`
 and the corresponding directory of originals. The project key comes from the
 Supabase origin. Display names and email addresses are independent of storage

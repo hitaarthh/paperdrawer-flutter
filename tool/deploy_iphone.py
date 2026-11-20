@@ -1,4 +1,4 @@
-"""Build and relaunch Paper Drawer on a paired iPhone, locally or over SSH."""
+"""Build and relaunch Paper Drawer staging on a paired iPhone locally or over SSH."""
 
 import argparse
 import json
@@ -10,12 +10,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
 
 
 BUNDLE_ID = "app.paperdrawer.mobile"
 SCRIPT = "tool/deploy_iphone.py"
+STAGING_CONFIG = Path(".env.staging.json")
+STAGING_SUPABASE_URL = "https://hdqdyuixrtohahwivqgn.supabase.co"
 
 
 def run(*command, capture=False):
@@ -42,8 +45,6 @@ def run_remotely(options):
             arguments.append(flag)
     if options.device:
         arguments.extend(["--device", options.device])
-    if options.lan_host:
-        arguments.extend(["--lan-host", options.lan_host])
     command = f"cd {project} && exec {shlex.join(arguments)}"
     return subprocess.call(
         ["ssh", "-o", "ConnectTimeout=10", "--", options.host, command]
@@ -87,19 +88,58 @@ def paired_iphone(requested):
     return udid
 
 
-def check_local_services(host):
-    for service, url in (
-        ("Supabase", f"http://{host}:54321/auth/v1/health"),
-        ("the Paper Drawer web app", f"http://{host}:3000/signin"),
+def check_staging_config():
+    try:
+        config = json.loads(STAGING_CONFIG.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise RuntimeError(
+            f"Create {STAGING_CONFIG} with the Staging-PaperDrawer build settings."
+        ) from None
+    except ValueError:
+        raise RuntimeError(f"{STAGING_CONFIG} must contain valid JSON.") from None
+
+    expected_keys = {"SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "PAPERDRAWER_WEB_URL"}
+    if not isinstance(config, dict) or config.keys() != expected_keys or not all(
+        isinstance(value, str) for value in config.values()
     ):
-        try:
-            with urlopen(url, timeout=5):
-                pass
-        except (URLError, TimeoutError):
-            raise RuntimeError(
-                f"The Mac couldn't reach {service}. Check the local Paper Drawer "
-                "services and Mac Wi-Fi before deploying."
-            ) from None
+        raise RuntimeError(
+            f"{STAGING_CONFIG} must contain the three public staging build settings from the runbook."
+        )
+    if config["SUPABASE_URL"] not in (STAGING_SUPABASE_URL, f"{STAGING_SUPABASE_URL}/"):
+        raise RuntimeError(
+            f"Set SUPABASE_URL in {STAGING_CONFIG} to the Staging-PaperDrawer project URL."
+        )
+    key = config["SUPABASE_PUBLISHABLE_KEY"]
+    if not key.startswith("sb_publishable_") or not key.removeprefix("sb_publishable_").strip():
+        raise RuntimeError(
+            f"Set SUPABASE_PUBLISHABLE_KEY in {STAGING_CONFIG} to the staging publishable key."
+        )
+    web = urlsplit(config["PAPERDRAWER_WEB_URL"])
+    if (
+        web.scheme != "https"
+        or not web.hostname
+        or web.username is not None
+        or web.hostname in {"paperdrawer.app", "www.paperdrawer.app"}
+        or web.path not in ("", "/")
+        or web.query
+        or web.fragment
+    ):
+        raise RuntimeError(
+            f"Set PAPERDRAWER_WEB_URL in {STAGING_CONFIG} to the staging website's HTTPS origin."
+        )
+
+    request = Request(f"{STAGING_SUPABASE_URL}/auth/v1/settings", headers={"apikey": key})
+    try:
+        with urlopen(request, timeout=10):
+            pass
+    except HTTPError as error:
+        raise RuntimeError(
+            f"Staging Supabase returned HTTP {error.code}. Check the project and publishable key."
+        ) from None
+    except (URLError, TimeoutError):
+        raise RuntimeError(
+            "The Mac couldn't connect to staging Supabase. Check internet access and project status."
+        ) from None
 
 
 def deploy(options):
@@ -111,7 +151,7 @@ def deploy(options):
         else Path(__file__).resolve().parents[1]
     )
     os.chdir(project)
-    if not Path("tool/run_shared_local.py").is_file() or not Path("pubspec.yaml").is_file():
+    if not Path(SCRIPT).is_file() or not Path("pubspec.yaml").is_file():
         raise RuntimeError("Set --project-dir to the Paper Drawer Flutter checkout on the Mac.")
 
     # Noninteractive SSH sessions do not load the usual Homebrew shell profile.
@@ -119,17 +159,10 @@ def deploy(options):
     if not shutil.which("flutter"):
         raise RuntimeError("Flutter is missing from the Mac's PATH.")
 
-    host = options.lan_host
-    if not host:
-        host = subprocess.run(
-            ["ipconfig", "getifaddr", "en0"], text=True, capture_output=True
-        ).stdout.strip()
-    if not host:
-        raise RuntimeError("The Mac has no Wi-Fi IPv4 address. Supply it with --lan-host.")
-    check_local_services(host)
+    check_staging_config()
     device = None if options.build_only else paired_iphone(options.device)
     if options.check:
-        print("Ready. The Mac can reach the local services and your iPhone.")
+        print("Ready. The Mac can reach Staging-PaperDrawer and your iPhone.")
         return
 
     lock_path = Path(".dart_tool/paperdrawer-deploy.lock")
@@ -145,8 +178,8 @@ def deploy(options):
                 raise RuntimeError("The Mac checkout has local changes. Run without --update to build those changes.")
             run("git", "pull", "--ff-only")
 
-        print("Building the shared-vault iPhone profile…", flush=True)
-        run(sys.executable, "tool/run_shared_local.py", "--lan-host", host, "--build-only", "--profile")
+        print("Building the Staging-PaperDrawer iPhone profile…", flush=True)
+        run("flutter", "build", "ios", "--profile", f"--dart-define-from-file={STAGING_CONFIG}")
         app = next(
             (
                 path
@@ -182,7 +215,6 @@ def main():
     parser.add_argument("--host", help="Mac SSH destination, for example user@mac.local")
     parser.add_argument("--project-dir", help="Absolute path of the Flutter checkout on the Mac")
     parser.add_argument("--device", help="iPhone UDID when more than one is paired and connected")
-    parser.add_argument("--lan-host", help="Override automatic detection of the Mac's Wi-Fi IPv4")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="Check connectivity without building or installing")
     mode.add_argument("--build-only", action="store_true", help="Verify a signed build without installing")

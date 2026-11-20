@@ -18,10 +18,21 @@ Camera capture needs a physical iPhone. The Photos and Files import flows can be
 used on a simulator with sample images and PDFs. The format limits are shown by
 the picker and checked when the record is saved.
 
-## Account build development
+## Staging iPhone builds
 
 See the [iPhone runbook](IOS_DEVICE_RUNBOOK.md) for pairing, installation,
-local test accounts, and the Xcode errors encountered during setup.
+staging setup, and Xcode troubleshooting. Run these commands from this directory.
+
+```sh
+python3 tool/deploy_iphone.py --check
+python3 tool/deploy_iphone.py
+```
+
+The deployment launcher builds against Staging-PaperDrawer using
+`.env.staging.json`. It verifies the staging project URL and publishable key
+before building. The local development flow below uses Docker and Next.js.
+
+## Local account development
 
 The mobile app uses Supabase for accounts and shared settings. Start the web
 project's Docker-backed Supabase and Next.js server in separate terminals from
