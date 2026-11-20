@@ -51,6 +51,9 @@ void main() {
     'the full Settings page scrolls at 130% text and opens web flows',
     (tester) async {
       final (session, _) = await _openSettings(tester, scale: 1.3);
+      final heading = tester.getTopLeft(find.text('Settings'));
+      expect(find.text('Paper Drawer'), findsOneWidget);
+      expect(find.byKey(const ValueKey('drawer-notifications')), findsNothing);
       await _tap(tester, 'settings-open-notifications');
       expect(
         find.text('Bill reminders appear in Notifications.'),
@@ -74,6 +77,9 @@ void main() {
 
       await _tap(tester, 'vault-tab');
       expect(find.text('Your drawer'), findsOneWidget);
+      final drawerHeading = tester.getTopLeft(find.text('Your drawer'));
+      expect(heading.dx, drawerHeading.dx);
+      expect(heading.dy, closeTo(drawerHeading.dy, 4));
       await _tap(tester, 'settings-tab');
       await _tap(tester, 'settings-account');
       await _tap(tester, 'account-sign-out');

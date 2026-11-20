@@ -37,13 +37,10 @@ How the components build the app's main screens. The web designs on paperdrawer.
 
 ## Settings
 
-- **Grouped ListRows:**
-  - Account: name, email, password.
-  - Reminders: Email on/off, Remind me, WhatsApp (Pro).
-  - Plan: Base, "Join the Pro waitlist".
-  - Your data: Export everything, Delete account in `signal`.
-  - About: Privacy, Terms, Version.
-- **Footer** in `footnote` `text-muted`: "PaperDrawer gives guidance, not legal advice."
+1. Use the brand bar and large title from the other tabs. Keep the floating dock over the scroll view.
+2. Open Account from a paper ticket. Its perforated stub holds the account initials or device icon. Put the name and email or storage description on the ticket.
+3. Group Plan, Reminders & notifications, Your data, and Legal on a dark surface. Each row opens a Settings subpage with a glass Back button.
+4. Show the version below the menu in the muted monospace style.
 
 ## Sign in and sign up
 

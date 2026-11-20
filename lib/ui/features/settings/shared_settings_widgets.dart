@@ -7,10 +7,11 @@ import '../../../domain/item_status.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
+import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/list_row.dart';
+import '../../core/widgets/meter.dart';
 import '../../core/widgets/nav.dart';
 import '../../core/widgets/paper.dart';
-import '../../core/widgets/meter.dart';
 
 enum SettingsDestination { account, plan, notifications, data }
 
@@ -41,7 +42,7 @@ class SettingsOverview extends StatelessWidget {
       physics: refresh == null ? null : const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
         Pd.margin,
-        Pd.s5,
+        Pd.s3,
         Pd.margin,
         Pd.s8 + MediaQuery.paddingOf(context).bottom,
       ),
@@ -50,7 +51,7 @@ class SettingsOverview extends StatelessWidget {
           header: true,
           child: Text('Settings', style: PdType.heroTitle),
         ),
-        const SizedBox(height: Pd.s5),
+        const SizedBox(height: Pd.s6),
         account,
         const SizedBox(height: Pd.s5),
         SettingsMenu(
@@ -93,7 +94,7 @@ class SettingsOverview extends StatelessWidget {
             if (state.data case final value?) {
               return Padding(
                 padding: const EdgeInsets.only(top: Pd.s4),
-                child: SharedSettingsDetail('Version $value'),
+                child: SharedSettingsDetail('Version $value', mono: true),
               );
             }
             return const SizedBox.shrink();
@@ -103,14 +104,21 @@ class SettingsOverview extends StatelessWidget {
     );
     return Scaffold(
       backgroundColor: Pd.bg,
-      body: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Pd.maxContent),
-            child: refresh == null
-                ? list
-                : RefreshIndicator.adaptive(onRefresh: refresh, child: list),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: Pd.maxContent),
+          child: Column(
+            children: [
+              const PdBrandBar(),
+              Expanded(
+                child: refresh == null
+                    ? list
+                    : RefreshIndicator.adaptive(
+                        onRefresh: refresh,
+                        child: list,
+                      ),
+              ),
+            ],
           ),
         ),
       ),
@@ -131,6 +139,7 @@ class SettingsSubpage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PdPushedScaffold(
     title: title,
+    titleStyle: PdType.trackerTitle,
     backLabel: 'Settings',
     glassBack: true,
     onBack: () =>
@@ -145,16 +154,7 @@ class SettingsMenu extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      for (final (index, child) in children.indexed) ...[
-        if (index > 0)
-          const SizedBox(height: 1, child: ColoredBox(color: Pd.hairline)),
-        child,
-      ],
-    ],
-  );
+  Widget build(BuildContext context) => PdListGroup(children: children);
 }
 
 class SettingsAccountCard extends StatelessWidget {
@@ -169,6 +169,8 @@ class SettingsAccountCard extends StatelessWidget {
   final String? description;
   final String? initials;
 
+  static const _stubWidth = Pd.tapMin + 2 * Pd.s3;
+
   @override
   Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
@@ -178,57 +180,74 @@ class SettingsAccountCard extends StatelessWidget {
       focusColor: Pd.lime,
       padding: EdgeInsets.zero,
       pressedOpacity: .78,
-      child: DocumentPaper(
-        child: Row(
-          spacing: Pd.s3,
-          children: [
-            ExcludeSemantics(
-              child: SizedBox.square(
-                dimension: Pd.dockControlHeight,
-                child: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    color: Pd.ink,
-                    shape: BoxShape.circle,
+      child: RepaintBoundary(
+        child: NotchedTicketPaper(
+          stubWidth: _stubWidth,
+          child: Row(
+            children: [
+              SizedBox(
+                width: _stubWidth,
+                child: Center(child: ExcludeSemantics(child: _identityMark())),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    Pd.s4,
+                    Pd.s4,
+                    Pd.s2,
+                    Pd.s4,
                   ),
-                  child: Center(
-                    child: initials == null
-                        ? const Icon(
-                            LucideIcons.smartphone,
-                            color: Pd.lime,
-                            size: Pd.iconMd,
-                          )
-                        : FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              initials!,
-                              style: PdType.monoButton.copyWith(color: Pd.lime),
-                            ),
-                          ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: Pd.s1,
+                    children: [
+                      Text(
+                        'ACCOUNT',
+                        style: PdType.label.copyWith(color: Pd.inkMuted),
+                      ),
+                      Text(name, style: PdType.title2.copyWith(color: Pd.ink)),
+                      if (description case final detail?)
+                        Text(
+                          detail,
+                          style: PdType.detail.copyWith(color: Pd.ink2),
+                        ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: Pd.s1,
-                children: [
-                  Text(
-                    'ACCOUNT',
-                    style: PdType.label.copyWith(color: Pd.inkMuted),
-                  ),
-                  Text(name, style: PdType.title2.copyWith(color: Pd.ink)),
-                  if (description case final detail?)
-                    Text(detail, style: PdType.detail.copyWith(color: Pd.ink2)),
-                ],
+              const Icon(
+                LucideIcons.chevronRight,
+                color: Pd.inkMuted,
+                size: Pd.iconSm,
               ),
-            ),
-            const Icon(
-              LucideIcons.chevronRight,
-              color: Pd.inkMuted,
-              size: Pd.iconSm,
-            ),
-          ],
+              const SizedBox(width: Pd.margin),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget _identityMark() => SizedBox.square(
+    dimension: Pd.tapMin,
+    child: DecoratedBox(
+      decoration: const BoxDecoration(color: Pd.ink, shape: BoxShape.circle),
+      child: Padding(
+        padding: const EdgeInsets.all(Pd.s2),
+        child: Center(
+          child: initials == null
+              ? const Icon(
+                  LucideIcons.smartphone,
+                  color: Pd.lime,
+                  size: Pd.iconMd,
+                )
+              : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    initials!,
+                    style: PdType.monoButton.copyWith(color: Pd.lime),
+                  ),
+                ),
         ),
       ),
     ),
