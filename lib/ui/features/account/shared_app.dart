@@ -49,6 +49,8 @@ class _AccountDrawerAppState extends State<AccountDrawerApp> {
   _ActiveDrawer? _active;
   String? _ownerId;
   int _generation = 0;
+  bool _signingOutFromError = false;
+  String? _signOutError;
 
   @override
   void initState() {
@@ -77,6 +79,7 @@ class _AccountDrawerAppState extends State<AccountDrawerApp> {
     _active?.runtime.stopSync();
     setState(() {
       _ownerId = user?.id;
+      _signOutError = null;
       _opening = _open(
         user,
         ++_generation,
@@ -84,6 +87,29 @@ class _AccountDrawerAppState extends State<AccountDrawerApp> {
         importLegacy: importLegacy,
       );
     });
+  }
+
+  Future<void> _signOut(String ownerId) async {
+    if (widget.account.user?.id != ownerId) return;
+    await widget.account.signOut();
+    if (mounted && _ownerId != null && widget.account.user == null) {
+      _switch(null);
+    }
+  }
+
+  Future<void> _signOutFromError() async {
+    final owner = _ownerId;
+    if (owner == null || _signingOutFromError) return;
+    setState(() => _signingOutFromError = true);
+    try {
+      await _signOut(owner);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _signOutError = 'Couldn’t sign out. Try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _signingOutFromError = false);
+    }
   }
 
   Future<_ActiveDrawer?> _open(
@@ -153,12 +179,7 @@ class _AccountDrawerAppState extends State<AccountDrawerApp> {
               ? name.trim()
               : user.email?.split('@').first ?? 'Your account',
           email: user.email,
-          signOut: () async {
-            await widget.account.signOut();
-            if (mounted && _ownerId == user.id && widget.account.user == null) {
-              _switch(null);
-            }
-          },
+          signOut: () => _signOut(user.id),
           importLegacy: legacyAvailable
               ? () => _switch(user, importLegacy: true)
               : null,
@@ -199,10 +220,14 @@ class _AccountDrawerAppState extends State<AccountDrawerApp> {
       if (snapshot.hasError) {
         final error = snapshot.error;
         return _DrawerStatus(
-          message: error is FormatException
-              ? error.message
-              : 'Couldn’t open your drawer. Try again.',
+          message:
+              _signOutError ??
+              (error is FormatException
+                  ? error.message
+                  : 'Couldn’t open your drawer. Try again.'),
           retry: () => _switch(widget.account.user),
+          signOut: _ownerId == null ? null : _signOutFromError,
+          signingOut: _signingOutFromError,
         );
       }
       final opened = snapshot.data;
@@ -232,9 +257,11 @@ class _AccountEntryState extends State<_AccountEntry> {
     routes: [
       GoRoute(
         path: '/intro',
-        builder: (context, state) => IntroFlow(
-          onStart: () => context.go('/account?mode=create'),
-          onSignIn: () => context.go('/account'),
+        builder: (context, state) => Material(
+          child: IntroFlow(
+            onStart: () => context.go('/account?mode=create'),
+            onSignIn: () => context.go('/account'),
+          ),
         ),
       ),
       GoRoute(
@@ -269,10 +296,17 @@ class _AccountEntryState extends State<_AccountEntry> {
 }
 
 class _DrawerStatus extends StatelessWidget {
-  const _DrawerStatus({this.message, this.retry});
+  const _DrawerStatus({
+    this.message,
+    this.retry,
+    this.signOut,
+    this.signingOut = false,
+  });
 
   final String? message;
   final VoidCallback? retry;
+  final VoidCallback? signOut;
+  final bool signingOut;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -291,7 +325,16 @@ class _DrawerStatus extends StatelessWidget {
                   spacing: Pd.s4,
                   children: [
                     Text(message!, textAlign: TextAlign.center),
-                    PdButton.text(label: 'Try again', onPressed: retry),
+                    PdButton.text(
+                      label: 'Try again',
+                      onPressed: signingOut ? null : retry,
+                    ),
+                    if (signOut != null)
+                      PdButton.secondary(
+                        label: 'Sign out',
+                        busy: signingOut,
+                        onPressed: signOut,
+                      ),
                   ],
                 ),
         ),

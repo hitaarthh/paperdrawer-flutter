@@ -39,6 +39,7 @@ class DrawerRuntime {
 
   final LocalDrawer drawer;
   late final AppDependencies deps;
+  Future<void>? _closing;
 
   Future<String?> launchLocation() async {
     try {
@@ -50,7 +51,9 @@ class DrawerRuntime {
 
   void stopSync() => deps.settingsSync?.dispose();
 
-  Future<void> close() async {
+  Future<void> close() => _closing ??= _close();
+
+  Future<void> _close() async {
     stopSync();
     try {
       await deps.reminders?.close();
