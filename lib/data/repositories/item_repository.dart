@@ -21,12 +21,15 @@ class LimitReachedException implements Exception {
 
 /// The single source of truth for everything in the drawer.
 class ItemRepository extends ChangeNotifier {
-  ItemRepository(this._db, this._files);
+  ItemRepository(this._db, this._files, {bool Function()? onBasePlan})
+    : _onBasePlan = onBasePlan;
 
   final Database _db;
   final FileStore _files;
+  final bool Function()? _onBasePlan;
   List<Item> _items = const [];
   Future<void> _pending = Future.value();
+  bool _closed = false;
 
   /// Every item, newest first, archived ones included.
   List<Item> get items => _items;
@@ -39,7 +42,8 @@ class ItemRepository extends ChangeNotifier {
 
   int get activeCount => _items.where((item) => !item.isArchived).length;
 
-  bool get atLimit => activeCount >= baseItemLimit;
+  bool get onBasePlan => _onBasePlan?.call() ?? true;
+  bool get atLimit => onBasePlan && activeCount >= baseItemLimit;
 
   Item? byId(String id) => _items.where((item) => item.id == id).firstOrNull;
 
@@ -173,7 +177,13 @@ class ItemRepository extends ChangeNotifier {
 
   // ---------------------------------------------------------------------------
 
+  Future<void> finishWrites() {
+    _closed = true;
+    return _pending;
+  }
+
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    if (_closed) return Future.error(StateError('This drawer is closed.'));
     final result = _pending.then((_) => operation());
     _pending = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     return result;

@@ -16,6 +16,7 @@ class ClaimRepository extends ChangeNotifier {
   final FileStore _files;
   List<Claim> _claims = const [];
   Future<void> _pending = Future.value();
+  bool _closed = false;
 
   List<Claim> get claims => _claims;
   Claim? byId(String id) =>
@@ -317,7 +318,13 @@ class ClaimRepository extends ChangeNotifier {
         return value;
       });
 
+  Future<void> finishWrites() {
+    _closed = true;
+    return _pending;
+  }
+
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    if (_closed) return Future.error(StateError('This drawer is closed.'));
     final result = _pending.then((_) => operation());
     _pending = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     return result;

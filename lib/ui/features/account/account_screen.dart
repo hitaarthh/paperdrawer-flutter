@@ -2,24 +2,24 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../data/services/shared_account.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
 import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/button.dart';
 import '../../core/widgets/text_field.dart';
 import 'account_widgets.dart';
-import 'shared_session.dart';
 
-/// Sign in and Create account for the shared build, as two tabs of one
-/// screen. Signing in (or a sign-up that needs no confirmation) changes the
-/// account, and the shared router redirects to the vault.
+/// Sign in and Create account as two tabs of one screen.
 class AccountScreen extends StatefulWidget {
   const AccountScreen({
-    required this.session,
+    required this.account,
+    required this.openWeb,
     this.startCreating = false,
     super.key,
   });
-  final SharedSession session;
+  final AccountAccess account;
+  final Future<void> Function(String path) openWeb;
 
   /// Opens on "Create account" instead of "Sign in".
   final bool startCreating;
@@ -73,7 +73,7 @@ class _AccountScreenState extends State<AccountScreen> {
     });
     try {
       if (_creating) {
-        final signedIn = await widget.session.account.signUp(
+        final signedIn = await widget.account.signUp(
           _name.text.trim(),
           email,
           password,
@@ -84,7 +84,7 @@ class _AccountScreenState extends State<AccountScreen> {
           setState(() => _sentTo = email);
         }
       } else {
-        await widget.session.account.signIn(email, password);
+        await widget.account.signIn(email, password);
         if (!mounted) return;
       }
       TextInput.finishAutofillContext();
@@ -127,7 +127,7 @@ class _AccountScreenState extends State<AccountScreen> {
       _error = null;
     });
     try {
-      await widget.session.account.resendConfirmation(email);
+      await widget.account.resendConfirmation(email);
       if (!mounted) return;
       setState(() => _resent = true);
     } on AuthException catch (error) {
@@ -149,7 +149,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _openWeb(String path, String failure) async {
     try {
-      await widget.session.openWeb(path);
+      await widget.openWeb(path);
     } catch (_) {
       if (!mounted) return;
       setState(() => _error = failure);

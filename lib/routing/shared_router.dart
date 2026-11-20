@@ -49,7 +49,8 @@ GoRouter buildSharedRouter(SharedSession session) {
         builder: (context, state) => AccountScreen(
           // A new key per mode, so switching modes from the intro resets it.
           key: ValueKey(state.uri.queryParameters['mode']),
-          session: session,
+          account: session.account,
+          openWeb: session.openWeb,
           startCreating: state.uri.queryParameters['mode'] == 'create',
         ),
       ),

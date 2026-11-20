@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -84,36 +85,47 @@ class SharedAccountConfig {
   }
 }
 
-class SharedAccount {
-  const SharedAccount(this.client, this.config);
+abstract interface class AccountAccess {
+  Future<void> signIn(String email, String password);
+  Future<bool> signUp(String name, String email, String password);
+  Future<void> resendConfirmation(String email);
+}
+
+class SharedAccount implements AccountAccess {
+  const SharedAccount(this.client, this.config) : _keychain = null;
+  SharedAccount._(this.client, this.config, this._keychain);
 
   final SupabaseClient client;
   final SharedAccountConfig config;
+  final _KeychainSession? _keychain;
   User? get user => client.auth.currentUser;
   Stream<AuthState> get changes => client.auth.onAuthStateChange;
 
   static Future<SharedAccount> open(SharedAccountConfig config) async {
+    final keychain = Platform.isIOS ? _KeychainSession(config.api.origin) : null;
     final supabase = await Supabase.initialize(
       url: config.api.toString(),
       publishableKey: config.publishableKey,
       debug: false,
       authOptions: FlutterAuthClientOptions(
-        localStorage: Platform.isIOS
-            ? _KeychainSession(config.api.origin)
-            : const EmptyLocalStorage(),
+        localStorage: keychain ?? const EmptyLocalStorage(),
         detectSessionInUri: false,
       ),
     );
-    return SharedAccount(supabase.client, config);
+    return SharedAccount._(supabase.client, config, keychain);
   }
 
-  Future<void> signIn(String email, String password) =>
-      client.auth.signInWithPassword(email: email, password: password);
+  @override
+  Future<void> signIn(String email, String password) async {
+    _keychain?.allowPersistence();
+    await client.auth.signInWithPassword(email: email, password: password);
+  }
 
   String get _confirmationUrl => (config.confirmationOrigin ?? config.web)
       .resolve('/auth/confirm')
       .toString();
 
+  @override
   Future<bool> signUp(String name, String email, String password) async {
     String? timezone;
     try {
@@ -121,6 +133,7 @@ class SharedAccount {
     } catch (_) {
       // The web database supplies its default if the OS clock is unavailable.
     }
+    _keychain?.allowPersistence();
     final response = await client.auth.signUp(
       email: email,
       password: password,
@@ -130,6 +143,7 @@ class SharedAccount {
     return response.session != null;
   }
 
+  @override
   Future<void> resendConfirmation(String email) async {
     await client.auth.resend(
       type: OtpType.signup,
@@ -138,27 +152,61 @@ class SharedAccount {
     );
   }
 
-  Future<void> signOut() => client.auth.signOut(scope: SignOutScope.local);
+  Future<void> signOut() async {
+    await _keychain?.clearForSignOut();
+    // GoTrue drops the in-memory session before its revocation request.
+    // A failed request must not keep the local drawer open while offline.
+    unawaited(_revokeSession());
+  }
+
+  Future<void> _revokeSession() async {
+    try {
+      await client.auth.signOut(scope: SignOutScope.local);
+    } catch (_) {
+      // The device credentials were already cleared.
+    }
+  }
 }
 
 class _KeychainSession extends LocalStorage {
-  const _KeychainSession(this.account);
+  _KeychainSession(this.account);
 
   static const _channel = MethodChannel('app.paperdrawer.mobile/account');
   final String account;
+  bool _signedOut = false;
+
+  void allowPersistence() => _signedOut = false;
+
+  Future<void> clearForSignOut() async {
+    _signedOut = true;
+    try {
+      await removePersistedSession();
+    } catch (_) {
+      _signedOut = false;
+      rethrow;
+    }
+  }
 
   @override
   Future<void> initialize() async {}
   @override
-  Future<String?> accessToken() =>
-      _channel.invokeMethod<String>('read', {'account': account});
+  Future<String?> accessToken() async {
+    if (_signedOut) return null;
+    final value = await _channel.invokeMethod<String>('read', {
+      'account': account,
+    });
+    return _signedOut ? null : value;
+  }
   @override
   Future<bool> hasAccessToken() async => await accessToken() != null;
   @override
-  Future<void> persistSession(String value) => _channel.invokeMethod<void>(
-    'write',
-    {'account': account, 'value': value},
-  );
+  Future<void> persistSession(String value) async {
+    if (_signedOut) return;
+    await _channel.invokeMethod<void>('write', {
+      'account': account,
+      'value': value,
+    });
+  }
   @override
   Future<void> removePersistedSession() =>
       _channel.invokeMethod<void>('remove', {'account': account});
