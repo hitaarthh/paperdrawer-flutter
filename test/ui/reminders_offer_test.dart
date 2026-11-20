@@ -302,6 +302,12 @@ class _Claims extends ChangeNotifier implements ClaimRepository {
 
 class _Settings extends ChangeNotifier implements SettingsRepository {
   @override
+  String? get profileName => null;
+  @override
+  bool get onBasePlan => true;
+  @override
+  List<int> get selectableLeadDays => SettingsRepository.leadDayChoices;
+  @override
   bool remindersOn = false;
   @override
   bool remindersOffered = false;

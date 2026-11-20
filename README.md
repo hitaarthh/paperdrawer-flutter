@@ -18,12 +18,12 @@ Camera capture needs a physical iPhone. The Photos and Files import flows can be
 used on a simulator with sample images and PDFs. The format limits are shown by
 the picker and checked when the record is saved.
 
-## Shared vault development
+## Account build development
 
 See the [iPhone runbook](IOS_DEVICE_RUNBOOK.md) for pairing, installation,
 local test accounts, and the Xcode errors encountered during setup.
 
-The mobile app can use the web app's Supabase account and vault. Start the web
+The mobile app uses Supabase for accounts and shared settings. Start the web
 project's Docker-backed Supabase and Next.js server in separate terminals from
 `paperdrawer-web/`:
 
@@ -54,12 +54,10 @@ server. Open local confirmation emails on the Mac.
 
 Sign in with your local web account or create one in the app. Local confirmation
 emails appear at `http://localhost:54324`. Confirm in the browser, then sign in
-on the phone. Create or edit bills and claims on the web, then refresh the
-mobile Vault or Claims tab. In the account build, Add opens the native camera,
-native file pickers, or a manual form. Review and save the record to see it in
-the same vault on phone and web. Item edit and account-management links open
-the existing website.
-Device-only bills are available via the standard `flutter run` launch.
+on the phone. Add a file, turn on airplane mode, and reopen the app to test
+offline use. Sign out locally, reconnect, and sign in as a second user to
+verify that each account opens its own drawer. The standard `flutter run`
+launch opens the older device-only drawer while it remains unassigned.
 
 For a hosted build, supply `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and
 optionally `PAPERDRAWER_WEB_URL` as Dart defines. The backend must allow the web
@@ -84,12 +82,13 @@ flutter test
 ## How the pieces fit
 
 - `lib/ui/features` contains the vault, add and edit forms, claims, settings,
-  and shared account screens.
+  and account screens.
 - `lib/ui/core/theme` contains the dark palette and shared type styles.
   The asset folder holds the launcher icon, bundled fonts, and their licenses.
 - `ItemRepository` is the storage boundary for the device-only vault. The
   SQLite implementation stores metadata and settings. Originals live under private
   Application Support with relative paths, outside temporary picker storage.
   Archived records retain their originals and can be restored.
-- On iOS, the device-only vault directory is excluded from backups.
-  Uninstalling can remove the entire device-only vault.
+- On iOS, the vault directory is excluded from system backups. Exporting from
+  Your data provides a copy of the records and originals. Signing in on a new
+  phone restores shared settings and starts a new local drawer.

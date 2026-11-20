@@ -13,9 +13,11 @@ import '../../../domain/formats.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
+import '../../core/widgets/button.dart';
 import '../../core/widgets/list_row.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
+import '../account/drawer_account_actions.dart';
 import '../shell/tab_reselect.dart';
 import 'settings_view_model.dart';
 import 'shared_settings_widgets.dart';
@@ -50,6 +52,7 @@ class _SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<_SettingsView> {
   final _scroll = ScrollController();
+  bool _signingOut = false;
   late final _reselect = widget.destination == null
       ? context.read<TabReselect>()
       : null;
@@ -99,7 +102,7 @@ class _SettingsViewState extends State<_SettingsView> {
       context,
       title: 'Remind me before',
       actions: [
-        for (final days in SettingsRepository.leadDayChoices)
+        for (final days in model.selectableLeadDays)
           PdAction(label: daysWord(days), value: days),
       ],
     );
@@ -107,11 +110,35 @@ class _SettingsViewState extends State<_SettingsView> {
     await _perform(model, model.setLeadDays(lead));
   }
 
+  Future<void> _signOut(DrawerAccountActions account) async {
+    if (_signingOut) return;
+    setState(() => _signingOut = true);
+    try {
+      await account.signOut();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _signingOut = false);
+      showPdSnackbar(context, 'Couldn’t sign out. Try again.');
+    }
+  }
+
+  Future<void> _importLegacy(VoidCallback import) async {
+    final confirm = await showPdConfirm(
+      context,
+      title: 'Import the previous drawer?',
+      message: 'Import these files only if they belong to you. Paper Drawer will link the previous drawer to this account.',
+      confirmLabel: 'Import drawer',
+    );
+    if (!mounted || !confirm) return;
+    import();
+  }
+
   Future<void> _erase(SettingsViewModel model) async {
     final confirm = await showPdConfirm(
       context,
       title: 'Clear this drawer?',
-      message: 'This permanently removes your Paper Drawer data and originals from this device.',
+      message:
+          'This permanently removes the records and originals in this drawer.',
       confirmLabel: 'Clear drawer',
       destructive: true,
     );
@@ -129,8 +156,10 @@ class _SettingsViewState extends State<_SettingsView> {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<SettingsViewModel>();
+    final account = context.watch<DrawerAccountActions?>();
+    final name = model.profileName?.trim();
     return switch (widget.destination) {
-      SettingsDestination.account => const SettingsSubpage(
+      SettingsDestination.account when account == null => const SettingsSubpage(
         title: 'Account',
         children: [
           PdListGroup(
@@ -147,9 +176,37 @@ class _SettingsViewState extends State<_SettingsView> {
           ),
         ],
       ),
+      SettingsDestination.account => SettingsSubpage(
+        title: 'Account',
+        children: [
+          PdListGroup(
+            children: [
+              PdListRow(
+                title: name == null || name.isEmpty ? account!.name : name,
+                leadingIcon: LucideIcons.user,
+              ),
+              if (account!.email case final email?)
+                PdListRow(title: email, leadingIcon: LucideIcons.mail),
+            ],
+          ),
+          const SizedBox(height: Pd.s4),
+          const SharedSettingsDetail(
+            'Signing out locks your drawer. Sign back in to open it on this iPhone.',
+          ),
+          const SizedBox(height: Pd.s5),
+          PdButton.secondary(
+            key: const ValueKey('account-sign-out'),
+            label: 'Sign out',
+            busy: _signingOut,
+            onPressed: () => _signOut(account),
+          ),
+        ],
+      ),
       SettingsDestination.plan => SettingsSubpage(
         title: 'Plan',
-        children: [SettingsPlanCard(used: model.active)],
+        children: [
+          SettingsPlanCard(used: model.active, onBase: model.onBasePlan),
+        ],
       ),
       SettingsDestination.notifications => SettingsSubpage(
         title: 'Reminders & notifications',
@@ -183,6 +240,28 @@ class _SettingsViewState extends State<_SettingsView> {
               ),
             ],
           ),
+          if (account != null) ...[
+            const SizedBox(height: Pd.s4),
+            PdListGroup(
+              children: [
+                PdListRow(
+                  title: 'Account email reminders',
+                  trailing: PdSwitch(
+                    key: const ValueKey('settings-email-reminders'),
+                    value: model.emailReminders,
+                    onChanged: model.busy
+                        ? null
+                        : (value) =>
+                              _perform(model, model.setEmailReminders(value)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Pd.s2),
+            const SharedSettingsDetail(
+              'Email reminders apply to files stored online.',
+            ),
+          ],
         ],
       ),
       SettingsDestination.data => SettingsSubpage(
@@ -220,17 +299,27 @@ class _SettingsViewState extends State<_SettingsView> {
                 destructive: true,
                 onTap: model.busy ? null : () => _erase(model),
               ),
+              if (account?.importLegacy case final import?)
+                PdListRow(
+                  key: const ValueKey('settings-import-legacy'),
+                  title: 'Import previous drawer',
+                  leadingIcon: LucideIcons.folderInput,
+                  chevron: true,
+                  onTap: model.busy ? null : () => _importLegacy(import),
+                ),
             ],
           ),
         ],
       ),
       null => SettingsOverview(
         controller: _scroll,
-        account: const SettingsAccountCard(
-          name: 'On this iPhone',
-          description: 'Files stored on this device',
+        account: SettingsAccountCard(
+          name: name == null || name.isEmpty
+              ? account?.name ?? 'On this iPhone'
+              : name,
+          description: account?.email ?? 'Files stored on this device',
         ),
-        plan: 'Base · Free',
+        plan: model.onBasePlan ? 'Base · Free' : 'Pro',
         notifications: model.remindersOn ? 'On' : 'Off',
         version: model.version,
       ),

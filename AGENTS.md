@@ -39,10 +39,10 @@ because agents rooted in this git repo do not load that file.
 
 ## Product principles (non-negotiable)
 
-- **Local-first and private.** The app has no sign-in, no network backend, no
-  analytics, no crash reporting SDKs, and no cloud sync. Do not add network
-  calls, telemetry, or SDKs that phone home unless the task asks for them
-  explicitly.
+- **Local-first and private.** Drawer records and originals live on the device.
+  Supabase handles account authentication and synchronizes shared account
+  settings. Do not add vault sync, telemetry, analytics, or crash reporting
+  without an explicit request.
 - **PaperDrawer never contacts anyone for the user.** Claims and ladders
   suggest steps and draft messages. The user sends them, through the share
   sheet, mail, or phone.

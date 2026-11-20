@@ -37,7 +37,8 @@ class SettingsRepository extends ChangeNotifier {
   int get leadDays {
     final value = int.tryParse(_values[_lead] ?? '');
     return leadDayChoices.contains(value) ||
-            (syncsAccountSettings && SharedProfile.leadDayChoices.contains(value))
+            (syncsAccountSettings &&
+                SharedProfile.leadDayChoices.contains(value))
         ? value!
         : 7;
   }
@@ -104,11 +105,16 @@ class SettingsRepository extends ChangeNotifier {
       SharedSetting.emailReminders: profile.emailReminders ? '1' : '0',
     };
     final current = pendingSettings;
+    final legacyLead =
+        _values[_lead] != null &&
+        !SharedProfile.leadDayChoices.contains(leadDays);
     return _apply({
       _name: profile.name,
       _plan: profile.onBasePlan ? 'base' : 'pro',
       for (final field in SharedSetting.values)
-        if (current[field] == null || current[field] == acknowledged[field]) ...{
+        if (!(field == SharedSetting.leadDays && legacyLead) &&
+            (current[field] == null ||
+                current[field] == acknowledged[field])) ...{
           _key(field): incoming[field],
           _pendingKey(field): null,
         },

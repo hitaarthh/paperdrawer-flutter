@@ -102,17 +102,30 @@ class SharedAccount implements AccountAccess {
   Stream<AuthState> get changes => client.auth.onAuthStateChange;
 
   static Future<SharedAccount> open(SharedAccountConfig config) async {
-    final keychain = Platform.isIOS ? _KeychainSession(config.api.origin) : null;
-    final supabase = await Supabase.initialize(
-      url: config.api.toString(),
-      publishableKey: config.publishableKey,
-      debug: false,
-      authOptions: FlutterAuthClientOptions(
-        localStorage: keychain ?? const EmptyLocalStorage(),
-        detectSessionInUri: false,
-      ),
-    );
-    return SharedAccount._(supabase.client, config, keychain);
+    final keychain = Platform.isIOS
+        ? _KeychainSession(config.api.origin)
+        : null;
+    try {
+      final supabase = await Supabase.initialize(
+        url: config.api.toString(),
+        publishableKey: config.publishableKey,
+        debug: false,
+        authOptions: FlutterAuthClientOptions(
+          localStorage: keychain ?? const EmptyLocalStorage(),
+          detectSessionInUri: false,
+        ),
+      );
+      return SharedAccount._(supabase.client, config, keychain);
+    } catch (_) {
+      // The SDK marks its singleton initialized before it reads Keychain.
+      // Release a partially initialized client so startup can retry.
+      try {
+        await Supabase.instance.dispose();
+      } catch (_) {
+        // Initialization may have failed before the client was created.
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -197,6 +210,7 @@ class _KeychainSession extends LocalStorage {
     });
     return _signedOut ? null : value;
   }
+
   @override
   Future<bool> hasAccessToken() async => await accessToken() != null;
   @override
@@ -207,6 +221,7 @@ class _KeychainSession extends LocalStorage {
       'value': value,
     });
   }
+
   @override
   Future<void> removePersistedSession() =>
       _channel.invokeMethod<void>('remove', {'account': account});

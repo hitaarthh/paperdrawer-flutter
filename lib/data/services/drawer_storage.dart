@@ -29,8 +29,7 @@ class DrawerOwner {
 }
 
 class DrawerStorage {
-  const DrawerStorage(this.root, {DatabaseFactory? factory})
-    : _factory = factory;
+  const DrawerStorage(this.root, {this._factory});
 
   final Directory root;
   final DatabaseFactory? _factory;
@@ -40,10 +39,17 @@ class DrawerStorage {
     await directory.create(recursive: true);
     final db = await AppDatabase.open(_path(directory), factory: _factory);
     final files = FileStore(directory);
-    final settings = SettingsRepository(db, syncsAccountSettings: owner != null);
-    final items = ItemRepository(db, files, onBasePlan: () => settings.onBasePlan);
+    final settings = SettingsRepository(
+      db,
+      syncsAccountSettings: owner != null,
+    );
+    final items = ItemRepository(
+      db,
+      files,
+      onBasePlan: () => settings.onBasePlan,
+    );
     final claims = ClaimRepository(db, files);
-    final drawer = LocalDrawer(db, files, settings, items, claims);
+    final drawer = LocalDrawer(db, files, settings, items, claims, owner?.key);
     try {
       if (owner == null && await LegacyDrawerImport.isClaimed(db)) {
         throw const FormatException('Sign in to open your drawer.');
@@ -57,33 +63,45 @@ class DrawerStorage {
     }
   }
 
-  Future<bool> canImportLegacy(DrawerOwner owner) async {
+  Future<bool> canImportLegacy(DrawerOwner owner, LocalDrawer drawer) async {
+    if (drawer._ownerKey != owner.key) return false;
     final path = _path(root);
     if (!await File(path).exists()) return false;
     final source = await AppDatabase.open(path, factory: _factory);
     try {
       final legacy = LegacyDrawerImport(source, root);
-      return await legacy.canImport(owner.key);
+      return !await legacy.isImported(drawer._db) &&
+          await legacy.canImport(owner.key);
     } finally {
       await source.close();
     }
   }
 
   Future<void> importLegacy(DrawerOwner owner, LocalDrawer drawer) async {
-    final source = await AppDatabase.open(_path(root), factory: _factory);
+    if (drawer._ownerKey != owner.key) {
+      throw StateError('The drawer belongs to another account.');
+    }
+    final path = _path(root);
+    if (!await File(path).exists()) return;
+    final source = await AppDatabase.open(path, factory: _factory);
     try {
-      await LegacyDrawerImport(source, root)
-          .copyTo(owner.key, drawer._db, drawer.files);
+      await LegacyDrawerImport(
+        source,
+        root,
+      ).copyTo(owner.key, drawer._db, drawer.files);
       await Future.wait([
-        drawer.items.load(), drawer.claims.load(), drawer.settings.load(),
+        drawer.items.load(),
+        drawer.claims.load(),
+        drawer.settings.load(),
       ]);
     } finally {
       await source.close();
     }
   }
 
-  Directory _directory(DrawerOwner? owner) =>
-      owner == null ? root : Directory(p.join(root.path, 'accounts', owner.key));
+  Directory _directory(DrawerOwner? owner) => owner == null
+      ? root
+      : Directory(p.join(root.path, 'accounts', owner.key));
 
   String _path(Directory directory) => p.join(directory.path, 'vault.sqlite');
 
@@ -92,22 +110,34 @@ class DrawerStorage {
       SELECT rel_path FROM attachments
       UNION SELECT rel_path FROM claim_event_photos
     ''');
-    await files.removeUnreferenced(rows.map((row) => row['rel_path']! as String).toSet());
+    await files.removeUnreferenced(
+      rows.map((row) => row['rel_path']! as String).toSet(),
+    );
   }
 }
 
 class LocalDrawer {
-  const LocalDrawer(this._db, this.files, this.settings, this.items, this.claims);
+  const LocalDrawer(
+    this._db,
+    this.files,
+    this.settings,
+    this.items,
+    this.claims,
+    this._ownerKey,
+  );
 
   final Database _db;
   final FileStore files;
   final SettingsRepository settings;
   final ItemRepository items;
   final ClaimRepository claims;
+  final String? _ownerKey;
 
   Future<void> close() async {
     await Future.wait([
-      settings.finishWrites(), items.finishWrites(), claims.finishWrites(),
+      settings.finishWrites(),
+      items.finishWrites(),
+      claims.finishWrites(),
     ]);
     settings.dispose();
     items.dispose();

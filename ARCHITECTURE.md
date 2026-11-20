@@ -8,50 +8,48 @@ Imports: use `package:material_ui/material_ui.dart` and `package:cupertino_ui/cu
 
 Region: India first (₹, Indian grouping, 1915 / IRDAI ladders). All money is minor units + currency code.
 
-## Shared account build
+## Local drawer and Supabase accounts
 
-When `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are configured, `main.dart`
-opens `SharedBootstrap`. `SharedAccount` uses the same Supabase Auth backend as
-the web app. iOS session data is stored in the app's Keychain. Signup verification
-uses the existing web callback. The confirmation link can be requested again
-in the app, and password reset uses the web sign-in flow.
-`SharedSession` resets the in-memory vault and inbox on account changes.
+Every mobile drawer opens the same local repositories and router. With
+`SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, `SharedAccount` handles email
+and password auth with Supabase. On iOS it restores the current session from
+Keychain before routing. Signup verification and password reset use the existing
+web account pages. A connection is required for a new sign-in. A restored
+session can use its drawer offline while the SDK retries token refresh.
+A confirmed sign-out or session revocation closes the drawer.
 
-`SharedVaultService` reads bills, bill parts, documents, originals and account
-settings with the current user's session and owner RLS. The shared router gates
-`/home`, `/vault`, `/settings` and the Add routes behind the account.
-Add opens the manual Files form. Save writes through the existing `save_bill` or
-`save_document` RPC with one original in the owner's private storage.
-Bills require a purchase date and documents require an end date. The form uses
-USD to match the shared drawer. Each form keeps its item ID on retry.
-A confirmed save adds the item to the shared snapshot and opens its detail.
-A confirmed deletion removes the item from the shared snapshot and returns to
-the previous screen while the drawer refreshes in the background. The closing
-detail uses its own snapshot during the pop transition.
-Edit reuses the Files form at `/edit/:id` in both builds. A shared edit updates
-the existing record using its loaded revision. The form preserves its type and
-fields that are only shown on the web. Title and dates use a conditional row
-update. A new original uses the `edit_item_with_original` migration to commit
-the metadata and original together, then clean up the superseded file.
+`DrawerStorage` opens `paperdrawer/accounts/<project>/<user-uuid>/vault.sqlite`
+and the corresponding directory of originals. The project key comes from the
+Supabase origin. Display names and email addresses are independent of storage
+ownership. Once the database, items, claims and preferences are ready, the
+app opens Home or an account-scoped reminder destination. Add and Edit use
+only the local repositories. Account switching detaches the old router and
+reminder scheduler, drains accepted local writes, and closes the database.
+The existing unconfigured build uses `paperdrawer/vault.sqlite`.
 
-Both clients subscribe to the account’s private Supabase Realtime channel.
-Events contain resource names and trigger authenticated reads. Flutter refreshes
-on resume and rejoin and queues invalidations that arrive during a vault write.
-`SharedInboxRepository` holds the account’s in-app reminders and read state. The
-server derives due reminders from drawer dates and the account timezone. Bill
-lead time comes from `profiles` (30, 7 or 2 days), and document lead time comes
-from the document. Opening a reminder records its read state in Supabase and
-opens its item. The foreground inbox refreshes once a minute for date changes.
-The shared build clears pending claim notifications left by earlier versions at launch.
-Shared vault exports and account deletion open the existing web flows. Originals are downloaded
-into the temporary directory as needed. The shared build does not open the
-SQLite database or transfer existing device-only originals. The unconfigured
-build uses the on-device repositories and routes below.
+A user can explicitly import the previous on-device drawer from Your data.
+Legacy rows and originals are copied into the active drawer, with IDs and
+archive state preserved. The legacy drawer is reserved for that owner before
+copying. A marker commits with the destination records so an interrupted import
+can be retried without duplicates. The source is kept as a recovery copy.
+Existing web vaults are handled separately. Drawer sync between the device
+and the web is planned for Pro.
+
+`AccountSettingsSync` works with the active account’s `profiles` row.
+Changes to shared settings save locally with a per-field revision in one
+transaction. The sync attempts a pull after startup, on resume, every five
+minutes in the foreground, and after local edits. It sends only changed fields
+with an `updated_at` condition. A conflict triggers a fresh read before retry.
+Clean settings and read-only metadata follow the server. A pending local edit
+takes precedence for its field, and an older acknowledgement cannot clear a
+newer edit. Device notification permission and the in-app offer are local.
+The previous shared router and vault services remain available to regression
+tests while mobile vault sync is deferred.
 
 ## Folder layout
 
-Both entry points use `ui/features/intro/app_opening.dart` to play the opening
-artwork while their startup future runs. On iOS, the first Flutter frame aligns
+The entry point plays `ui/features/intro/app_opening.dart` while the startup
+future runs. On iOS, the first Flutter frame aligns
 with the centered mark in the system launch storyboard. On each cold launch,
 the reveal plays for 1.5 seconds and holds the final frame for at least 350 ms
 before fading into the resolved route. Reduced Motion shows the static artwork
@@ -73,6 +71,8 @@ lib/
     models/claim.dart           Claim, ClaimEvent, ClaimType, ClaimWant, ClaimStatus
   data/
     services/app_database.dart  sqflite open + migrations (v1–v6)
+    services/drawer_storage.dart  account-scoped database and originals
+    services/account_settings_sync.dart  profile reconciliation and retries
     services/file_store.dart    private originals storage
     services/text_recognizer.dart  Vision OCR via method channel
     services/reminder_scheduler.dart  local notifications planning + scheduling
@@ -92,7 +92,7 @@ lib/
     features/add/               AddFlow, CameraScreen, ReadingScreen, ItemFormViewModel, ItemFormScreen
     features/item/              ItemDetailScreen (+ view model), AttachmentViewer
     features/claims/            Legacy screens retained as source, outside the Phase 1 navigation
-    features/settings/          SettingsScreen, SharedSettingsScreen, ArchiveScreen
+    features/settings/          SettingsScreen, ArchiveScreen
 ```
 
 ## Data contracts
@@ -150,8 +150,8 @@ Claim photos accept the same image types and live in `root/claim-photos/`.
 
 ### `SettingsRepository`
 - `SettingsRepository(Database db)`, `Future<void> load()`
-- `bool remindersOn` (default false until the user turns them on and grants permission), `int leadDays` (default 7; choices 1, 3, 7, 14, 30), `String? ticketDismissedKey`
-- `Future<void> setRemindersOn(bool)`, `setLeadDays(int)`, `dismissTicket(String key)`, `eraseAll()`
+- Device notification settings default to off. Reminder lead time defaults to 7 days. Signed-in users can choose 2, 7, or 30 days, matching the remote profile. The unconfigured drawer still offers 1, 3, 7, 14, and 30 days. Legacy preferences fill missing settings. A legacy lead time outside the shared choices stays local until the user chooses a shared value.
+- `setRemindersOn`, `setLeadDays`, `setEmailReminders`, `dismissTicket`, and `eraseAll`. Clearing a signed-in drawer keeps its account profile and pending shared settings.
 
 ### `Today` (`data/services/today.dart`)
 `class Today extends ChangeNotifier { Today([DateTime Function()? now]); DateTime get value; DateTime get instant; void refresh(); }` provides a civil date and a current instant. The shell refreshes the civil date on resume.
@@ -160,19 +160,19 @@ Claim photos accept the same image types and live in `root/claim-photos/`.
 - `TextRecognizer` (abstract): `Future<List<String>> recognize(String path)`; `PlatformTextRecognizer` uses MethodChannel `app.paperdrawer.mobile/text`, method `recognize`, args `{'path': String}` → `List<String>` lines (Apple Vision; PDFs: first 3 pages via PDFKit). Never throws: returns `[]` on failure.
 - `CaptureService.inspect(PendingFile)` reads the original's size and provides preview bytes for a supported image. `pickLedgerPhoto()` picks one image from the device photo library. The camera session supports capture and torch control.
 - `ScanReading readBill(List<String> lines, {required DateTime today, String currency = 'INR'})` in `domain/bill_reader.dart` provides optional kind, name, source, reference, serial number, amount, start and end dates, and separate comprehensive and component warranty durations. The amount is read in the requested currency. `ScanReading.read` identifies populated fields.
-- `ReminderScheduler` observes items and reminder preferences and schedules device notifications with `planReminders({items, leadDays, now})`. It clears old pending notifications before rescheduling. Each new payload opens `/vault/item/<id>`. The planner retains an optional legacy claim argument for regression coverage.
+- `ReminderScheduler` observes items and reminder preferences and schedules device notifications with `planReminders({items, leadDays, now})`. It clears old pending notifications before rescheduling. Signed-in notifications use generic text and scope the item route to the owner. Sign-out cancels pending and delivered app notifications. The planner retains an optional legacy claim argument for regression coverage.
 - `Exporter`: `Future<File> exportEverything({required List<Item> items, required List<Claim> claims})` → zip (`paperdrawer-export-<yyyy-mm-dd>.zip` with `paperdrawer.json`, `originals/` and any `claim-photos/`); `Future<List<XFile>> claimKit(Item item, {Claim? claim})` → originals + `<name>-claim-kit.txt` summary.
 - `buildLedgerPdf` generates an on-device PDF with the entries, references, serial number and names of the files on record. Originals remain available through the claim kit and attachment controls.
 
 ## Routes (`routing/router.dart`)
 
-The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders for on-device items. In the signed-in build, this is the account inbox with a shared unread indicator. Item details and Settings subpages cover the dock.
+The app opens on `/home`. Home shows the nearest date per item within 14 days, with a scheduled reminder as a fallback for files without an upcoming deadline. The Drawer branch retains the `/vault` location and its `filter=due`, `review=old`, and `added=<id>` destinations. The bell on Home and Drawer opens `/notifications`, which shows upcoming device reminders. Item details and Settings subpages cover the dock.
 
 `PdPage` uses live 250 ms Cupertino transitions. The pushed page moves over the stationary page below it. Back navigation reveals the existing list at its previous scroll position.
 
-Add opens the manual, Files-first form at `/add`. `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. The signed-in build uses the shared server contract and in-app reminders. Settings opens with an Account card and navigation rows for Plan, Reminders & notifications, Your data, and Legal. Account, Plan, and Your data have their own Settings routes at `/settings/account`, `/settings/plan`, and `/settings/data`. Notices and legal documents are available under `/settings/notifications` and `/settings/legal`. Local Archive is linked from Your data. Legal opens the canonical `www.paperdrawer.app` pages.
+Add opens the manual, Files-first form at `/add`. `/edit/:id` uses the same form. The four supported types are Bill, Policy, Vehicle papers, and Agreement. A file-specific notification date and time overrides the automatic lead time for that item. Settings opens with an Account card and navigation rows for Plan, Reminders & notifications, Your data, and Legal. Account, Plan, and Your data have their own Settings routes at `/settings/account`, `/settings/plan`, and `/settings/data`. Notices and legal documents are available under `/settings/notifications` and `/settings/legal`. Local Archive is linked from Your data. Legal opens the canonical `www.paperdrawer.app` pages.
 
-Old claim links redirect to Home in both builds. Phase 1 leaves saved legacy claim records intact and retains them in complete backups. The older camera, reading, and review screens remain reachable at `/add/camera`, `/add/reading`, and `/add/details`. `CaptureReadingArgs` carries the originals and chosen kind. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill. Both routers use `buildAddRoutes`.
+Old claim links redirect to Home in both builds. Phase 1 leaves saved legacy claim records intact and retains them in complete backups. The older camera, reading, and review screens remain reachable at `/add/camera`, `/add/reading`, and `/add/details`. `CaptureReadingArgs` carries the originals and chosen kind. `AddDetailsArgs.effectiveKind` uses that choice first, then the recognized kind, then Bill. The drawer router uses `buildAddRoutes`.
 
 ## UI kit (`ui/core/widgets/`)
 
@@ -195,7 +195,7 @@ Old claim links redirect to Home in both builds. Phase 1 leaves saved legacy cla
 - `claim_ladder.dart`: `ClaimLadder({required Claim claim, required DateTime today})` shows the numbered escalation steps and identifies the current and recommended steps.
 - `nav.dart`: `PdLargeTitleScaffold({required String title, Widget? trailing, required List<Widget> slivers, ScrollController? controller, String heroTag})` (CupertinoSliverNavigationBar, Bricolage large title collapsing to Inter 17/600; bg; hairline once scrolled; bottom inset space-12); `PdPushedScaffold({required String backLabel, String? kicker, String? title, TextStyle? titleStyle, TextStyle? backStyle, List<Widget> actions, required List<Widget> children, Widget? bottom, VoidCallback? onBack})` (back button, kicker and title, scrolling body with 20 margins, optional pinned bottom area); `ScanButton({required VoidCallback onTap, VoidCallback? onLongPress})`; `PdNavIcon({required Widget icon, required String semanticLabel, required VoidCallback onTap})`.
 - `nav.dart`: Item details use `PdPushedScaffold(scrollBehindHeader: true)`. Back and the action group stay pinned in a transparent overlay, with the scroll view extending behind them.
-- `tab_bar.dart`: On iOS 26 and later, `native_liquid_glass` embeds the system tab bar for Home, Drawer and Settings. A separate native Add action opens the same Files form without changing the selected tab. The dock stays mounted across tabs and pushed pages, and keeps the scroll inset steady. Both shells hide the dock while the keyboard is open. Older iOS and other platforms use the Flutter dock. Both shells extend content behind the bar and provide enough bottom space to scroll the final item clear.
+- `tab_bar.dart`: On iOS 26 and later, `native_liquid_glass` embeds the system tab bar for Home, Drawer and Settings. A separate native Add action opens the same Files form without changing the selected tab. The dock stays mounted across tabs and pushed pages, and keeps the scroll inset steady. The drawer shell hides the dock while the keyboard is open. Older iOS and other platforms use the Flutter dock. The drawer shell extends content behind the bar and provide enough bottom space to scroll the final item clear.
 - `glass.dart`: Floating Back, Close, Notifications and the item action group use Apple’s regular Liquid Glass throughout page transitions on iOS 26 and later. The system controls refraction and the user’s glass appearance. Each root router suppresses embedded glass during Flutter modal presentations. Embedded dock and header controls claim their own UIKit touches on pointer-down. Older iOS and other platforms use the Flutter glass controls.
 - `empty_state.dart`: `DashedTile({required String title, required String body, Widget? action})`.
 - `ui/core/theme/app_theme.dart`: `ThemeData pdTheme()` (dark, scaffold bg, text selection lime, no ink splash on iOS), `CupertinoThemeData pdCupertinoTheme()` (nav large title / title styles).

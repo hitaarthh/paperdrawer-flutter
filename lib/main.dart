@@ -1,48 +1,35 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
 
 import 'app.dart';
-import 'data/repositories/claim_repository.dart';
-import 'data/repositories/item_repository.dart';
-import 'data/repositories/settings_repository.dart';
-import 'data/services/app_database.dart';
 import 'data/services/device_storage.dart';
-import 'data/services/exporter.dart';
-import 'data/services/file_store.dart';
-import 'data/services/reminder_scheduler.dart';
+import 'data/services/drawer_storage.dart';
 import 'data/services/shared_account.dart';
-import 'data/services/text_recognizer.dart';
-import 'data/services/today.dart';
+import 'drawer_runtime.dart';
 import 'ui/core/theme/tokens.dart';
+import 'ui/core/widgets/button.dart';
 import 'ui/core/widgets/icons.dart';
 import 'ui/features/account/shared_app.dart';
 import 'ui/features/intro/app_opening.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Dark-only at launch: light status-bar content everywhere.
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
-  runApp(
-    SharedAccountConfig.requested
-        ? const SharedBootstrap()
-        : const _Bootstrap(),
-  );
+  runApp(const _Bootstrap());
 }
 
-class _Opened {
-  const _Opened(this.deps, this.database, this.launchLocation);
+typedef _Opened = ({
+  DrawerStorage storage,
+  SharedAccount? account,
+  DrawerRuntime? runtime,
+  String? launchLocation,
+});
 
-  final AppDependencies deps;
-  final Database database;
-  final String? launchLocation;
-}
-
-/// Opens the drawer (database, originals, reminders) before the app shows.
 class _Bootstrap extends StatefulWidget {
   const _Bootstrap();
 
@@ -55,110 +42,82 @@ class _BootstrapState extends State<_Bootstrap> {
 
   Future<_Opened> _open() async {
     final support = await getApplicationSupportDirectory();
-    // Same folder and file name as the first release, so its records migrate.
     final directory = Directory(p.join(support.path, 'paperdrawer'));
     await directory.create(recursive: true);
     await DeviceStorage.excludeFromBackup();
-
-    final database = await AppDatabase.open(
-      p.join(directory.path, 'vault.sqlite'),
-    );
-    try {
-      final files = FileStore(directory);
-      final items = ItemRepository(database, files);
-      final claims = ClaimRepository(database, files);
-      final settings = SettingsRepository(database);
-      await Future.wait([items.load(), claims.load(), settings.load()]);
-
-      final today = Today();
-      final reminders = ReminderScheduler(
-        gateway: FlutterLocalNotificationsGateway(),
-        items: items,
-        settings: settings,
-        today: today,
+    final storage = DrawerStorage(directory);
+    if (SharedAccountConfig.requested) {
+      final account = await SharedAccount.open(
+        SharedAccountConfig.fromEnvironment(),
       );
-      String? launch;
-      try {
-        reminders.start();
-        launch = await reminders.launchLocation();
-      } catch (_) {
-        // Reminders are a convenience; the drawer still opens without them.
-      }
-
-      return _Opened(
-        AppDependencies(
-          items: items,
-          claims: claims,
-          settings: settings,
-          files: files,
-          exporter: Exporter(files, today: today),
-          recognizer: PlatformTextRecognizer(),
-          today: today,
-          reminders: reminders,
-        ),
-        database,
-        launch,
+      return (
+        storage: storage,
+        account: account,
+        runtime: null,
+        launchLocation: null,
       );
-    } catch (_) {
-      await database.close();
-      rethrow;
     }
+    final runtime = DrawerRuntime(await storage.open());
+    return (
+      storage: storage,
+      account: null,
+      runtime: runtime,
+      launchLocation: await runtime.launchLocation(),
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(
+      _opening.then(
+        (opened) => opened.runtime?.close(),
+        onError: (Object _, StackTrace _) {},
+      ),
+    );
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => AppOpening(
     opening: _opening,
-    appBuilder: (opened) => PaperDrawerApp(
-      deps: opened.deps,
-      initialLocation: opened.launchLocation,
-    ),
-    errorBuilder: (_) => Directionality(
+    appBuilder: (opened) => switch (opened.account) {
+      final account? => AccountDrawerApp(
+        account: account,
+        storage: opened.storage,
+      ),
+      null => PaperDrawerApp(
+        deps: opened.runtime!.deps,
+        initialLocation: opened.launchLocation,
+      ),
+    },
+    errorBuilder: (error) => Directionality(
       textDirection: TextDirection.ltr,
       child: ColoredBox(
         color: Pd.bg,
         child: Center(
-          child: _OpenError(onRetry: () => setState(() => _opening = _open())),
-        ),
-      ),
-    ),
-  );
-}
-
-class _OpenError extends StatelessWidget {
-  const _OpenError({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(Pd.s6),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const PaperDrawerMark(size: 40),
-        const SizedBox(height: Pd.s6),
-        const Text(
-          'Your drawer didn’t open. Nothing is lost.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Pd.text, fontSize: 16, height: 1.5),
-        ),
-        const SizedBox(height: Pd.s4),
-        GestureDetector(
-          onTap: onRetry,
-          behavior: HitTestBehavior.opaque,
-          child: const Padding(
-            padding: EdgeInsets.all(Pd.s3),
-            child: Text(
-              'Try again',
-              style: TextStyle(
-                color: Pd.lime,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+          child: Padding(
+            padding: const EdgeInsets.all(Pd.margin),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: Pd.s4,
+              children: [
+                const PaperDrawerMark(size: 40),
+                Text(
+                  error is FormatException
+                      ? error.message
+                      : 'Your drawer didn’t open. Try again.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Pd.text),
+                ),
+                PdButton.text(
+                  label: 'Try again',
+                  onPressed: () => setState(() => _opening = _open()),
+                ),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     ),
   );
 }

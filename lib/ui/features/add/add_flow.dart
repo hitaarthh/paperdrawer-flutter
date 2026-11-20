@@ -35,9 +35,11 @@ abstract final class AddFlow {
     ItemKind kind = ItemKind.bill,
   }) async {
     if (await _showLimitIfNeeded(context) || !context.mounted) return;
+    final items = context.read<ItemRepository>();
     final choice = await showAddSheet(
       context,
-      used: context.read<ItemRepository>().activeCount,
+      used: items.activeCount,
+      onBasePlan: items.onBasePlan,
       initialKind: kind,
     );
     if (!context.mounted || choice == null) return;

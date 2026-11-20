@@ -37,7 +37,11 @@ class SettingsViewModel extends ChangeNotifier {
   late final Future<String?> version = _actions.appVersion();
   bool get remindersOn => _settings.remindersOn;
   bool get canRemind => _reminders != null;
+  bool get emailReminders => _settings.emailReminders;
+  bool get onBasePlan => _settings.onBasePlan;
+  String? get profileName => _settings.profileName;
   int get leadDays => _settings.leadDays;
+  List<int> get selectableLeadDays => _settings.selectableLeadDays;
   int get active => _items.activeCount;
   int get archived => _items.archived.length;
 
@@ -53,6 +57,11 @@ class SettingsViewModel extends ChangeNotifier {
   Future<bool> setLeadDays(int days) => _run(
     () => _settings.setLeadDays(days),
     'Reminder timing couldn’t be updated. Try again.',
+  );
+
+  Future<bool> setEmailReminders(bool value) => _run(
+    () => _settings.setEmailReminders(value),
+    'Email reminders couldn’t be updated. Try again.',
   );
 
   Future<bool> export(Rect? origin) => _run(() async {

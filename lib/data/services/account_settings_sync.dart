@@ -130,10 +130,7 @@ class AccountSettingsSync {
             : await _remote.save(remote, changes);
         if (_closed) return;
         if (confirmed == null) continue; // Another writer changed the profile.
-        await _settings.mergeProfile(
-          confirmed.profile,
-          acknowledged: pending,
-        );
+        await _settings.mergeProfile(confirmed.profile, acknowledged: pending);
         return;
       }
     } catch (_) {
@@ -148,6 +145,7 @@ class AccountSettingsSync {
       };
 
   void dispose() {
+    if (_closed) return;
     _closed = true;
     pause();
     _settings.removeListener(_onLocalChange);

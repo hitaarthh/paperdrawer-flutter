@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'data/repositories/claim_repository.dart';
 import 'data/repositories/item_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'data/services/account_settings_sync.dart';
 import 'data/services/capture_service.dart';
 import 'data/services/drawer_actions.dart';
 import 'data/services/exporter.dart';
@@ -16,6 +17,7 @@ import 'data/services/text_recognizer.dart';
 import 'data/services/today.dart';
 import 'routing/router.dart';
 import 'ui/core/theme/app_theme.dart';
+import 'ui/features/account/drawer_account_actions.dart';
 import 'ui/features/shell/tab_reselect.dart';
 
 /// Everything the app needs, opened once at startup by `main.dart` (or by a
@@ -32,6 +34,7 @@ class AppDependencies {
     this.capture = const CaptureService(),
     this.actions = const DrawerActions(),
     this.reminders,
+    this.settingsSync,
   });
 
   final ItemRepository items;
@@ -46,19 +49,27 @@ class AppDependencies {
 
   /// Null in widget tests, where no notification plugin is available.
   final ReminderScheduler? reminders;
+  final AccountSettingsSync? settingsSync;
 }
 
 class PaperDrawerApp extends StatefulWidget {
-  const PaperDrawerApp({required this.deps, this.initialLocation, super.key});
+  const PaperDrawerApp({
+    required this.deps,
+    this.initialLocation,
+    this.account,
+    super.key,
+  });
 
   final AppDependencies deps;
   final String? initialLocation;
+  final DrawerAccountActions? account;
 
   @override
   State<PaperDrawerApp> createState() => _PaperDrawerAppState();
 }
 
-class _PaperDrawerAppState extends State<PaperDrawerApp> {
+class _PaperDrawerAppState extends State<PaperDrawerApp>
+    with WidgetsBindingObserver {
   late final GoRouter _router = buildRouter(
     initialLocation: widget.initialLocation,
   );
@@ -68,12 +79,26 @@ class _PaperDrawerAppState extends State<PaperDrawerApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    widget.deps.settingsSync?.resume();
     // A tapped reminder opens the item it is about.
     _taps = widget.deps.reminders?.taps.listen(_router.go);
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      widget.deps.settingsSync?.resume();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      widget.deps.settingsSync?.pause();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.deps.settingsSync?.pause();
     _taps?.cancel();
     _router.dispose();
     _reselect.dispose();
@@ -85,6 +110,7 @@ class _PaperDrawerAppState extends State<PaperDrawerApp> {
     final deps = widget.deps;
     return MultiProvider(
       providers: [
+        Provider<DrawerAccountActions?>.value(value: widget.account),
         ChangeNotifierProvider.value(value: deps.items),
         ChangeNotifierProvider.value(value: deps.claims),
         ChangeNotifierProvider.value(value: deps.settings),

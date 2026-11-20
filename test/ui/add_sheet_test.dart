@@ -280,6 +280,9 @@ class _Stub extends StatelessWidget {
 }
 
 class _Items extends ChangeNotifier implements ItemRepository {
+  @override
+  bool get onBasePlan => true;
+
   _Items.withCount(int count)
     : items = [
         for (var i = 0; i < count; i++)

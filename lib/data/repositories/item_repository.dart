@@ -21,8 +21,7 @@ class LimitReachedException implements Exception {
 
 /// The single source of truth for everything in the drawer.
 class ItemRepository extends ChangeNotifier {
-  ItemRepository(this._db, this._files, {bool Function()? onBasePlan})
-    : _onBasePlan = onBasePlan;
+  ItemRepository(this._db, this._files, {this._onBasePlan});
 
   final Database _db;
   final FileStore _files;

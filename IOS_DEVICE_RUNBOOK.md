@@ -164,10 +164,10 @@ command above.
 
 Clara’s account exists in the development Docker database.
 
-| Email | Local seed password | Expected data |
-| --- | --- | --- |
-| `clara@paperdrawer.app` | `hashed_pwd_clara` | 6 bills, 4 documents, 4 claims |
-| `paperdrawer-mobile-preview-20261119@example.com` | `paperdrawer-dev` | 6 bills, 4 documents, 4 claims |
+| Email | Local seed password |
+| --- | --- |
+| `clara@paperdrawer.app` | `hashed_pwd_clara` |
+| `paperdrawer-mobile-preview-20261119@example.com` | `paperdrawer-dev` |
 
 These are local development accounts. Clara’s password comes from
 `paperdrawer-web/supabase/seed.sql` and was checked against the local database.
@@ -179,9 +179,10 @@ env -u SUPABASE_URL -u SUPABASE_SECRET_KEY npm run seed:user -- --email paperdra
 ```
 
 1. Open **PaperDrawer** on the phone and sign in.
-2. Check the **Vault** and **Claims** tabs. Open a bill and tap an original.
-3. Use **Open on web** to make edits. Return to the phone and tap refresh to
-   see changes from the web.
+2. Add a bill from Files, open its original, and edit its title. Turn on
+   airplane mode and relaunch to check that the drawer and Add still work.
+3. Sign out while offline. Reconnect and sign in as the second account.
+   Then sign in as the first account again and verify that the bill is there.
 4. To test **Create an account**, use a new test email. On the Mac, open
    `http://localhost:54324` and follow the confirmation link. Return to the
    phone and sign in.
@@ -242,7 +243,7 @@ This update used the existing Docker and Next.js services and the physical
 iPhone 16. After confirming the developer disk image and local endpoints, the
 updated source passed the analyzer and 72 tests. The suite included capture and
 review with fake camera and OCR services, Bill Detail at 130% text scale, the
-SQLite upgrade, and read access to the local shared vault.
+SQLite upgrade, and offline access to the signed-in user’s local drawer.
 
 ```sh
 xcrun devicectl device info ddiServices --device "$PAPERDRAWER_IPHONE_ID"

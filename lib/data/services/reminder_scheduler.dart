@@ -151,6 +151,10 @@ class FlutterLocalNotificationsGateway implements NotificationGateway {
     if (Platform.isIOS) await _plugin.cancelAllPendingNotifications();
   }
 
+  Future<void> clear() async {
+    if (Platform.isIOS) await _plugin.cancelAll();
+  }
+
   Future<void> cancelClaimReminders() async {
     if (!Platform.isIOS) return;
     for (final pending in await _plugin.pendingNotificationRequests()) {
@@ -197,14 +201,19 @@ class ReminderScheduler {
     required this._items,
     required this._settings,
     required this._today,
+    this._accountScope,
   });
 
   final NotificationGateway _gateway;
   final ItemRepository _items;
   final SettingsRepository _settings;
   final Today _today;
+  final String? _accountScope;
   final _taps = StreamController<String>.broadcast();
-  late final Future<void> _initialization = _gateway.initialize(_taps.add);
+  late final Future<void> _initialization = _gateway.initialize((payload) {
+    final location = _location(payload);
+    if (_started && location != null) _taps.add(location);
+  });
   Timer? _debounce;
   Future<void> _scheduled = Future.value();
   bool _started = false;
@@ -227,7 +236,38 @@ class ReminderScheduler {
 
   Future<String?> launchLocation() async {
     await _initialization;
-    return _gateway.launchLocation();
+    return _location(await _gateway.launchLocation());
+  }
+
+  String? _location(String? payload) {
+    final scope = _accountScope;
+    if (scope == null) return payload?.startsWith('/') == true ? payload : null;
+    final prefix = '$scope|';
+    return payload?.startsWith(prefix) == true
+        ? payload!.substring(prefix.length)
+        : null;
+  }
+
+  Future<void> close() async {
+    _started = false;
+    _debounce?.cancel();
+    _items.removeListener(_queue);
+    _settings.removeListener(_queue);
+    _today.removeListener(_queue);
+    await _scheduled;
+    if (_accountScope != null) {
+      try {
+        await _initialization;
+        if (_gateway case final FlutterLocalNotificationsGateway platform) {
+          await platform.clear();
+        } else {
+          await _gateway.cancelAll();
+        }
+      } catch (_) {
+        // Scoped payloads still prevent old notifications opening the drawer.
+      }
+    }
+    await _taps.close();
   }
 
   void _queue() {
@@ -241,14 +281,27 @@ class ReminderScheduler {
     try {
       await _initialization;
       await _gateway.cancelAll();
-      if (!_settings.remindersOn) return;
+      if (!_started || !_settings.remindersOn) return;
       final plans = planReminders(
         items: _items.active,
         leadDays: _settings.leadDays,
         now: _today.instant,
       );
       for (final reminder in plans) {
-        await _gateway.schedule(reminder);
+        if (!_started) return;
+        final scope = _accountScope;
+        await _gateway.schedule(
+          scope == null
+              ? reminder
+              : PlannedReminder(
+                  key: '$scope|${reminder.key}',
+                  at: reminder.at,
+                  title: 'Paper Drawer reminder',
+                  body: 'Open your drawer to see what’s due.',
+                  location: '$scope|${reminder.location}',
+                  timeSensitive: reminder.timeSensitive,
+                ),
+        );
       }
     } catch (_) {
       // Platform scheduling is optional. The next change can try again.
