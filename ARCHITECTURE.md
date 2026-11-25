@@ -1,5 +1,57 @@
 # PaperDrawer iOS app: architecture and contracts
 
+> **Rebuild in progress.** The app is moving to the foundation below (see
+> `docs/REBUILD_PLAN.md` and `AGENTS.md`). The "Foundation" section describes
+> the new contracts. Everything after "Legacy app" describes the current code
+> as of 19 Nov 2026; each part is replaced as its phase lands.
+
+## Foundation (new)
+
+Layers: `core` → `domain` → `data` → `ui`, composed in `app` (see
+`AGENTS.md` §3 for allowed imports).
+
+### core
+- `result/result.dart`: `sealed Result<T>` = `Ok<T>(value)` | `Err<T>(failure)`; `map`, `flatMap`, `andThen`, `fold`, `valueOrNull`, `failureOrNull`, `requireValue` (tests only). `Unit` / `unit` for no value.
+- `failure/app_failure.dart`: `sealed AppFailure` with `cause`, `stackTrace`, `isRetryable`, `isSilent`, `debugDescription`. Subtypes: `ValidationFailure(ValidationIssue, field)`, `NotFoundFailure(entity, id)`, `LimitReachedFailure(limit, planName)`, `StorageFailure(StorageFailureKind)` (full, unreadable, unsupportedFile, writeFailed, corrupt), `PermissionFailure(DevicePermission, permanentlyDenied)`, `NetworkFailure(timedOut)`, `AuthFailure(AuthFailureKind)`, `PurchaseFailure(PurchaseFailureKind)`, `SyncFailure(SyncPauseReason)`, `CancelledFailure`, `ScopeClosedFailure`, `UnexpectedFailure`.
+- `failure/validation_issue.dart`: the catalogue of input rules.
+- `failure/failure_mapper.dart`: `FailureMapper({extraRules})` maps thrown errors through `FailureRule`s (carried `FailureException`, extra rules, timeout, socket/HTTP, file system with ENOSPC → full); unmatched → `UnexpectedFailure`.
+- `time/clock.dart`: `Clock { now(); today(); }`, `SystemClock`, `FixedClock` (tests), `civilDate()`.
+- `id/id_generator.dart`: `IdGenerator { next(); }`, `UuidGenerator`, `SequentialIdGenerator` (tests), `isUuid()`.
+- `concurrency/serial_queue.dart`: `SerialQueue.run<T>()`, `pending`, `close()`.
+- `logging/app_logger.dart`: `AppLogger.log(level, message, error, stackTrace)`, `failure(where, failure)` extension, `DebugConsoleLogger`, `MemoryLogger` (tests). Never log user content.
+- `data/repository.dart`: `abstract base class Repository<S>` (ChangeNotifier). Subclasses implement `readSnapshot()` and call `write(action, op, {refresh})`. Guarantees: serial writes, thrown errors → `Err`, notify only on `Ok`, refresh-after-commit failure keeps `Ok` and sets `isStale`, `close()` refuses new writes (→ `ScopeClosedFailure`) after letting queued ones finish.
+- `data/row_mapper.dart`: `abstract base class RowMapper<T>` (`table`, `fromRow(RowReader)`, `toRow`, `decode`, `syncColumns(meta)`); `RowReader` typed getters that report malformed rows as `StorageFailure(corrupt)`.
+- `data/sync_metadata.dart`: `SyncMetadata(id, createdAt, updatedAt, deletedAt, dirty, fieldUpdatedAt)` with `created`, `touched`, `deleted`, `synced`; `SyncedEntity`.
+- `ui/view_model.dart`: `abstract class ViewModel` with `listenTo`, `onSourceChanged`, `emit`, safe `dispose`.
+- `ui/view_state.dart`: `sealed ViewState<T>` = `ViewIdle` | `ViewLoading(previous)` | `ViewReady(data)` | `ViewFailed(failure, previous)`.
+- `ui/command.dart`: `Command0<T>.execute()`, `Command1<A,T>.execute(a)`; `running`, `result`, `failure` (non-silent), `completed`, `clear()`; in-flight dedupe; thrown → `UnexpectedFailure`.
+- `domain/use_case.dart`: `UseCase<I,O>.call(input)`, `NoInputUseCase<O>.call()`.
+
+### domain
+- `plans/plan.dart`: `enum Plan { base, essential, pro }` (`includes`, `highest`), `enum SyncKind { none, iCloud, paperDrawerCloud }`, `enum SignInMethod { apple, email, google }`.
+- `plans/plan_policy.dart`: `sealed PlanPolicy` (`PlanPolicy.of(plan)`): `itemLimit`, `requiresAccount`, `signInMethods`, `syncKind`, `survivesAppDeletion`, `hasWebsiteVault`, `hasEmailReminders`, `notificationKinds`, `channelsFor(kind)`. `BasePolicy` (25 items, warn from 20, backup reminders), `EssentialPolicy` (Apple, iCloud), `ProPolicy` (Apple + email, cloud, website, email). `ItemLimit(max, warnFrom)`.
+- `plans/item_capacity.dart`: `sealed ItemCapacity.of(policy, activeCount)` = `CapacityUnlimited` | `CapacityRoomLeft` | `CapacityNearLimit(left)` | `CapacityFull`; `checkCanAdd()` → `LimitReachedFailure` when full.
+- `plans/entitlement.dart`: `PlanGrant(plan, store, expiresAt?)`, `Entitlements(grants, verifiedAt)` with `planAt(now)` (highest valid grant; 14-day offline grace only when unverified since expiry), `ownsForLife`, `isInGrace`.
+- `plans/active_plan.dart`: `ActivePlan.resolve(scope, entitlements, now)` → `policy`, `plan`, `needsAccountSetup` (paid as guest), `inOfflineGrace`, `canSync`.
+- `plans/plan_change.dart`: `PlanChange.between(from, to, isGuest)` → steps `RequireSignIn(methods)`, `OfferMoveGuestItems`, `StopSync(kind)`, `StartSyncWithFullUpload(kind)`, `WebsiteBecomesReadOnly`. There is no step that deletes local data.
+- `account/account_scope.dart`: `sealed AccountScope` = `GuestScope` (`guest`) | `UserScope` (`UserScope.parse(uuid)` → `Result`); `folderName`, `userId`, `databaseFileName = vault.db`, `originalsFolderName = originals`.
+- `reminders/notification_kind.dart`: `enum NotificationKind` (6 deadline kinds + weeklySummary, unfinishedItem, backupReminder, syncProblem, tips) with `isDeadline`, `defaultOn`, `defaultLeadDays`; `leadDayChoices = [0, 1, 3, 7, 14, 30]`; `NotificationChannel { push, email }`.
+- `sync/sync_status.dart`: `sealed SyncStatus` = `SyncOff` | `SyncIdle(lastSyncedAt)` | `SyncRunning(pending, isFullUpload)` | `SyncPaused(reason, since)`.
+- `sync/sync_transport.dart`: `SyncTransport { kind, status, start(UserScope, fullUpload), requestSync(), stop() }`, `SyncTransportFactory.create(kind)`.
+
+### data
+- `errors/sqflite_failure_rule.dart`: `SqfliteFailureRule` (SQLITE_FULL → full, CORRUPT/NOTADB → corrupt, else writeFailed).
+- `sync/no_sync_transport.dart`: Base null object.
+- `sync/sync_coordinator.dart`: `SyncCoordinator(factory, logger)`; `activate(scope, plan, fullUpload)`, `deactivate()`, `requestSync()`, `status`, `activeKind`. One transport at a time; stop before start; fresh transport per account.
+
+### ui
+- `core/failure_copy.dart`: `FailureCopy.message(failure)`, `validation(issue)`, `syncPaused(reason)`: the only place failure copy lives.
+
+---
+
+# Legacy app (being replaced)
+
+
 Design source: `design/mobile-system/` (tokens, components, screens, platforms).
 Pattern: the official Flutter layered architecture (`.claude/skills/flutter-apply-architecture-best-practices`):
 **data** (services + repositories, single source of truth) → **domain** (immutable models, pure logic) → **ui** (MVVM: ChangeNotifier view models + lean views). Dependency injection with `provider`. Navigation with `go_router` (`StatefulShellRoute` for tabs).
