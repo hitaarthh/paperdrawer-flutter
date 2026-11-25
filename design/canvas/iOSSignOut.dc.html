@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — Sign out</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+</style>
+</helmet>
+<div class="grain" style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background-color: #0E1311; color: #F2F4EF; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; ">
+<div aria-hidden="true" style="position: absolute; inset: 0; padding: 120px 20px 0; filter: brightness(.55)"><span class="disp" style="font-size: 44px; line-height: .95; letter-spacing: -0.05em">Settings</span></div>
+<section class="lg" aria-label="Sign out" style="position: absolute; left: 8px; right: 8px; bottom: 8px; border-radius: 40px; padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 14px; z-index: 5; background: rgba(28,34,31,.88)">
+<span aria-hidden="true" style="width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.3); align-self: center"></span>
+<span class="lbl" style="color: #D4F25A; margin-top: 4px">SIGN OUT · HITARTH ROHRA</span>
+<h2 class="disp" style="margin: 0; font-size: 28px; line-height: 1.05; letter-spacing: -0.03em">Keep your drawer on this iPhone?</h2>
+<p style="margin: 0; font-size: 15px; line-height: 1.45; color: #C9D1CC">Signing out never deletes anything. Your drawer waits here until you sign back in.</p>
+<a href="iOSSignIn.dc.html" class="lg" style="padding: 14px 16px; border-radius: 22px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 600">Sign out</span><span style="font-size: 13px; color: #C9D1CC">Keep everything on this iPhone.</span></a>
+<a href="iOSSignIn.dc.html" class="lg" style="padding: 14px 16px; border-radius: 22px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 600; color: #FF7B72">Sign out and remove from this iPhone</span><span style="font-size: 13px; color: #C9D1CC">Everything is synced, so nothing is lost.</span></a>
+<a href="iOSSettingsEssential.dc.html" style="min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: #D4F25A">Cancel</a>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

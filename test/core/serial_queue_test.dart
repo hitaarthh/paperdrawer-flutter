@@ -40,7 +40,39 @@ void main() {
     expect(await next, 'ok');
   });
 
-  test('close waits for queued work, then refuses new work', () async {
+  test('submitting from inside an operation throws instead of deadlocking',
+      () async {
+    final queue = SerialQueue();
+    Object? inner;
+    await queue.run(() async {
+      expect(queue.isInsideOperation, isTrue);
+      try {
+        await queue.run(() async {});
+      } catch (error) {
+        inner = error;
+      }
+    });
+    expect(inner, isA<StateError>());
+    expect(queue.isInsideOperation, isFalse);
+  });
+
+  test('idle waits for queued work without closing', () async {
+    final queue = SerialQueue();
+    var finished = false;
+    unawaited(
+      queue.run(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        finished = true;
+      }),
+    );
+    await queue.idle();
+    expect(finished, isTrue);
+    expect(queue.isClosed, isFalse);
+    expect(await queue.run(() async => 1), 1);
+  });
+
+  test('close waits for queued work, then refuses new work; twice is safe',
+      () async {
     final queue = SerialQueue();
     var finished = false;
     unawaited(
@@ -50,8 +82,11 @@ void main() {
       }),
     );
 
-    await queue.close();
-    expect(finished, isTrue);
+    final first = queue.close();
+    final second = queue.close();
+    await second;
+    expect(finished, isTrue, reason: 'the second close must also wait');
+    await first;
     expect(queue.isClosed, isTrue);
     expect(() => queue.run(() async {}), throwsStateError);
   });

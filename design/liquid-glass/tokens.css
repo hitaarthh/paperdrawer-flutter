@@ -1,0 +1,101 @@
+/* PaperDrawer iOS — Liquid Glass — generated from tokens.json */
+:root, [data-theme="dark"] {
+  --bg: #0e1311;
+  --surface-1: #141a17;
+  --surface-2: #1a211e;
+  --surface-3: #222b27;
+  --hairline: #ffffff14;
+  --line: #66726b;
+  --text: #f2f4ef;
+  --text-2: #dde3df;
+  --text-muted: #a3aea8;
+  --text-subtle: #8f9a94;
+  --placeholder: #7f8a84;
+  --lime: #d4f25a;
+  --lime-pressed: #bedb4c;
+  --lime-tint: #d4f25a29;
+  --on-lime: #0e1311;
+  --focus-ring: var(--lime);
+  --focus-ring-paper: #0e1311;
+  --signal: #ff8a4c;
+  --signal-soft: #ffb48c;
+  --signal-tint: #ff8a4c29;
+  --settled: #7fd39a;
+  --danger: #ff7b72;
+  --paper: #fbfaf6;
+  --paper-2: #f3f1e8;
+  --paper-rule: #cfcdc2;
+  --paper-track: #e6e5de;
+  --ink: #0e1311;
+  --ink-2: #23282a;
+  --ink-muted: #5e6662;
+  --due-ink: #a8441a;
+  --covered-ink: #2a7449;
+  --ended-ink: #6b6f6a;
+  --read-highlight: #e4f59c;
+  --miss-tint: #fff4ec;
+  --miss-ink: #8a4a2a;
+  --glass-fill: #1c231fcc;
+  --glass-lime: #d4f25ae6;
+  --glass-rim: #ffffff59;
+  --glass-rim-shade: #ffffff1f;
+  --glass-selection: #f2f4ef24;
+  --scrim: #000000a6;
+  --shadow-glass: 0 8px 24px rgba(0,0,0,0.35);
+  --shadow-sheet: 0 -8px 32px rgba(0,0,0,0.45);
+  --shadow-paper-pressed: 0 6px 16px rgba(0,0,0,0.35);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 34px;
+  --radius-pill: 999px;
+  --tap-min: 44px;
+  --control-height: 50px;
+  --control-height-sm: 36px;
+  --glass-button: 44px;
+  --tab-bar-height: 62px;
+  --tab-bar-min: 48px;
+  --accessory-height: 44px;
+  --content-max: 680px;
+  --sidebar-width: 320px;
+  --glass-blur: 20px;
+  --glass-saturate: 180%;
+  --pressed-scale: 0.97;
+  --font-display: "Bricolage Grotesque", "SF Pro Display", system-ui, sans-serif;
+  --font-sans: Inter, "SF Pro Text", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+.large-title { font-family: var(--font-display); font-size: 34px; line-height: 38px; font-weight: 700; letter-spacing: -0.03em; }
+.title-1 { font-family: var(--font-display); font-size: 28px; line-height: 32px; font-weight: 700; letter-spacing: -0.025em; }
+.title-2 { font-family: var(--font-display); font-size: 22px; line-height: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.card-title { font-family: var(--font-display); font-size: 18px; line-height: 22px; font-weight: 700; letter-spacing: -0.015em; }
+.figure-xl { font-family: var(--font-display); font-size: 56px; line-height: 52px; font-weight: 800; letter-spacing: -0.04em; }
+.figure { font-family: var(--font-display); font-size: 40px; line-height: 40px; font-weight: 800; letter-spacing: -0.04em; }
+.figure-sm { font-family: var(--font-display); font-size: 22px; line-height: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.nav-title { font-family: var(--font-sans); font-size: 17px; line-height: 22px; font-weight: 600; }
+.body { font-family: var(--font-sans); font-size: 17px; line-height: 24px; font-weight: 400; }
+.body-strong { font-family: var(--font-sans); font-size: 17px; line-height: 24px; font-weight: 600; }
+.button { font-family: var(--font-sans); font-size: 17px; line-height: 22px; font-weight: 600; }
+.callout { font-family: var(--font-sans); font-size: 15px; line-height: 21px; font-weight: 400; }
+.subhead { font-family: var(--font-sans); font-size: 15px; line-height: 20px; font-weight: 500; }
+.footnote { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 400; }
+.tab-label { font-family: var(--font-sans); font-size: 10px; line-height: 12px; font-weight: 600; letter-spacing: 0.01em; }
+.label { font-family: var(--font-mono); font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: 0.08em; }
+.status { font-family: var(--font-mono); font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.08em; }
+.data { font-family: var(--font-mono); font-size: 13px; line-height: 18px; font-weight: 400; }
+.data-strong { font-family: var(--font-mono); font-size: 13px; line-height: 18px; font-weight: 600; }
+@font-face { font-family: "Bricolage Grotesque"; src: url("fonts/BricolageGrotesque.ttf") format("truetype"); font-weight: 200 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("fonts/Inter.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.ttf") format("truetype"); font-weight: 100 800; font-style: normal; font-display: swap; }

@@ -22,8 +22,10 @@ import 'sync_status.dart';
 /// - [start] is bound to one [UserScope]. Results that arrive after [stop]
 ///   are dropped, so nothing lands in another account's drawer.
 /// - Methods return [Result]s and never throw.
-/// - [stop] lets the current upload finish, then returns. Calling it twice
-///   is safe.
+/// - [stop] drains (pushes what's waiting, pulls once more), then returns.
+///   Calling it twice, or before [start], is safe.
+/// - A transport is single-use: after [stop], the coordinator [dispose]s it
+///   and makes a new one for the next start.
 abstract interface class SyncTransport {
   SyncKind get kind;
 
@@ -37,8 +39,11 @@ abstract interface class SyncTransport {
   /// Asks for a sync soon (after a local write, on foreground).
   Future<Result<Unit>> requestSync();
 
-  /// Finishes the current upload and stops.
+  /// Drains and stops.
   Future<void> stop();
+
+  /// Releases listeners and timers. Called once, after [stop].
+  void dispose();
 }
 
 /// Creates the transport for a [SyncKind] (factory). The composition root

@@ -30,4 +30,7 @@ final class NoSyncTransport implements SyncTransport {
 
   @override
   Future<void> stop() async {}
+
+  @override
+  void dispose() => _status.dispose();
 }

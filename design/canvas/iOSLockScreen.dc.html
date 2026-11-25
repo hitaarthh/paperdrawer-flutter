@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — Lock Screen notifications</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; font-family: Inter, -apple-system, system-ui, sans-serif; color: #F2F4EF; background: radial-gradient(120% 80% at 20% 10%, #3B4A2A 0%, #1C2620 45%, #0B0F0D 100%)">
+<div style="position: absolute; top: 70px; left: 0; right: 0; text-align: center; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600; opacity: .85">Friday 27 November</span><span style="font-size: 92px; font-weight: 700; letter-spacing: -0.03em; line-height: 1">9:00</span></div>
+<div style="position: absolute; left: 10px; right: 10px; bottom: 96px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 15px; font-weight: 600; padding: 0 8px">Notification Centre</span>
+<div class="lg" style="border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start"><span style="width: 38px; height: 38px; border-radius: 9px; background: #0E1311; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2)"><svg width="19" height="21" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 600">Return window closes today</span><span style="font-size: 12px; color: #A3AEA8; white-space: nowrap">now</span></span><span style="font-size: 14px; line-height: 1.3; color: #DDE3DF">Wireless earbuds · last day to return. Tap to see the bill.</span><span style="font-size: 11px; font-weight: 600; color: #FF8A4C; margin-top: 2px">TIME SENSITIVE</span></span></div>
+<div class="lg" style="border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start"><span style="width: 38px; height: 38px; border-radius: 9px; background: #0E1311; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2)"><svg width="19" height="21" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 600">This week in your drawer</span><span style="font-size: 12px; color: #A3AEA8; white-space: nowrap">9:00</span></span><span style="font-size: 14px; line-height: 1.3; color: #DDE3DF">4 things due: earbuds return, health policy renewal and 2 more.</span></span></div>
+<div class="lg" style="border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start"><span style="width: 38px; height: 38px; border-radius: 9px; background: #0E1311; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2)"><svg width="19" height="21" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 600">Family health policy renews in 12 days</span><span style="font-size: 12px; color: #A3AEA8; white-space: nowrap">9:00</span></span><span style="font-size: 14px; line-height: 1.3; color: #DDE3DF">Renew by Mon 7 Dec to keep your no-claim bonus.</span></span></div>
+<div class="lg" style="border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start"><span style="width: 38px; height: 38px; border-radius: 9px; background: #0E1311; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2)"><svg width="19" height="21" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 600">Dad asked you for a paper</span><span style="font-size: 12px; color: #A3AEA8; white-space: nowrap">Yesterday</span></span><span style="font-size: 14px; line-height: 1.3; color: #DDE3DF">“Car insurance 2027”. Tap to scan it into the family drawer.</span></span></div>
+<div class="lg" style="border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start"><span style="width: 38px; height: 38px; border-radius: 9px; background: #0E1311; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2)"><svg width="19" height="21" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 600">Activa PUC ends in 30 days</span><span style="font-size: 12px; color: #A3AEA8; white-space: nowrap">Wed</span></span><span style="font-size: 14px; line-height: 1.3; color: #DDE3DF">Renew at any authorised centre before 2 Jan.</span></span></div>
+</div>
+<div style="position: absolute; bottom: 30px; left: 46px; right: 46px; display: flex; justify-content: space-between" aria-hidden="true"><span class="lg" style="width: 50px; height: 50px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></span><span class="lg" style="width: 50px; height: 50px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span></div>
+<span aria-hidden="true" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: #F2F4EF"></span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

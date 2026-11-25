@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paperdrawer/core/concurrency/serial_queue.dart';
 import 'package:paperdrawer/core/data/repository.dart';
 import 'package:paperdrawer/core/failure/app_failure.dart';
 import 'package:paperdrawer/core/failure/failure_mapper.dart';
@@ -12,16 +13,16 @@ import 'package:paperdrawer/core/result/result.dart';
 class _Store {
   List<String> rows = [];
   bool failReads = false;
-  int reads = 0;
 }
 
 /// The smallest real subclass: a list of names.
 final class _NamesRepository extends Repository<List<String>> {
-  _NamesRepository(this.store, {AppLogger? logger})
+  _NamesRepository(this.store, {AppLogger? logger, SerialQueue? queue})
     : super(
         name: 'names',
         failures: FailureMapper(),
         logger: logger ?? MemoryLogger(),
+        queue: queue,
       );
 
   final _Store store;
@@ -30,7 +31,6 @@ final class _NamesRepository extends Repository<List<String>> {
 
   @override
   Future<List<String>> readSnapshot() async {
-    store.reads++;
     if (store.failReads) throw StateError('read failed');
     return List.unmodifiable(store.rows);
   }
@@ -47,6 +47,12 @@ final class _NamesRepository extends Repository<List<String>> {
 
   Future<Result<Unit>> explode() =>
       write('explode', () async => throw StateError('disk on fire'));
+
+  /// A bug: writing from inside a write.
+  Future<Result<Unit>> nested() => write('nested', () async {
+    final inner = await add('inner');
+    return inner.map((_) => unit);
+  });
 }
 
 void main() {
@@ -93,13 +99,15 @@ void main() {
     expect(notifications, 0);
   });
 
-  test('a thrown error becomes an Err and is logged, not rethrown', () async {
+  test('a thrown error becomes an Err and is logged by type only', () async {
     final logger = MemoryLogger();
     repo = _NamesRepository(store, logger: logger);
     await repo.load();
     final result = await repo.explode();
     expect(result.failureOrNull, isA<UnexpectedFailure>());
-    expect(logger.entries.single.$2, contains('names.explode'));
+    final line = logger.entries.single.$2;
+    expect(line, contains('names.explode'));
+    expect(line, isNot(contains('disk on fire')));
   });
 
   test('writes are serialized', () async {
@@ -112,6 +120,23 @@ void main() {
     gate.complete();
     await Future.wait([first, second]);
     expect(repo.names, ['first', 'second']);
+  });
+
+  test('repositories sharing a queue never interleave', () async {
+    final queue = SerialQueue();
+    final a = _NamesRepository(store, queue: queue);
+    final otherStore = _Store();
+    final b = _NamesRepository(otherStore, queue: queue);
+    await a.load();
+    await b.load();
+    final gate = Completer<void>();
+    final first = a.add('a', gate: gate);
+    final second = b.add('b');
+    await Future<void>.delayed(Duration.zero);
+    expect(otherStore.rows, isEmpty);
+    gate.complete();
+    await Future.wait([first, second]);
+    expect(otherStore.rows, ['b']);
   });
 
   test('a failed refresh after a committed write still reports Ok', () async {
@@ -128,6 +153,15 @@ void main() {
     expect(repo.names, ['kept']);
   });
 
+  test('a write from inside a write is reported as a bug, not a hang',
+      () async {
+    await repo.load();
+    // Asserts are on in tests; the nested call trips one inside the queue,
+    // which the outer write turns into an Err.
+    final result = await repo.nested().timeout(const Duration(seconds: 2));
+    expect(result.isErr, isTrue);
+  });
+
   test('close lets queued writes finish, then refuses new ones', () async {
     await repo.load();
     final gate = Completer<void>();
@@ -142,9 +176,32 @@ void main() {
     expect(store.rows, ['before close']);
   });
 
-  test('no notifications after dispose', () async {
+  test('a second close also waits for queued writes', () async {
     await repo.load();
+    final gate = Completer<void>();
+    final queued = repo.add('x', gate: gate);
+    unawaited(repo.close());
+    var secondDone = false;
+    unawaited(repo.close().then((_) => secondDone = true));
+    await Future<void>.delayed(Duration.zero);
+    expect(secondDone, isFalse);
+    gate.complete();
+    await queued;
+    await Future<void>.delayed(Duration.zero);
+    expect(secondDone, isTrue);
+  });
+
+  test('no notifications once disposed, even for work already queued',
+      () async {
+    await repo.load();
+    final gate = Completer<void>();
+    final queued = repo.add('late', gate: gate);
+    final countBefore = notifications;
+    // dispose() also closes, so the queued write still finishes safely.
     repo.dispose();
+    gate.complete();
+    expect(await queued, const Ok('late'));
+    expect(notifications, countBefore);
     expect(await repo.add('x'), const Err<String>(ScopeClosedFailure()));
   });
 }

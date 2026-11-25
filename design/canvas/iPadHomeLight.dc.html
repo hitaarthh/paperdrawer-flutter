@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — iPad and Mac Home, light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+
+body{background:#F7F3DF}
+.grain{background-image:radial-gradient(rgba(77,58,14,.045) 1px,transparent 1px)}
+.lbl{color:#565947}
+.lg{background:rgba(255,252,241,.62);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.9),inset 0 0 0 .5px rgba(49,39,23,.10),0 8px 24px rgba(77,58,14,.14)}
+.sel{background:rgba(49,39,23,.07)}
+.edge{background:linear-gradient(180deg,rgba(247,243,223,.94) 35%,rgba(247,243,223,0))}
+</style>
+</helmet>
+<div class="grain" style="width: 1180px; height: 820px; position: relative; overflow: hidden; box-sizing: border-box; background-color: #F7F3DF; color: #20241A; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased">
+<nav aria-label="App" class="lg" style="position: absolute; left: 10px; top: 10px; bottom: 10px; width: 300px; border-radius: 26px; padding: 20px 10px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; z-index: 4">
+<div style="padding: 0 12px 16px"><a href="Main.dc.html" aria-label="Paper Drawer, go to vault" style="display: inline-flex; align-items: center; gap: 8px"><svg width="21" height="24" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="disp" style="font-size: 20px; letter-spacing: -0.03em">Paper Drawer</span></a></div>
+<a href="#" aria-current="page" class="sel" style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-radius: 22px; color: #465B16"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg><span style="flex: 1; font-size: 16px; font-weight: 600">Home</span><span class="mono" style="font-size: 11px; color: #565947"></span></a><a href="#" class="" style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-radius: 22px; color: #20241A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M10 7.5h4M10 16.5h4"/></svg><span style="flex: 1; font-size: 16px; font-weight: 500">Vault</span><span class="mono" style="font-size: 11px; color: #565947">10</span></a><a href="#" class="" style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-radius: 22px; color: #20241A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span style="flex: 1; font-size: 16px; font-weight: 500">Settings</span><span class="mono" style="font-size: 11px; color: #565947"></span></a>
+<span class="lbl" style="padding: 20px 14px 6px">VAULT</span>
+<a href="#" style="display: flex; align-items: center; height: 36px; padding: 0 14px; color: #353B2D"><span class="mono" style="flex: 1; font-size: 11px; letter-spacing: 0.08em">DUE SOON</span><span class="mono" style="font-size: 11px; color: #963B16">4</span></a><a href="#" style="display: flex; align-items: center; height: 36px; padding: 0 14px; color: #353B2D"><span class="mono" style="flex: 1; font-size: 11px; letter-spacing: 0.08em">COVERED</span><span class="mono" style="font-size: 11px; color: #565947">5</span></a><a href="#" style="display: flex; align-items: center; height: 36px; padding: 0 14px; color: #353B2D"><span class="mono" style="flex: 1; font-size: 11px; letter-spacing: 0.08em">ENDED</span><span class="mono" style="font-size: 11px; color: #565947">1</span></a>
+<div style="flex: 1"></div>
+<a href="iOSAddSheet.dc.html" class="lgl" style="color: #0E1311; height: 50px; border-radius: 25px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E1311" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M7 12h10"/></svg>Scan or add</a>
+</nav>
+<div style="position: absolute; right: 24px; top: 24px; z-index: 4"><div class="lg" style="height: 44px; border-radius: 22px; display: inline-flex; align-items: center; padding: 0 2px"><a href="#" aria-label="Search" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: #20241A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a><a href="#" aria-label="Reminders" style="width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: #20241A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></a></div></div>
+<main style="position: absolute; left: 344px; right: 0; top: 0; bottom: 0; padding: 40px 40px 0 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 8px"><span class="lbl">WED 25 NOV · 4 DUE SOON</span><h1 class="disp" style="margin: 0; font-size: 52px; line-height: 0.95; letter-spacing: -0.05em">Coming up</h1></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<a href="iOSBillDetail.dc.html" class="stub" style="display: flex; align-items: stretch; background: #FF8A4C; color: #0E1311; border-radius: 6px; min-height: 116px; width: 100%; box-sizing: border-box; flex-shrink: 0">
+<div style="flex: 0 0 92px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; border-right: 2px dashed rgba(14,19,17,0.35); padding: 12px">
+<span class="disp" style="font-weight: 800; font-size: 50px; line-height: 0.9; letter-spacing: -0.04em">02</span>
+<span class="mono" style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em">DAYS</span>
+</div>
+<div style="flex: 1; min-width: 0; padding: 14px 18px 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px">
+<span class="mono" style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #0E1311">RETURN WINDOW · FRI 27 NOV</span>
+<span class="disp" style="font-size: 20px; line-height: 1.1">Wireless earbuds</span>
+<span style="font-size: 13px; line-height: 1.35; font-weight: 500; opacity: 0.85">Not happy with it? Start the return now.</span>
+</div>
+</a>
+<a href="iOSBillDetail.dc.html" class="stub" style="display: flex; align-items: stretch; background: #FBFAF6; color: #0E1311; border-radius: 6px; min-height: 116px; width: 100%; box-sizing: border-box; flex-shrink: 0">
+<div style="flex: 0 0 92px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; border-right: 2px dashed rgba(14,19,17,0.25); padding: 12px">
+<span class="disp" style="font-weight: 800; font-size: 50px; line-height: 0.9; letter-spacing: -0.04em">12</span>
+<span class="mono" style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em">DAYS</span>
+</div>
+<div style="flex: 1; min-width: 0; padding: 14px 18px 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px">
+<span class="mono" style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #A8441A">POLICY RENEWS · MON 07 DEC</span>
+<span class="disp" style="font-size: 20px; line-height: 1.1">Family health policy</span>
+<span style="font-size: 13px; line-height: 1.35; font-weight: 500; opacity: 0.85">Renew before it lapses.</span>
+</div>
+</a>
+</div>
+<span class="lbl" style="margin-top: 6px">DUE NEXT IN THE VAULT</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start">
+<a href="iOSBillDetail.dc.html" style="position: relative; display: block; filter: drop-shadow(0 12px 22px rgba(77,58,14,0.20))">
+<div class="zig" style="background: #FBFAF6; padding: 18px 18px 30px; color: #23282A; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.7">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.1em; color: #5E6662"><span style="font-weight: 700">BILL</span><span>ONLINE ORDER</span></div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 10px 0 12px"></div>
+<div class="disp" style="font-size: 21px; line-height: 1.1; color: #0E1311; padding-right: 84px; min-height: 46px">Wireless earbuds</div>
+<div style="margin-top: 10px"><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">BOUGHT</span><span style="">20.11.2026</span></div><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">PAID</span><span style="font-weight: 700">₹2,999</span></div></div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 12px 0"></div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.04em"><span style="color: #5E6662">RETURN</span><span style="font-weight: 700; color: #A8441A">2 DAYS LEFT</span></div>
+<div style="height: 8px; background: #E6E5DE; margin-top: 8px; position: relative" aria-hidden="true"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 20%; background: #C2410C"></div></div>
+<div style="font-size: 11px; color: #5E6662; margin-top: 6px">Warranty until 20 Nov 2027</div>
+</div>
+<span style="position: absolute; top: 42px; right: 12px; display: inline-block; transform: rotate(-12deg); padding: 3px 8px; border: 2px solid #C2410C; color: #C2410C; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; border-radius: 3px; opacity: 0.9" aria-hidden="true">DUE</span>
+</a>
+<a href="iOSBillDetail.dc.html" style="position: relative; display: block; filter: drop-shadow(0 12px 22px rgba(77,58,14,0.20))">
+<div style="background: #F3F1E8; padding: 14px 18px 20px; border-radius: 3px; border-top: 6px double #23282A; color: #23282A; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.7">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.1em; color: #5E6662"><span style="font-weight: 700">POLICY SCHEDULE</span><span>SHIELD GENERAL</span></div>
+<div style="border-top: 1px solid #CFCDC2; margin: 10px 0 12px"></div>
+<div class="disp" style="font-size: 21px; line-height: 1.1; color: #0E1311; padding-right: 84px; min-height: 46px">Family health policy</div>
+<div style="margin-top: 10px"><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">RENEWS</span><span style="">07.12.2026</span></div><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">PREMIUM</span><span style="font-weight: 700">₹24,600/yr</span></div></div>
+<div style="border-top: 1px solid #CFCDC2; margin: 12px 0"></div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.04em"><span style="color: #5E6662">POLICY YEAR</span><span style="font-weight: 700; color: #A8441A">RENEWS IN 12 DAYS</span></div>
+<div style="height: 8px; background: #E2E0D6; margin-top: 8px; position: relative" aria-hidden="true"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 3%; background: #C2410C"></div></div>
+<div style="font-size: 11px; color: #5E6662; margin-top: 6px">Sum insured ₹10,00,000</div>
+</div>
+<span style="position: absolute; top: 42px; right: 12px; display: inline-block; transform: rotate(-12deg); padding: 3px 8px; border: 2px solid #C2410C; color: #C2410C; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; border-radius: 3px; opacity: 0.9" aria-hidden="true">DUE</span>
+</a>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1180,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

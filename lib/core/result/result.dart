@@ -4,6 +4,10 @@ import '../failure/app_failure.dart';
 
 /// The outcome of an operation that can fail in an expected way.
 ///
+/// In generic code, write `Err<T>(failure)` with the type argument. A bare
+/// `const Err(failure)` in a `Result<T>` context becomes `Err<Never>` because
+/// constants can't capture type parameters.
+///
 /// Every repository, use case and command in PaperDrawer returns a [Result]
 /// instead of throwing. Exceptions are reserved for programmer errors (a
 /// broken invariant, a bug). Expected failures (validation, a full disk, no
@@ -88,7 +92,7 @@ final class Ok<T> extends Result<T> {
   final T value;
 
   @override
-  bool operator ==(Object other) => other is Ok<T> && other.value == value;
+  bool operator ==(Object other) => other is Ok && other.value == value;
 
   @override
   int get hashCode => Object.hash(Ok, value);
@@ -105,7 +109,7 @@ final class Err<T> extends Result<T> {
   final AppFailure failure;
 
   @override
-  bool operator ==(Object other) => other is Err<T> && other.failure == failure;
+  bool operator ==(Object other) => other is Err && other.failure == failure;
 
   @override
   int get hashCode => Object.hash(Err, failure);

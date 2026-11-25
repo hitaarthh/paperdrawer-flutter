@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — Mac window, Vault</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; border-radius: 12px; overflow: hidden; background: #0E1311; color: #F2F4EF; font-family: Inter, system-ui, sans-serif; position: relative; box-shadow: 0 0 0 1px rgba(255,255,255,.1)" class="grain">
+<nav class="lg" aria-label="App" style="position: absolute; left: 8px; top: 8px; bottom: 8px; width: 240px; border-radius: 18px; padding: 14px 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; z-index: 3">
+<div style="display: flex; gap: 8px; padding: 2px 4px 16px" aria-hidden="true"><span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span><span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span></div>
+<div style="padding: 0 8px 14px"><a href="Main.dc.html" aria-label="Paper Drawer, go to vault" style="display: inline-flex; align-items: center; gap: 8px"><svg width="21" height="24" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="disp" style="font-size: 20px; letter-spacing: -0.03em">Paper Drawer</span></a></div><a href="#" class="" style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; border-radius: 10px; color: #F2F4EF; font-size: 14px; font-weight: 500"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg><span style="flex: 1">Home</span><span class="mono" style="font-size: 11px; color: #A3AEA8"></span></a><a href="#" class="sel" style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; border-radius: 10px; color: #D4F25A; font-size: 14px; font-weight: 600"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M10 7.5h4M10 16.5h4"/></svg><span style="flex: 1">Vault</span><span class="mono" style="font-size: 11px; color: #A3AEA8">10</span></a><a href="#" class="" style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; border-radius: 10px; color: #F2F4EF; font-size: 14px; font-weight: 500"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span style="flex: 1">Settings</span><span class="mono" style="font-size: 11px; color: #A3AEA8"></span></a>
+<span class="lbl" style="padding: 18px 12px 6px">VAULT</span>
+<a href="#" style="display: flex; height: 30px; align-items: center; padding: 0 12px; color: #DDE3DF"><span class="mono" style="flex: 1; font-size: 11px; letter-spacing: .08em">DUE SOON</span><span class="mono" style="font-size: 11px; color: #FF8A4C">4</span></a><a href="#" style="display: flex; height: 30px; align-items: center; padding: 0 12px; color: #DDE3DF"><span class="mono" style="flex: 1; font-size: 11px; letter-spacing: .08em">COVERED</span><span class="mono" style="font-size: 11px; color: #A3AEA8">5</span></a><a href="#" style="display: flex; height: 30px; align-items: center; padding: 0 12px; color: #DDE3DF"><span class="mono" style="flex: 1; font-size: 11px; letter-spacing: .08em">ENDED</span><span class="mono" style="font-size: 11px; color: #A3AEA8">1</span></a>
+<div style="flex: 1"></div>
+<a href="#" class="lgl" style="height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E1311" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>Add a file <span class="mono" style="font-size: 11px; opacity: .7">⌘N</span></a>
+</nav>
+<div style="position: absolute; left: 264px; right: 16px; top: 14px; display: flex; justify-content: flex-end; gap: 8px; z-index: 3"><label class="lg" style="height: 36px; width: 280px; border-radius: 18px; display: flex; align-items: center; gap: 8px; padding: 0 14px; box-sizing: border-box; color: #A3AEA8; font-size: 13px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Search your vault<span class="mono" style="margin-left: auto; font-size: 11px">⌘F</span></label></div>
+<main style="position: absolute; left: 272px; right: 0; top: 0; bottom: 0; padding: 30px 32px 0 8px; overflow: hidden; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 8px"><span class="lbl">10 ITEMS · SORTED BY WHAT’S DUE FIRST</span><h1 class="disp" style="margin: 0; font-size: 52px; line-height: .95; letter-spacing: -0.05em">The vault</h1></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start"><a href="iOSBillDetail.dc.html" style="position: relative; display: block; filter: drop-shadow(0 18px 24px rgba(0,0,0,0.35))">
+<div class="zig" style="background: #FBFAF6; padding: 18px 18px 30px; color: #23282A; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.7">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.1em; color: #5E6662"><span style="font-weight: 700">BILL</span><span>ONLINE ORDER</span></div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 10px 0 12px"></div>
+<div class="disp" style="font-size: 21px; line-height: 1.1; color: #0E1311; padding-right: 84px; min-height: 46px">Wireless earbuds</div>
+<div style="margin-top: 10px"><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">BOUGHT</span><span style="">20.11.2026</span></div><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">PAID</span><span style="font-weight: 700">₹2,999</span></div></div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 12px 0"></div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.04em"><span style="color: #5E6662">RETURN</span><span style="font-weight: 700; color: #A8441A">2 DAYS LEFT</span></div>
+<div style="height: 8px; background: #E6E5DE; margin-top: 8px; position: relative" aria-hidden="true"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 20%; background: #C2410C"></div></div>
+<div style="font-size: 11px; color: #5E6662; margin-top: 6px">Warranty until 20 Nov 2027</div>
+</div>
+<span style="position: absolute; top: 42px; right: 12px; display: inline-block; transform: rotate(-12deg); padding: 3px 8px; border: 2px solid #C2410C; color: #C2410C; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; border-radius: 3px; opacity: 0.9" aria-hidden="true">DUE</span>
+</a><a href="iOSBillDetail.dc.html" style="position: relative; display: block; filter: drop-shadow(0 18px 24px rgba(0,0,0,0.35))">
+<div style="background: #F3F1E8; padding: 14px 18px 20px; border-radius: 3px; border-top: 6px double #23282A; color: #23282A; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.7">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.1em; color: #5E6662"><span style="font-weight: 700">POLICY SCHEDULE</span><span>SHIELD GENERAL</span></div>
+<div style="border-top: 1px solid #CFCDC2; margin: 10px 0 12px"></div>
+<div class="disp" style="font-size: 21px; line-height: 1.1; color: #0E1311; padding-right: 84px; min-height: 46px">Family health policy</div>
+<div style="margin-top: 10px"><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">RENEWS</span><span style="">07.12.2026</span></div><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">PREMIUM</span><span style="font-weight: 700">₹24,600/yr</span></div></div>
+<div style="border-top: 1px solid #CFCDC2; margin: 12px 0"></div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.04em"><span style="color: #5E6662">POLICY YEAR</span><span style="font-weight: 700; color: #A8441A">RENEWS IN 12 DAYS</span></div>
+<div style="height: 8px; background: #E2E0D6; margin-top: 8px; position: relative" aria-hidden="true"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 3%; background: #C2410C"></div></div>
+<div style="font-size: 11px; color: #5E6662; margin-top: 6px">Sum insured ₹10,00,000</div>
+</div>
+<span style="position: absolute; top: 42px; right: 12px; display: inline-block; transform: rotate(-12deg); padding: 3px 8px; border: 2px solid #C2410C; color: #C2410C; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; border-radius: 3px; opacity: 0.9" aria-hidden="true">DUE</span>
+</a><a href="iOSBillDetail.dc.html" style="position: relative; display: block; filter: drop-shadow(0 18px 24px rgba(0,0,0,0.35))">
+<div style="background: #F3F1E8; padding: 14px 18px 20px; border-radius: 3px; border-top: 6px double #23282A; color: #23282A; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.7">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.1em; color: #5E6662"><span style="font-weight: 700">PUC CERTIFICATE</span><span>VEHICLE PAPERS</span></div>
+<div style="border-top: 1px solid #CFCDC2; margin: 10px 0 12px"></div>
+<div class="disp" style="font-size: 21px; line-height: 1.1; color: #0E1311; padding-right: 84px; min-height: 46px">Activa 6G · UP78 EK 4410</div>
+<div style="margin-top: 10px"><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">VALID TILL</span><span style="">02.01.2027</span></div><div style="display: flex; justify-content: space-between"><span style="color: #5E6662">CENTRE</span><span style="font-weight: 700">Kanpur Fuel Point</span></div></div>
+<div style="border-top: 1px solid #CFCDC2; margin: 12px 0"></div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.04em"><span style="color: #5E6662">VALIDITY</span><span style="font-weight: 700; color: #23282A">38 DAYS LEFT</span></div>
+<div style="height: 8px; background: #E2E0D6; margin-top: 8px; position: relative" aria-hidden="true"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 21%; background: #23282A"></div></div>
+<div style="font-size: 11px; color: #5E6662; margin-top: 6px">Renew at any authorised centre</div>
+</div>
+<span style="position: absolute; top: 42px; right: 12px; display: inline-block; transform: rotate(-12deg); padding: 3px 8px; border: 2px solid #2A7449; color: #2A7449; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; border-radius: 3px; opacity: 0.9" aria-hidden="true">COVERED</span>
+</a></div>
+</main>
+<div aria-hidden="true" style="position: absolute; right: 40px; bottom: 30px; padding: 14px 18px; border-radius: 14px; border: 2px dashed #D4F25A; background: rgba(212,242,90,.08); color: #D4F25A; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: .1em; z-index: 4">DROP A BILL OR PDF TO ADD IT</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

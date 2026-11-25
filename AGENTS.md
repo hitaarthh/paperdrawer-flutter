@@ -40,8 +40,10 @@ Source: the "Plans, Accounts & Sync Spec" and the final iOS design canvas.
 - **Never lose data silently.** Sign-out, switching accounts, a plan ending or
   a refund never delete data on the phone unless the user explicitly chooses
   that, after a warning.
-- **One account = one database file.** Each account (and the guest) has its
-  own folder and `vault.db`, keyed by user ID. Never mix accounts in one file.
+- **One account = one database file.** Each account has its own
+  `vault.sqlite`, keyed by Supabase project and user ID; the guest (Base)
+  drawer is its own file. Never mix accounts in one file. Paths come only
+  from `DrawerPaths` (§7).
 - **Three plans** (Family is a later proposal):
   - **Base**: free, no account, this device only, 25 active items (warn from
     20), export available.
@@ -72,7 +74,11 @@ lib/
              transports, repositories (implementations of domain contracts)
   ui/        MVVM: view models + lean widgets, theme, kit, routes
   app/       composition root: builds the object graph, the one place that
-             knows concrete classes
+             knows concrete classes. Today this is main.dart, app.dart
+             (AppDependencies), drawer_runtime.dart and
+             ui/features/account/shared_app.dart (AccountDrawerApp); the
+             rebuild moves them into lib/app/
+  routing/   go_router configuration (part of ui)
 ```
 
 Allowed imports (enforced in review):
@@ -80,9 +86,9 @@ Allowed imports (enforced in review):
 | Layer   | May import                                  | Must never import |
 |---------|---------------------------------------------|-------------------|
 | core    | Dart SDK, `flutter/foundation.dart`, `uuid` | domain, data, ui, plugins |
-| domain  | core                                        | data, ui, plugins, sqflite, supabase |
+| domain  | core, `flutter/foundation.dart` (`@immutable`, `listEquals`, `ValueListenable` only), `intl` | data, ui, plugins, sqflite, supabase, `dart:io` |
 | data    | core, domain, plugins, sqflite, supabase    | ui |
-| ui      | core, domain, view-facing parts of data via providers | sqflite, supabase, plugins, `dart:io` |
+| ui      | core, domain, and data *types* it is handed (repositories, `SyncCoordinator`) | sqflite, supabase, plugins, `dart:io`, constructing data classes |
 | app     | everything                                  | — |
 
 - Widgets never touch the database, files, plugins or the network. They talk
@@ -136,8 +142,10 @@ Other rules:
   `if (plan == Plan.pro)`. Ask `activePlan.policy` a question
   (`itemLimit`, `syncKind`, `channelsFor(kind)`). If no getter answers it,
   add one to `PlanPolicy`; every subclass must then answer it.
-- **Small units.** A class has one reason to change. Keep files under ~300
+- **Small units.** A class has one reason to change. Keep files under ~400
   lines and methods under ~40; split before you pass them.
+- **Exhaustive switches.** A `switch` over a sealed type or enum names every
+  case; no `_ =>`/`default` that would silently absorb a new case.
 - **No logic in widgets.** Derived values (labels, counts, colours chosen by
   status) are getters on the view model or domain objects.
 
@@ -167,6 +175,23 @@ Other rules:
   base `Repository` handles this; don't report it as an error).
 - **Async UI.** After every `await` in a `State`, check `mounted`. Commands
   prevent double submits; don't add ad-hoc `_busy` flags.
+- **Never drop a `Result`.** Await it and handle `Err`, or pass it up. The
+  strict folders enable `discarded_futures`/`unawaited_futures`.
+- **Generic code writes `Err<T>(failure)`** with the type argument. A bare
+  `const Err(x)` in a `Result<T>` context becomes `Err<Never>`.
+- **One transaction per write.** Every database change inside one
+  `Repository.write` runs in one `db.transaction`. Return `Err` only before
+  changing anything; inside the transaction throw `FailureException`.
+- **Never write, load or close from inside a write** (deadlock; the base
+  class reports it as a bug).
+- **Idempotent retries.** A create's ID is generated once per draft (when the
+  form opens) and reused on every retry, so "Try again" after an unknown
+  outcome updates instead of duplicating.
+- **Limits are checked inside the write** (`ItemCapacity.checkCanAdd()` in the
+  repository's write), never only in the UI.
+- **No user content in logs or failures.** Never log `error.toString()` of a
+  database, HTTP or plugin error (they embed SQL arguments and bodies).
+  `AppLogger.failure` logs codes and error types only.
 
 ## 6. Time, IDs, money
 
@@ -181,25 +206,42 @@ Other rules:
 
 ## 7. Data
 
-- Each account's data lives in `drawers/<folder>/vault.db` and
-  `drawers/<folder>/originals/` under Application Support, where `<folder>`
-  is `guest` or the user's UUID (`AccountScope`). Store **relative** paths
-  only.
-- Every synced table carries the sync columns (`id`, `created_at`,
-  `updated_at`, `deleted_at`, `dirty`, `field_updated_at`, and `drawer_id`
-  when Family arrives). Read and write them only through `SyncMetadata` and
-  `RowMapper.syncColumns`.
+- Layout (design-v1's, which devices already have), under
+  `<Application Support>/paperdrawer/`: the guest drawer is `vault.sqlite` +
+  `attachments/`; each account is
+  `accounts/<project-key>/<user-uuid>/vault.sqlite` + `attachments/` (and
+  legacy `claim-photos/`). `<project-key>` is base64url of the Supabase
+  origin, so staging and production never share a file. Only
+  `data/drawer/drawer_paths.dart` knows this. Store **relative** paths only.
+- The whole `paperdrawer/` folder is currently excluded from iPhone backup
+  (main.dart, AppDelegate.swift). Changing that is an open owner decision.
+- **Account switch order** (never vary it): sync `deactivate` → settings sync
+  pause → reminders detach → `await` every repository's `close()` →
+  `db.close()` → `dispose`. Then open the new drawer → `load` → reminders
+  attach → settings sync resume → sync `activate`. design-v1's
+  `AccountDrawerApp`/`DrawerRuntime` already do most of this: reuse them.
+- Every synced table (`items`, `attachments`) carries the sync columns
+  (`id`, `created_at`, `updated_at`, `deleted_at`, `dirty`,
+  `field_updated_at`) from schema **v7** (v6 is design-v1's reminder
+  schema). Read and write them only through `SyncMetadata` and
+  `RowMapper.syncColumns`. `drawer_id` waits for Family.
+- Settings are keyed rows (`settings(key, value, updated_at, dirty)`), not
+  `SyncMetadata` rows. Device-only keys (reminder permission, offers,
+  dismissed tickets) never sync.
 - Deletes of synced records are markers (`deleted_at`), not row deletes,
   except when a remote delete marker is applied or a marker is purged after
   every device has synced.
 - **Migrations never drop user data.** Rename old tables to
   `<name>_vN_backup` and keep them. Before upgrading a file's schema, copy
-  the file and keep the copy until the upgrade succeeds. Each migration gets
-  a test that upgrades a populated database from the previous version and
-  checks every row survived.
-- Claims: the `claims`, `claim_events` and `claim_event_photos` tables stay
-  in the database (renamed to backups) so no user data is lost, and they are
-  included in Export. No UI reads them.
+  the file and keep the copy until the upgrade succeeds. `onUpgrade` runs in
+  one transaction with `foreign_keys = ON`: only CREATE, ADD COLUMN and
+  RENAME are allowed. Never DROP or rebuild `items`/`attachments` (it would
+  cascade-delete attachments). Each migration gets a test that upgrades a
+  populated database from the previous version and checks every row
+  survived.
+- Claims: v7 renames `claims`, `claim_events`, `claim_event_photos` to
+  `*_v6_backup`. Photos stay in `claim-photos/`. Export and the legacy import
+  read those backups directly; no UI reads them.
 - Exactly one sync transport runs at a time, through `SyncCoordinator`.
   Background results tagged with a closed account are dropped.
 
@@ -216,16 +258,19 @@ to System).
   content, never paper on controls.
 - One action colour (lime). Orange only means a deadline is close. Errors
   use `danger`, never orange.
-- Native first: use the iOS 26 system control where one exists, tinted with
-  tokens. Fall back to the kit's glass only below iOS 26 or where the system
-  has none.
-- Style only with tokens and type styles from `ui/core/theme/`. No
-  hard-coded colours, font sizes or spacing in widgets. Both themes must work
-  for every screen except Camera (dark in both).
+- Native first: use the iOS 26 system control where one exists, through the
+  vendored `third_party/native_liquid_glass` (patched 0.3.1, see its
+  PAPERDRAWER_PATCHES.md) wrapped by `ui/core/widgets/glass.dart` and
+  `tab_bar.dart`. Fall back to the kit's Flutter glass only below iOS 26 or
+  where the system has none.
+- Style only with tokens and type styles from `ui/core/theme/`, read from the
+  theme (`context.pd…`), never static colour constants, so both themes work.
+  No hard-coded colours, font sizes or spacing in widgets. Every screen works
+  in light and dark except Camera (dark in both).
 - Layout follows available width, not device: under 600 pt one column with
   the floating tab bar; 600 pt and up, sidebar and two or three columns.
-- Every screen handles all `ViewState` cases plus its empty states. Give
-  interactive widgets tests drive a `ValueKey('kebab-name')`.
+- Every screen handles all `ViewState` cases plus its empty states. Every
+  interactive widget a test taps gets a `ValueKey('kebab-name')`.
 - Dynamic Type up to the largest accessibility size, Reduce Transparency,
   Reduce Motion and Increase Contrast are part of done, not polish.
 - Imports: `package:material_ui/material_ui.dart` and
@@ -246,13 +291,17 @@ to System).
 - **UI:** widget tests with in-memory fakes at iPhone 16 size (1179×2556 at
   3× DPR, padding top 177, bottom 102), plus a 1.3× text-scale overflow check,
   in both themes.
-- Fakes implement the same interfaces as the real classes. No mocking of
-  concrete classes.
+- Fakes implement the same interfaces as the real classes, or are small
+  subclasses of the `Repository` base over an in-memory store. No mocking
+  libraries.
+- `test/architecture_test.dart` checks the §3 import table by scanning
+  `import` lines; keep it passing.
 - Test names state the behaviour ("Pro ending falls back to owned
   Essential"), not the method.
 
 **Rebuild mode (current):** the owner asked that nothing be compiled or run
-until the rebuilt app is complete. During the rebuild, write tests with every
+until the rebuilt app is complete. New folders get an `analysis_options.yaml`
+that includes `lib/core/analysis_options.yaml` (strict mode). During the rebuild, write tests with every
 change but do not run `flutter analyze`, `flutter test` or builds. At the end
 of the rebuild, run the full definition of done below and fix everything it
 finds before reporting the rebuild as done. Remove this paragraph then.
@@ -271,7 +320,26 @@ changed contract, route, schema or kit component, and a short report of what
 changed, why, how it was verified, and what was not verified (for example
 "CloudKit needs a physical device and an Apple developer account").
 
-Do not commit, push or create branches unless the owner asks.
+Do not commit, push or create branches in the owner's repo unless the owner
+asks. (Agents working in their own isolated worktree commit there; the
+coordinator merges and delivers.)
+
+## 10a. Working as one of several agents
+
+- Read `docs/REBUILD_PLAN.md` for your wave, the files you own and the
+  contracts you must keep. Change only files you own. If you need a change in
+  a file you don't own, write it down in your report instead.
+- A change to a public API in `lib/core` or a shared contract updates every
+  call site, test and the `ARCHITECTURE.md` entry in the same change; only
+  the wave that owns it may do that.
+- "Open" spec items are never decided by an agent: build them behind the
+  single switch named in `docs/REBUILD_PLAN.md` and list them in the report.
+- No new packages without the owner's OK; list wanted packages in the report.
+- Removing a file means archiving it (§1): `git mv` it under
+  `archive/<original path>` inside your worktree; the coordinator moves it
+  to `../#Archive/` on delivery.
+- End with a report: files changed, contracts added or changed, tests
+  written, known gaps, and anything you couldn't do.
 
 ## 11. Repo skills
 

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — Intro, remember</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+</style>
+</helmet>
+<div class="grain" style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background-color: #0E1311; color: #F2F4EF; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; ">
+<div style="position: absolute; left: 0; right: 0; top: 54px; padding: 0 16px 0 20px; display: flex; justify-content: space-between; align-items: center; z-index: 3"><a href="Main.dc.html" aria-label="Paper Drawer, go to vault" style="display: inline-flex; align-items: center; gap: 8px"><svg width="21" height="24" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="disp" style="font-size: 20px; letter-spacing: -0.03em">Paper Drawer</span></a><a href="Main.dc.html" class="lg mono" style="height: 36px; border-radius: 18px; display: inline-flex; align-items: center; padding: 0 14px; font-size: 11px; font-weight: 700; letter-spacing: .1em">SKIP</a></div>
+<div style="position: absolute; left: 0; right: 0; top: 120px; height: 380px; display: flex; align-items: center; justify-content: center"><div style="width: 330px; display: flex; flex-direction: column; gap: 12px">
+<div class="lg" style="border-radius: 22px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start"><span style="width: 30px; height: 30px; border-radius: 8px; background: #0E1311; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="15" height="17" viewBox="0 0 30 34" fill="none" aria-hidden="true"><path d="M3 3h24v26l-4-3-4 3-4-3-4 3-4-3-4 3V3z" fill="#D4F25A"></path><path d="M9.5 15.5l4 4 7-8" stroke="#0E1311" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Washing machine warranty ends 10 Dec</span><span style="font-size: 12px; color: #C9D1CC">Book a service visit before then.</span></div></div>
+<a href="#" class="stub" style="display: flex; align-items: stretch; background: #FF8A4C; color: #0E1311; border-radius: 6px; min-height: 116px; width: 100%; box-sizing: border-box; flex-shrink: 0">
+<div style="flex: 0 0 92px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; border-right: 2px dashed rgba(14,19,17,0.35); padding: 12px">
+<span class="disp" style="font-weight: 800; font-size: 50px; line-height: 0.9; letter-spacing: -0.04em">02</span>
+<span class="mono" style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em">DAYS</span>
+</div>
+<div style="flex: 1; min-width: 0; padding: 14px 18px 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px">
+<span class="mono" style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #0E1311">RETURN WINDOW CLOSES · FRI</span>
+<span class="disp" style="font-size: 20px; line-height: 1.1">Wireless earbuds</span>
+<span style="font-size: 13px; line-height: 1.35; font-weight: 500; opacity: 0.85">Start the return now.</span>
+</div>
+</a>
+<a href="#" class="stub" style="display: flex; align-items: stretch; background: #FBFAF6; color: #0E1311; border-radius: 6px; min-height: 116px; width: 100%; box-sizing: border-box; flex-shrink: 0">
+<div style="flex: 0 0 92px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; border-right: 2px dashed rgba(14,19,17,0.25); padding: 12px">
+<span class="disp" style="font-weight: 800; font-size: 50px; line-height: 0.9; letter-spacing: -0.04em">07</span>
+<span class="mono" style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em">DAYS</span>
+</div>
+<div style="flex: 1; min-width: 0; padding: 14px 18px 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px">
+<span class="mono" style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #A8441A">POLICY RENEWS · 30 NOV</span>
+<span class="disp" style="font-size: 20px; line-height: 1.1">Family health policy</span>
+<span style="font-size: 13px; line-height: 1.35; font-weight: 500; opacity: 0.85">Renew before it lapses.</span>
+</div>
+</a>
+</div></div>
+<div style="position: absolute; left: 20px; right: 20px; bottom: 34px; display: flex; flex-direction: column; gap: 14px">
+<span class="lbl" style="color: #D4F25A">02 · REMEMBER</span>
+<h1 class="disp" style="margin: 0; font-size: 44px; line-height: .95; letter-spacing: -0.05em">Remember it.</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.45; color: #C9D1CC">Return windows, warranty ends, policy renewals, PUC and service dates. A heads-up before each one, on your schedule.</p>
+<div style="margin: 8px 0 6px"><div style="display: flex; gap: 6px; justify-content: center" aria-hidden="true"><span style="width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.25)"></span><span style="width: 18px; height: 6px; border-radius: 3px; background: #D4F25A"></span></div></div>
+<a href="Main.dc.html" style="height: 52px; border-radius: 26px; background: #D4F25A; color: #0E1311; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; font-weight: 600">Start your vault</a><a href="iOSSignIn.dc.html" style="min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: #D4F25A">I already have an account</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

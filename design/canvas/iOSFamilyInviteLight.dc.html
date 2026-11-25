@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — Invite to family, light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+
+body{background:#F7F3DF}
+.grain{background-image:radial-gradient(rgba(77,58,14,.045) 1px,transparent 1px)}
+.lbl{color:#565947}
+.lg{background:rgba(255,252,241,.62);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.9),inset 0 0 0 .5px rgba(49,39,23,.10),0 8px 24px rgba(77,58,14,.14)}
+.sel{background:rgba(49,39,23,.07)}
+.edge{background:linear-gradient(180deg,rgba(247,243,223,.94) 35%,rgba(247,243,223,0))}
+</style>
+</helmet>
+<div class="grain" style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background-color: #F7F3DF; color: #20241A; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; ">
+<div aria-hidden="true" style="position: absolute; inset: 0; padding: 120px 20px 0; filter: brightness(.55)"><span class="disp" style="font-size: 44px; line-height: .95; letter-spacing: -0.05em">Coming up</span></div>
+<section class="lg" aria-label="Invite to family" style="position: absolute; left: 8px; right: 8px; bottom: 8px; border-radius: 40px; padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 14px; z-index: 5; background: rgba(255,252,241,.86)">
+<span aria-hidden="true" style="width: 36px; height: 5px; border-radius: 3px; background: rgba(49,39,23,.3); align-self: center"></span>
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="lbl" style="color: #465B16">FAMILY · 4 OF [SEATS] SEATS</span><a href="iOSFamilyHome.dc.html" aria-label="Close" class="lg" style="width: 36px; height: 36px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; color: #20241A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a></div>
+<h2 class="disp" style="margin: 0; font-size: 28px; line-height: 1.05; letter-spacing: -0.03em">Invite someone to the family drawer</h2>
+<p style="margin: 0; font-size: 15px; line-height: 1.45; color: #383C31">They sign in, accept, and the family drawer appears next to their own. You never see their personal drawer.</p>
+<div style="display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 16px; background: rgba(49,39,23,.06)"><div style="width: 96px; height: 96px; border-radius: 10px; background: #20241A; color: #0E1311; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; text-align: center; flex-shrink: 0">[QR CODE]</div><div style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><span class="mono" style="font-size: 11px; letter-spacing: .06em; color: #353B2D">paperdrawer.app/j/RH4-92K</span><span style="font-size: 13px; color: #565947">Link works for 7 days.</span></div></div>
+<a href="#" style="height: 52px; border-radius: 26px; background: #D4F25A; color: #0E1311; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E1311" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/></svg>Share invite link</a>
+<a href="#" class="lg" style="height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600">Invite by email</a>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

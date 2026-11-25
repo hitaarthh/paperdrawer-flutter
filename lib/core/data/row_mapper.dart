@@ -24,7 +24,7 @@ abstract base class RowMapper<T> {
   /// deep in the UI.
   T decode(Map<String, Object?> row) => fromRow(RowReader(table, row));
 
-  /// The sync columns every synced table has (schema v6+).
+  /// The sync columns every synced table has (schema v7+).
   static Map<String, Object?> syncColumns(SyncMetadata meta) => {
     'id': meta.id,
     'created_at': meta.createdAt.millisecondsSinceEpoch,
@@ -59,12 +59,17 @@ final class RowReader {
     return value == null || value.isEmpty ? null : value;
   }
 
-  int integer(String column) => _required<int>(column);
+  /// Accepts any integral number (SQLite can hand back `1.0` for REAL
+  /// affinity or JSON-sourced values).
+  int integer(String column) => _integral(column, _required<num>(column));
 
-  int? optionalInt(String column) => _optional<int>(column);
+  int? optionalInt(String column) => switch (_optional<num>(column)) {
+    null => null,
+    final value => _integral(column, value),
+  };
 
   bool boolean(String column, {bool fallback = false}) =>
-      switch (_optional<int>(column)) {
+      switch (optionalInt(column)) {
         null => fallback,
         final value => value != 0,
       };
@@ -78,13 +83,14 @@ final class RowReader {
     final ms => DateTime.fromMillisecondsSinceEpoch(ms),
   };
 
-  /// A civil date stored as `yyyy-mm-dd`.
+  /// A civil date stored as `yyyy-mm-dd`, returned as UTC midnight (the
+  /// app-wide civil date convention, see `civilDate`).
   DateTime? optionalCivilDate(String column) {
     final text = optionalString(column);
     if (text == null) return null;
     final match = _isoDate.firstMatch(text);
     if (match == null) throw _corrupt(column, 'not yyyy-mm-dd');
-    final date = DateTime(
+    final date = DateTime.utc(
       int.parse(match.group(1)!),
       int.parse(match.group(2)!),
       int.parse(match.group(3)!),
@@ -99,7 +105,11 @@ final class RowReader {
   /// An enum stored by its `name`. Unknown names fall back to [fallback] when
   /// given (forward compatibility with newer app versions), else are corrupt.
   E enumByName<E extends Enum>(String column, List<E> values, {E? fallback}) {
-    final name = string(column);
+    final name = optionalString(column);
+    if (name == null) {
+      if (fallback != null) return fallback;
+      throw _corrupt(column, 'missing');
+    }
     for (final value in values) {
       if (value.name == name) return value;
     }
@@ -107,7 +117,7 @@ final class RowReader {
     throw _corrupt(column, 'unknown value');
   }
 
-  /// The sync columns (schema v6+).
+  /// The sync columns (schema v7+).
   SyncMetadata syncMetadata() {
     final raw = stringOr('field_updated_at', '{}');
     Map<String, DateTime> fields;
@@ -128,6 +138,12 @@ final class RowReader {
       dirty: boolean('dirty', fallback: true),
       fieldUpdatedAt: fields,
     );
+  }
+
+  int _integral(String column, num value) {
+    if (value is int) return value;
+    if (value == value.truncateToDouble()) return value.toInt();
+    throw _corrupt(column, 'not a whole number');
   }
 
   V _required<V>(String column) {

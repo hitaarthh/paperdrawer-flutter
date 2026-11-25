@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'app_failure.dart';
@@ -30,21 +29,19 @@ abstract interface class FailureRule {
 /// order; the first match wins; anything unmatched becomes an
 /// [UnexpectedFailure] with the original error kept for logs.
 ///
-/// Extend it by passing extra rules (the sqflite rule lives in the data layer
-/// so core does not depend on sqflite):
+/// Core only knows file-system errors. Extend it with the data layer's rules:
+/// `SqfliteFailureRule` for repositories, `NetworkFailureRule` for network
+/// adapters only (a local timeout is not "no internet"):
 ///
 /// ```dart
-/// final mapper = FailureMapper(extraRules: const [SqfliteFailureRule()]);
+/// final dbFailures = FailureMapper(extraRules: const [SqfliteFailureRule()]);
+/// final netFailures = FailureMapper(extraRules: const [NetworkFailureRule()]);
 /// ```
 class FailureMapper {
   FailureMapper({List<FailureRule> extraRules = const []})
     : _rules = [const _CarriedFailureRule(), ...extraRules, ..._coreRules];
 
-  static const List<FailureRule> _coreRules = [
-    _TimeoutRule(),
-    _SocketRule(),
-    _FileSystemRule(),
-  ];
+  static const List<FailureRule> _coreRules = [_FileSystemRule()];
 
   final List<FailureRule> _rules;
 
@@ -63,26 +60,6 @@ final class _CarriedFailureRule implements FailureRule {
   @override
   AppFailure? tryMap(Object error, StackTrace stackTrace) =>
       error is FailureException ? error.failure : null;
-}
-
-final class _TimeoutRule implements FailureRule {
-  const _TimeoutRule();
-
-  @override
-  AppFailure? tryMap(Object error, StackTrace stackTrace) =>
-      error is TimeoutException
-      ? NetworkFailure(timedOut: true, cause: error, stackTrace: stackTrace)
-      : null;
-}
-
-final class _SocketRule implements FailureRule {
-  const _SocketRule();
-
-  @override
-  AppFailure? tryMap(Object error, StackTrace stackTrace) =>
-      error is SocketException || error is HttpException
-      ? NetworkFailure(cause: error, stackTrace: stackTrace)
-      : null;
 }
 
 final class _FileSystemRule implements FailureRule {

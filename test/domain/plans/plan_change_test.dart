@@ -73,6 +73,23 @@ void main() {
     }
   });
 
+  test('a guest who paid then got refunded: nothing to stop', () {
+    expect(steps(Plan.essential, Plan.base, guest: true), isEmpty);
+  });
+
+  test('a guest moving between paid plans still signs in first', () {
+    expect(steps(Plan.essential, Plan.pro, guest: true).first, isA<RequireSignIn>());
+  });
+
+  test('a paid guest who signs in: offer the move, then start sync', () {
+    expect(PlanChange.finishAccountSetup(Plan.essential).steps, const [
+      OfferMoveGuestItems(),
+      StartSyncWithFullUpload(SyncKind.iCloud),
+    ]);
+    expect(PlanChange.finishAccountSetup(Plan.pro).steps.last,
+        const StartSyncWithFullUpload(SyncKind.paperDrawerCloud));
+  });
+
   test('upgrade and downgrade flags', () {
     expect(PlanChange.between(Plan.base, Plan.pro, isGuest: false).isUpgrade, isTrue);
     expect(PlanChange.between(Plan.pro, Plan.base, isGuest: false).isDowngrade, isTrue);

@@ -36,35 +36,57 @@ final class SyncMetadata {
   bool get isDeleted => deletedAt != null;
 
   /// Metadata after a local edit to [fields].
-  SyncMetadata touched(DateTime now, {Iterable<String> fields = const []}) =>
-      SyncMetadata(
-        id: id,
-        createdAt: createdAt,
-        updatedAt: now,
-        deletedAt: deletedAt,
-        dirty: true,
-        fieldUpdatedAt: {...fieldUpdatedAt, for (final field in fields) field: now},
-      );
+  ///
+  /// The new time never goes backwards: if the phone's clock was moved back,
+  /// the edit is still stamped 1 ms after the previous one, so a newer edit
+  /// can't lose a merge to an older one.
+  SyncMetadata touched(DateTime now, {Iterable<String> fields = const []}) {
+    final stamp = _after(now);
+    return SyncMetadata(
+      id: id,
+      createdAt: createdAt,
+      updatedAt: stamp,
+      deletedAt: deletedAt,
+      dirty: true,
+      fieldUpdatedAt: {
+        ...fieldUpdatedAt,
+        for (final field in fields) field: stamp,
+      },
+    );
+  }
 
   /// Metadata after a local delete. The row stays as a marker.
-  SyncMetadata deleted(DateTime now) => SyncMetadata(
-    id: id,
-    createdAt: createdAt,
-    updatedAt: now,
-    deletedAt: now,
-    dirty: true,
-    fieldUpdatedAt: fieldUpdatedAt,
-  );
+  SyncMetadata deleted(DateTime now) {
+    final stamp = _after(now);
+    return SyncMetadata(
+      id: id,
+      createdAt: createdAt,
+      updatedAt: stamp,
+      deletedAt: stamp,
+      dirty: true,
+      fieldUpdatedAt: fieldUpdatedAt,
+    );
+  }
 
-  /// Metadata after an upload was confirmed.
-  SyncMetadata synced() => SyncMetadata(
-    id: id,
-    createdAt: createdAt,
-    updatedAt: updatedAt,
-    deletedAt: deletedAt,
-    dirty: false,
-    fieldUpdatedAt: fieldUpdatedAt,
-  );
+  /// Metadata after an upload of the version stamped [uploadedUpdatedAt] was
+  /// confirmed. If the record changed again while uploading, it stays dirty
+  /// so the newer edit is uploaded too. In SQL this is
+  /// `UPDATE … SET dirty = 0 WHERE id = ? AND updated_at = ?`.
+  SyncMetadata synced(DateTime uploadedUpdatedAt) {
+    if (uploadedUpdatedAt != updatedAt) return this;
+    return SyncMetadata(
+      id: id,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      deletedAt: deletedAt,
+      dirty: false,
+      fieldUpdatedAt: fieldUpdatedAt,
+    );
+  }
+
+  DateTime _after(DateTime now) => now.isAfter(updatedAt)
+      ? now
+      : updatedAt.add(const Duration(milliseconds: 1));
 
   @override
   bool operator ==(Object other) =>

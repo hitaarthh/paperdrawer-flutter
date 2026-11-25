@@ -13,11 +13,12 @@ import '../result/result.dart';
 /// - **Observable state.** [running], [result] and [failure] drive spinners,
 ///   disabled buttons and inline errors without extra fields in the view
 ///   model.
-/// - **Never throws.** The action returns a [Result]; a thrown error is a bug
-///   and becomes [UnexpectedFailure] so the UI still recovers.
+/// - **Never throws.** The action returns a [Result]; a thrown error (sync or
+///   async) is a bug and becomes [UnexpectedFailure] so the UI still recovers.
 ///
 /// Use [Command0] for actions without input and [Command1] for actions with
-/// one argument.
+/// one argument. Create them with `ViewModel.command0/command1` so they are
+/// disposed with the view model.
 abstract base class Command<T> extends ChangeNotifier {
   Command();
 
@@ -31,10 +32,11 @@ abstract base class Command<T> extends ChangeNotifier {
   Result<T>? get result => _result;
 
   /// The failure of the last run, if it failed and isn't silent.
-  AppFailure? get failure => switch (_result) {
-    Err(:final failure) when !failure.isSilent => failure,
-    _ => null,
-  };
+  AppFailure? get failure {
+    final result = _result;
+    if (result is Err<T> && !result.failure.isSilent) return result.failure;
+    return null;
+  }
 
   bool get completed => _result?.isOk ?? false;
 
@@ -59,9 +61,11 @@ abstract base class Command<T> extends ChangeNotifier {
   Future<Result<T>> _guard(Future<Result<T>> Function() action) async {
     Result<T> result;
     try {
-      result = await action();
+      // Future.sync turns a synchronous throw into a failed future, so it is
+      // caught here *after* run() has recorded the in-flight future.
+      result = await Future.sync(action);
     } catch (error, stackTrace) {
-      result = Err(UnexpectedFailure(cause: error, stackTrace: stackTrace));
+      result = Err<T>(UnexpectedFailure(cause: error, stackTrace: stackTrace));
     }
     _result = result;
     _inFlight = null;
@@ -90,10 +94,22 @@ final class Command0<T> extends Command<T> {
 }
 
 /// A command with one input, such as "Archive item(id)".
+///
+/// One command acts on one target at a time. Calling [execute] with a
+/// *different* argument while it runs returns a silent [CancelledFailure]
+/// (the new intent is not silently swapped for the old one). For lists where
+/// several targets can be busy at once, keep one command per target.
 final class Command1<A, T> extends Command<T> {
   Command1(this._action);
 
   final Future<Result<T>> Function(A argument) _action;
+  A? _argument;
 
-  Future<Result<T>> execute(A argument) => run(() => _action(argument));
+  Future<Result<T>> execute(A argument) {
+    if (running && _argument != argument) {
+      return Future.value(Err<T>(const CancelledFailure()));
+    }
+    _argument = argument;
+    return run(() => _action(argument));
+  }
 }

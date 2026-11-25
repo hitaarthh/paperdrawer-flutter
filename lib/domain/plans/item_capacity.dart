@@ -18,7 +18,11 @@ sealed class ItemCapacity {
     final limit = policy.itemLimit;
     if (limit == null) return const CapacityUnlimited();
     if (activeCount >= limit.max) {
-      return CapacityFull(max: limit.max, planName: policy.plan.name);
+      return CapacityFull(
+        count: activeCount,
+        max: limit.max,
+        planName: policy.plan.name,
+      );
     }
     if (activeCount >= limit.warnFrom) {
       return CapacityNearLimit(count: activeCount, max: limit.max);
@@ -28,11 +32,15 @@ sealed class ItemCapacity {
 
   /// Ok when one more active item fits (adding, or restoring from the
   /// archive); otherwise a [LimitReachedFailure].
+  ///
+  /// Repositories call this *inside* their write, so two entry points can't
+  /// both pass the check at 24 items.
   Result<Unit> checkCanAdd() => switch (this) {
-    CapacityFull(:final max, :final planName) => Err(
-      LimitReachedFailure(limit: max, planName: planName),
+    CapacityFull(:final count, :final max, :final planName) => Err(
+      LimitReachedFailure(count: count, limit: max, planName: planName),
     ),
-    _ => const Ok(unit),
+    CapacityUnlimited() || CapacityRoomLeft() || CapacityNearLimit() =>
+      const Ok(unit),
   };
 }
 
@@ -81,16 +89,29 @@ final class CapacityNearLimit extends ItemCapacity {
 
 /// No room. Adding is blocked; the UI offers "archive or upgrade". Nothing
 /// is ever deleted to make room.
+///
+/// [count] can exceed [max] after a downgrade (40 items on Base): the user
+/// must archive [toArchive] items before one more fits.
 final class CapacityFull extends ItemCapacity {
-  const CapacityFull({required this.max, required this.planName});
+  const CapacityFull({
+    required this.count,
+    required this.max,
+    required this.planName,
+  });
 
+  final int count;
   final int max;
   final String planName;
 
-  @override
-  bool operator ==(Object other) =>
-      other is CapacityFull && other.max == max && other.planName == planName;
+  int get toArchive => count - max + 1;
 
   @override
-  int get hashCode => Object.hash(max, planName);
+  bool operator ==(Object other) =>
+      other is CapacityFull &&
+      other.count == count &&
+      other.max == max &&
+      other.planName == planName;
+
+  @override
+  int get hashCode => Object.hash(count, max, planName);
 }

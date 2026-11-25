@@ -26,11 +26,14 @@ extension AppLoggerX on AppLogger {
   void warning(String message, {Object? error}) =>
       log(LogLevel.warning, message, error: error);
 
-  /// Logs a failure with its cause. Silent failures log at debug level.
+  /// Logs a failure by code. Silent failures log at debug level.
+  ///
+  /// Only the cause's *type* is logged, never its text: database and HTTP
+  /// errors embed SQL arguments and request bodies (user content).
   void failure(String where, AppFailure failure) => log(
     failure.isSilent ? LogLevel.debug : LogLevel.warning,
-    '$where: ${failure.debugDescription}',
-    error: failure.cause,
+    '$where: ${failure.debugDescription}'
+    '${failure.cause == null ? '' : ' (${failure.cause.runtimeType})'}',
     stackTrace: failure.stackTrace,
   );
 }

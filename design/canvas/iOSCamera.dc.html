@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Drawer — Camera</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1311}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid #D4F25A;outline-offset:2px}
+.grain{background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:4px 4px}
+.zig{-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%}
+.stub{-webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;color:#A3AEA8}
+.disp{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:700;letter-spacing:-.02em}
+.lg{position:relative;background:rgba(32,38,35,.56);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28),inset 0 0 0 .5px rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.28)}
+.lgl{position:relative;background:rgba(212,242,90,.94);color:#0E1311;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 .5px 0 rgba(255,255,255,.55),0 8px 24px rgba(0,0,0,.28)}
+.sel{background:rgba(255,255,255,.10)}
+main>*,section>*{flex-shrink:0}
+.edge{position:absolute;left:0;right:0;top:0;height:120px;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(14,19,17,.92) 35%,rgba(14,19,17,0))}
+</style>
+</helmet>
+<div class="grain" style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background-color: #0E1311; color: #F2F4EF; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background-image: none">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 40%, #4A4237 0%, #2C2721 55%, #15130F 100%)"></div>
+<div class="zig" style="position: absolute; left: 62px; top: 160px; width: 266px; transform: rotate(-3deg); background: #F4F1E6; color: #2B2F2C; padding: 18px 18px 28px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.8; box-shadow: 0 20px 40px rgba(0,0,0,.55); filter: contrast(.92) sepia(.12)">
+<div style="text-align: center; font-weight: 700; letter-spacing: 0.14em; font-size: 12px">SHARMA ELECTRONICS</div>
+<div style="text-align: center; color: #6A6F6B">Mall Road, Kanpur</div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 8px 0"></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #6A6F6B">INV 2026/1142</span><span>14-11-2026</span></div>
+<div>SPLIT AC 1.5T 5-STAR</div>
+<div style="display: flex; justify-content: space-between"><span style="color: #6A6F6B">1 x 32,619.00</span><span>32,619.00</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #6A6F6B">Tax</span><span>5,871.00</span></div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 8px 0"></div>
+<div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 13px"><span>TOTAL</span><span>₹38,490.00</span></div>
+<div style="border-top: 1px dashed #B9BDB8; margin: 8px 0"></div>
+<div>WARRANTY: 1 YR COMPREHENSIVE</div>
+<div>5 YR ON COMPRESSOR</div>
+<div>S/N  AC5T-88310-KX</div>
+</div>
+<div aria-hidden="true" style="position: absolute; left: 40px; right: 40px; top: 132px; height: 470px"><span style="position: absolute; left: 0; top: 0; width: 34px; height: 34px; border-top: 3px solid #D4F25A; border-left: 3px solid #D4F25A; border-top-left-radius: 14px"></span><span style="position: absolute; right: 0; top: 0; width: 34px; height: 34px; border-top: 3px solid #D4F25A; border-right: 3px solid #D4F25A; border-top-right-radius: 14px"></span><span style="position: absolute; left: 0; bottom: 0; width: 34px; height: 34px; border-bottom: 3px solid #D4F25A; border-left: 3px solid #D4F25A; border-bottom-left-radius: 14px"></span><span style="position: absolute; right: 0; bottom: 0; width: 34px; height: 34px; border-bottom: 3px solid #D4F25A; border-right: 3px solid #D4F25A; border-bottom-right-radius: 14px"></span></div>
+<div style="position: absolute; left: 16px; right: 16px; top: 54px; display: flex; justify-content: space-between; align-items: center; z-index: 4">
+<a href="iOSAddSheet.dc.html" aria-label="Close camera" class="lg" style="width: 44px; height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; color: #F2F4EF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a>
+<span class="lg mono" style="height: 36px; border-radius: 18px; display: inline-flex; align-items: center; padding: 0 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em">BILL &amp; WARRANTY</span>
+<a href="#" aria-label="Turn flash on" class="lg" style="width: 44px; height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; color: #F2F4EF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></a>
+</div>
+<span class="mono" style="position: absolute; left: 0; right: 0; top: 624px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #F2F4EF; text-shadow: 0 1px 3px rgba(0,0,0,.6); z-index: 4">FILL THE FRAME · FADED BILLS WORK TOO</span>
+<div style="position: absolute; left: 24px; right: 24px; bottom: 44px; display: flex; justify-content: space-between; align-items: center; z-index: 4">
+<a href="#" class="lg" style="height: 48px; padding: 0 18px; border-radius: 24px; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600">Upload</a>
+<a href="iOSVault.dc.html" aria-label="Take a photo" style="width: 78px; height: 78px; border-radius: 39px; display: inline-flex; align-items: center; justify-content: center; border: 4px solid #F2F4EF; box-sizing: border-box"><span style="width: 62px; height: 62px; border-radius: 31px; background: #F2F4EF"></span></a>
+<a href="iOSVault.dc.html" class="lgl" style="height: 48px; padding: 0 22px; border-radius: 24px; display: inline-flex; align-items: center; font-size: 15px; font-weight: 600">Done</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

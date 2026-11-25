@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'plan.dart';
 import 'plan_policy.dart';
 
-/// One step the app takes when the plan changes.
+/// One step the app takes when the plan or the account changes.
 ///
 /// There is deliberately no "delete local data" step. A plan change can
 /// start or stop syncing and change what the website shows; it can never
@@ -41,8 +41,9 @@ final class OfferMoveGuestItems extends PlanChangeStep {
   int get hashCode => (OfferMoveGuestItems).hashCode;
 }
 
-/// Stop the running sync transport after it finishes its current upload.
-/// Data already in that cloud stays there.
+/// Drain, then stop the running sync transport: push everything still
+/// waiting to upload, pull once more so edits made elsewhere aren't
+/// stranded, then stop. Data already in that cloud stays there.
 final class StopSync extends PlanChangeStep {
   const StopSync(this.kind);
 
@@ -55,7 +56,9 @@ final class StopSync extends PlanChangeStep {
   int get hashCode => kind.hashCode;
 }
 
-/// Start a sync transport with a full upload of everything on the phone.
+/// Start a sync transport with a full upload of everything on the phone,
+/// merged field by field with whatever the cloud already holds (a returning
+/// subscriber gets their website copy back, not overwritten).
 final class StartSyncWithFullUpload extends PlanChangeStep {
   const StartSyncWithFullUpload(this.kind);
 
@@ -84,27 +87,33 @@ final class WebsiteBecomesReadOnly extends PlanChangeStep {
 /// What happens to data when an account moves between plans.
 ///
 /// Pure and exhaustive: covers every row of the spec's "Plan changes" table
-/// for Base, Essential and Pro.
+/// for Base, Essential and Pro, for guests and signed-in accounts.
 @immutable
 final class PlanChange {
   const PlanChange._(this.from, this.to, this.steps);
 
   /// The steps to move from [from] to [to].
   ///
-  /// [isGuest] is true when no one is signed in (only possible on Base). A
-  /// signed-in Base account (signed in, then cancelled the purchase) needs
-  /// neither a sign-in nor a move.
+  /// [isGuest] is true when no one is signed in. A guest never syncs, so a
+  /// guest's change has no stop or website steps; moving a guest to a plan
+  /// that needs an account starts with sign-in. A guest who already paid
+  /// (sign-in failed at purchase) uses [PlanChange.finishAccountSetup].
   factory PlanChange.between(Plan from, Plan to, {required bool isGuest}) {
-    assert(!isGuest || from == Plan.base, 'Only Base can be used as a guest');
     if (from == to) return PlanChange._(from, to, const []);
-
     final fromPolicy = PlanPolicy.of(from);
     final toPolicy = PlanPolicy.of(to);
-    final steps = <PlanChangeStep>[
-      if (isGuest && toPolicy.requiresAccount) ...[
+
+    if (isGuest) {
+      if (!toPolicy.requiresAccount) return PlanChange._(from, to, const []);
+      return PlanChange._(from, to, [
         RequireSignIn(toPolicy.signInMethods),
         const OfferMoveGuestItems(),
-      ],
+        if (toPolicy.syncKind != SyncKind.none)
+          StartSyncWithFullUpload(toPolicy.syncKind),
+      ]);
+    }
+
+    final steps = <PlanChangeStep>[
       if (fromPolicy.syncKind != toPolicy.syncKind) ...[
         if (fromPolicy.syncKind != SyncKind.none) StopSync(fromPolicy.syncKind),
         if (toPolicy.syncKind != SyncKind.none)
@@ -114,6 +123,16 @@ final class PlanChange {
         const WebsiteBecomesReadOnly(),
     ];
     return PlanChange._(from, to, List.unmodifiable(steps));
+  }
+
+  /// A guest who already owns [plan] (paid, but sign-in failed) has now
+  /// signed in: offer to move the guest items, then start the plan's sync.
+  factory PlanChange.finishAccountSetup(Plan plan) {
+    final kind = PlanPolicy.of(plan).syncKind;
+    return PlanChange._(plan, plan, [
+      const OfferMoveGuestItems(),
+      if (kind != SyncKind.none) StartSyncWithFullUpload(kind),
+    ]);
   }
 
   final Plan from;

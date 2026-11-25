@@ -1,0 +1,981 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-25T08:05:17Z"
+ },
+ "title": "PaperDrawer iOS — Liquid Glass screens",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 260,
+   "w": 390,
+   "h": 844,
+   "title": "Home",
+   "is_interactive": true
+  },
+  "iOSVault.dc.html": {
+   "x": 470,
+   "y": 260,
+   "w": 390,
+   "h": 844,
+   "title": "Vault",
+   "is_interactive": true
+  },
+  "iOSVaultScrolled.dc.html": {
+   "x": 940,
+   "y": 260,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · scrolled",
+   "is_interactive": true
+  },
+  "iOSAddSheet.dc.html": {
+   "x": 1410,
+   "y": 260,
+   "w": 390,
+   "h": 844,
+   "title": "Add (glass sheet)",
+   "is_interactive": true
+  },
+  "iOSCamera.dc.html": {
+   "x": 1880,
+   "y": 260,
+   "w": 390,
+   "h": 844,
+   "title": "Camera",
+   "is_interactive": true
+  },
+  "iOSBillDetail.dc.html": {
+   "x": 2350,
+   "y": 260,
+   "w": 390,
+   "h": 1420,
+   "title": "Item detail",
+   "is_interactive": true
+  },
+  "iOSSettings.dc.html": {
+   "x": 2820,
+   "y": 260,
+   "w": 390,
+   "h": 1320,
+   "title": "Settings",
+   "is_interactive": true
+  },
+  "iOSHomeLight.dc.html": {
+   "x": 0,
+   "y": 1800,
+   "w": 390,
+   "h": 844,
+   "title": "Home · light",
+   "is_interactive": true
+  },
+  "iOSVaultLight.dc.html": {
+   "x": 470,
+   "y": 1800,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · light",
+   "is_interactive": true
+  },
+  "iOSVaultScrolledLight.dc.html": {
+   "x": 940,
+   "y": 1800,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · scrolled · light",
+   "is_interactive": true
+  },
+  "iOSAddSheetLight.dc.html": {
+   "x": 1410,
+   "y": 1800,
+   "w": 390,
+   "h": 844,
+   "title": "Add (glass sheet) · light",
+   "is_interactive": true
+  },
+  "iOSItemLight.dc.html": {
+   "x": 2350,
+   "y": 1800,
+   "w": 390,
+   "h": 1420,
+   "title": "Item detail · light",
+   "is_interactive": true
+  },
+  "iOSSettingsLight.dc.html": {
+   "x": 2820,
+   "y": 1800,
+   "w": 390,
+   "h": 1320,
+   "title": "Settings · light",
+   "is_interactive": true
+  },
+  "iOSHomeEmpty.dc.html": {
+   "x": 0,
+   "y": 3780,
+   "w": 390,
+   "h": 844,
+   "title": "Home · empty drawer",
+   "is_interactive": true
+  },
+  "iOSHomeAllClear.dc.html": {
+   "x": 470,
+   "y": 3780,
+   "w": 390,
+   "h": 844,
+   "title": "Home · nothing due",
+   "is_interactive": true
+  },
+  "iOSVaultEmpty.dc.html": {
+   "x": 940,
+   "y": 3780,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · empty",
+   "is_interactive": true
+  },
+  "iOSVaultNoResults.dc.html": {
+   "x": 1410,
+   "y": 3780,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · no search results",
+   "is_interactive": true
+  },
+  "iOSVaultFilterEmpty.dc.html": {
+   "x": 1880,
+   "y": 3780,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · filter empty",
+   "is_interactive": true
+  },
+  "iOSBaseLimit.dc.html": {
+   "x": 2350,
+   "y": 3780,
+   "w": 390,
+   "h": 844,
+   "title": "Base · drawer full (25 of 25)",
+   "is_interactive": true
+  },
+  "iOSHomeEmptyLight.dc.html": {
+   "x": 0,
+   "y": 4744,
+   "w": 390,
+   "h": 844,
+   "title": "Home · empty drawer · light",
+   "is_interactive": true
+  },
+  "iOSHomeAllClearLight.dc.html": {
+   "x": 470,
+   "y": 4744,
+   "w": 390,
+   "h": 844,
+   "title": "Home · nothing due · light",
+   "is_interactive": true
+  },
+  "iOSVaultEmptyLight.dc.html": {
+   "x": 940,
+   "y": 4744,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · empty · light",
+   "is_interactive": true
+  },
+  "iOSVaultNoResultsLight.dc.html": {
+   "x": 1410,
+   "y": 4744,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · no search results · light",
+   "is_interactive": true
+  },
+  "iOSVaultFilterEmptyLight.dc.html": {
+   "x": 1880,
+   "y": 4744,
+   "w": 390,
+   "h": 844,
+   "title": "Vault · filter empty · light",
+   "is_interactive": true
+  },
+  "iOSBaseLimitLight.dc.html": {
+   "x": 2350,
+   "y": 4744,
+   "w": 390,
+   "h": 844,
+   "title": "Base · drawer full (25 of 25) · light",
+   "is_interactive": true
+  },
+  "iOSNotifications.dc.html": {
+   "x": 0,
+   "y": 6148,
+   "w": 390,
+   "h": 1900,
+   "title": "Settings › Notifications",
+   "is_interactive": true
+  },
+  "iOSNotifyReturns.dc.html": {
+   "x": 470,
+   "y": 6148,
+   "w": 390,
+   "h": 1240,
+   "title": "Notifications › one kind",
+   "is_interactive": true
+  },
+  "iOSNotificationsOff.dc.html": {
+   "x": 940,
+   "y": 6148,
+   "w": 390,
+   "h": 844,
+   "title": "Notifications · off in iOS",
+   "is_interactive": true
+  },
+  "iOSItemReminders.dc.html": {
+   "x": 1410,
+   "y": 6148,
+   "w": 390,
+   "h": 844,
+   "title": "Item › Reminders (sheet)",
+   "is_interactive": true
+  },
+  "iOSLockScreen.dc.html": {
+   "x": 1880,
+   "y": 6148,
+   "w": 390,
+   "h": 844,
+   "title": "Lock Screen · every kind",
+   "is_interactive": true
+  },
+  "iOSNotifActions.dc.html": {
+   "x": 2350,
+   "y": 6148,
+   "w": 390,
+   "h": 844,
+   "title": "Long-press actions",
+   "is_interactive": true
+  },
+  "iOSAppearance.dc.html": {
+   "x": 2820,
+   "y": 6148,
+   "w": 390,
+   "h": 844,
+   "title": "Settings › Appearance",
+   "is_interactive": true
+  },
+  "iOSNotificationsLight.dc.html": {
+   "x": 0,
+   "y": 8168,
+   "w": 390,
+   "h": 1900,
+   "title": "Settings › Notifications · light",
+   "is_interactive": true
+  },
+  "iOSNotifyReturnsLight.dc.html": {
+   "x": 470,
+   "y": 8168,
+   "w": 390,
+   "h": 1240,
+   "title": "Notifications › one kind · light",
+   "is_interactive": true
+  },
+  "iOSNotificationsOffLight.dc.html": {
+   "x": 940,
+   "y": 8168,
+   "w": 390,
+   "h": 844,
+   "title": "Notifications · off in iOS · light",
+   "is_interactive": true
+  },
+  "iOSItemRemindersLight.dc.html": {
+   "x": 1410,
+   "y": 8168,
+   "w": 390,
+   "h": 844,
+   "title": "Item › Reminders (sheet) · light",
+   "is_interactive": true
+  },
+  "iOSAppearanceLight.dc.html": {
+   "x": 2820,
+   "y": 8168,
+   "w": 390,
+   "h": 844,
+   "title": "Settings › Appearance · light",
+   "is_interactive": true
+  },
+  "iOSOpening.dc.html": {
+   "x": 0,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Opening animation",
+   "is_interactive": true
+  },
+  "iOSIntroKeep.dc.html": {
+   "x": 470,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Intro 1 · Keep",
+   "is_interactive": true
+  },
+  "iOSIntroRemember.dc.html": {
+   "x": 940,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Intro 2 · Remember",
+   "is_interactive": true
+  },
+  "iOSSignIn.dc.html": {
+   "x": 1410,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Sign in",
+   "is_interactive": true
+  },
+  "iOSCreateAccount.dc.html": {
+   "x": 1880,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Create account",
+   "is_interactive": true
+  },
+  "iOSMoveItems.dc.html": {
+   "x": 2350,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Move items into account",
+   "is_interactive": true
+  },
+  "iOSReminders.dc.html": {
+   "x": 2820,
+   "y": 10628,
+   "w": 390,
+   "h": 844,
+   "title": "Turn on reminders (after first save)",
+   "is_interactive": true
+  },
+  "iOSOpeningLight.dc.html": {
+   "x": 0,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Opening animation · light",
+   "is_interactive": true
+  },
+  "iOSIntroKeepLight.dc.html": {
+   "x": 470,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Intro 1 · Keep · light",
+   "is_interactive": true
+  },
+  "iOSIntroRememberLight.dc.html": {
+   "x": 940,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Intro 2 · Remember · light",
+   "is_interactive": true
+  },
+  "iOSSignInLight.dc.html": {
+   "x": 1410,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Sign in · light",
+   "is_interactive": true
+  },
+  "iOSCreateAccountLight.dc.html": {
+   "x": 1880,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Create account · light",
+   "is_interactive": true
+  },
+  "iOSMoveItemsLight.dc.html": {
+   "x": 2350,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Move items into account · light",
+   "is_interactive": true
+  },
+  "iOSRemindersLight.dc.html": {
+   "x": 2820,
+   "y": 11592,
+   "w": 390,
+   "h": 844,
+   "title": "Turn on reminders (after first save) · light",
+   "is_interactive": true
+  },
+  "iOSPlans.dc.html": {
+   "x": 0,
+   "y": 12996,
+   "w": 390,
+   "h": 2100,
+   "title": "Plans",
+   "is_interactive": true
+  },
+  "iOSEssentialBuy.dc.html": {
+   "x": 470,
+   "y": 12996,
+   "w": 390,
+   "h": 844,
+   "title": "Essential · sign in to buy",
+   "is_interactive": true
+  },
+  "iOSBackingUp.dc.html": {
+   "x": 940,
+   "y": 12996,
+   "w": 390,
+   "h": 844,
+   "title": "Essential · backing up",
+   "is_interactive": true
+  },
+  "iOSProWelcome.dc.html": {
+   "x": 1410,
+   "y": 12996,
+   "w": 390,
+   "h": 844,
+   "title": "Pro · welcome",
+   "is_interactive": true
+  },
+  "iOSFamilyHome.dc.html": {
+   "x": 1880,
+   "y": 12996,
+   "w": 390,
+   "h": 844,
+   "title": "Family drawer (proposed)",
+   "is_interactive": true
+  },
+  "iOSFamilyInvite.dc.html": {
+   "x": 2350,
+   "y": 12996,
+   "w": 390,
+   "h": 844,
+   "title": "Family · invite (proposed)",
+   "is_interactive": true
+  },
+  "iOSPlansLight.dc.html": {
+   "x": 0,
+   "y": 15216,
+   "w": 390,
+   "h": 2100,
+   "title": "Plans · light",
+   "is_interactive": true
+  },
+  "iOSEssentialBuyLight.dc.html": {
+   "x": 470,
+   "y": 15216,
+   "w": 390,
+   "h": 844,
+   "title": "Essential · sign in to buy · light",
+   "is_interactive": true
+  },
+  "iOSBackingUpLight.dc.html": {
+   "x": 940,
+   "y": 15216,
+   "w": 390,
+   "h": 844,
+   "title": "Essential · backing up · light",
+   "is_interactive": true
+  },
+  "iOSProWelcomeLight.dc.html": {
+   "x": 1410,
+   "y": 15216,
+   "w": 390,
+   "h": 844,
+   "title": "Pro · welcome · light",
+   "is_interactive": true
+  },
+  "iOSFamilyHomeLight.dc.html": {
+   "x": 1880,
+   "y": 15216,
+   "w": 390,
+   "h": 844,
+   "title": "Family drawer (proposed) · light",
+   "is_interactive": true
+  },
+  "iOSFamilyInviteLight.dc.html": {
+   "x": 2350,
+   "y": 15216,
+   "w": 390,
+   "h": 844,
+   "title": "Family · invite (proposed) · light",
+   "is_interactive": true
+  },
+  "iOSSettingsBase.dc.html": {
+   "x": 0,
+   "y": 17876,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · Base",
+   "is_interactive": true
+  },
+  "iOSSettingsEssential.dc.html": {
+   "x": 470,
+   "y": 17876,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · Essential",
+   "is_interactive": true
+  },
+  "iOSSettingsSyncPaused.dc.html": {
+   "x": 940,
+   "y": 17876,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · iCloud full",
+   "is_interactive": true
+  },
+  "iOSSettingsPro.dc.html": {
+   "x": 1410,
+   "y": 17876,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · Pro",
+   "is_interactive": true
+  },
+  "iOSSignOut.dc.html": {
+   "x": 1880,
+   "y": 17876,
+   "w": 390,
+   "h": 844,
+   "title": "Sign out",
+   "is_interactive": true
+  },
+  "iOSSettingsBaseLight.dc.html": {
+   "x": 0,
+   "y": 19396,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · Base · light",
+   "is_interactive": true
+  },
+  "iOSSettingsEssentialLight.dc.html": {
+   "x": 470,
+   "y": 19396,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · Essential · light",
+   "is_interactive": true
+  },
+  "iOSSettingsSyncPausedLight.dc.html": {
+   "x": 940,
+   "y": 19396,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · iCloud full · light",
+   "is_interactive": true
+  },
+  "iOSSettingsProLight.dc.html": {
+   "x": 1410,
+   "y": 19396,
+   "w": 390,
+   "h": 1400,
+   "title": "Settings · Pro · light",
+   "is_interactive": true
+  },
+  "iOSSignOutLight.dc.html": {
+   "x": 1880,
+   "y": 19396,
+   "w": 390,
+   "h": 844,
+   "title": "Sign out · light",
+   "is_interactive": true
+  },
+  "DevSE.dc.html": {
+   "x": 0,
+   "y": 21356,
+   "w": 375,
+   "h": 667,
+   "title": "iPhone SE · 375×667",
+   "is_interactive": true
+  },
+  "DevProMax.dc.html": {
+   "x": 455,
+   "y": 21356,
+   "w": 440,
+   "h": 956,
+   "title": "iPhone Pro Max · 440×956",
+   "is_interactive": true
+  },
+  "DevDuoClosed.dc.html": {
+   "x": 975,
+   "y": 21356,
+   "w": 466,
+   "h": 678,
+   "title": "iPhone Duo closed · 466×678",
+   "is_interactive": true
+  },
+  "DevDuoOpen.dc.html": {
+   "x": 1521,
+   "y": 21356,
+   "w": 890,
+   "h": 626,
+   "title": "iPhone Duo open · 890×626",
+   "is_interactive": true
+  },
+  "DevIpadMini.dc.html": {
+   "x": 2491,
+   "y": 21356,
+   "w": 744,
+   "h": 1133,
+   "title": "iPad mini portrait · 744×1133",
+   "is_interactive": true
+  },
+  "iPadHome.dc.html": {
+   "x": 3315,
+   "y": 21356,
+   "w": 1180,
+   "h": 820,
+   "title": "iPad landscape · 1180×820",
+   "is_interactive": true
+  },
+  "DevMac.dc.html": {
+   "x": 4575,
+   "y": 21356,
+   "w": 1280,
+   "h": 800,
+   "title": "Mac window · Vault",
+   "is_interactive": true
+  },
+  "DevicePlan.dc.html": {
+   "x": 5935,
+   "y": 21356,
+   "w": 1280,
+   "h": 800,
+   "title": "Device plan",
+   "is_interactive": true
+  },
+  "DevSELight.dc.html": {
+   "x": 0,
+   "y": 22609,
+   "w": 375,
+   "h": 667,
+   "title": "iPhone SE · 375×667 · light",
+   "is_interactive": true
+  },
+  "DevProMaxLight.dc.html": {
+   "x": 455,
+   "y": 22609,
+   "w": 440,
+   "h": 956,
+   "title": "iPhone Pro Max · 440×956 · light",
+   "is_interactive": true
+  },
+  "DevDuoClosedLight.dc.html": {
+   "x": 975,
+   "y": 22609,
+   "w": 466,
+   "h": 678,
+   "title": "iPhone Duo closed · 466×678 · light",
+   "is_interactive": true
+  },
+  "DevDuoOpenLight.dc.html": {
+   "x": 1521,
+   "y": 22609,
+   "w": 890,
+   "h": 626,
+   "title": "iPhone Duo open · 890×626 · light",
+   "is_interactive": true
+  },
+  "DevIpadMiniLight.dc.html": {
+   "x": 2491,
+   "y": 22609,
+   "w": 744,
+   "h": 1133,
+   "title": "iPad mini portrait · 744×1133 · light",
+   "is_interactive": true
+  },
+  "iPadHomeLight.dc.html": {
+   "x": 3315,
+   "y": 22609,
+   "w": 1180,
+   "h": 820,
+   "title": "iPad landscape · 1180×820 · light",
+   "is_interactive": true
+  },
+  "DevMacLight.dc.html": {
+   "x": 4575,
+   "y": 22609,
+   "w": 1280,
+   "h": 800,
+   "title": "Mac window · Vault · light",
+   "is_interactive": true
+  },
+  "AppIcon.dc.html": {
+   "x": 0,
+   "y": 24302,
+   "w": 1180,
+   "h": 860,
+   "title": "App icon appearances",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "iOSVault.dc.html",
+  "iOSVaultScrolled.dc.html",
+  "iOSAddSheet.dc.html",
+  "iOSCamera.dc.html",
+  "iOSBillDetail.dc.html",
+  "iOSSettings.dc.html",
+  "iOSHomeLight.dc.html",
+  "iOSVaultLight.dc.html",
+  "iOSVaultScrolledLight.dc.html",
+  "iOSAddSheetLight.dc.html",
+  "iOSItemLight.dc.html",
+  "iOSSettingsLight.dc.html",
+  "iOSHomeEmpty.dc.html",
+  "iOSHomeAllClear.dc.html",
+  "iOSVaultEmpty.dc.html",
+  "iOSVaultNoResults.dc.html",
+  "iOSVaultFilterEmpty.dc.html",
+  "iOSBaseLimit.dc.html",
+  "iOSHomeEmptyLight.dc.html",
+  "iOSHomeAllClearLight.dc.html",
+  "iOSVaultEmptyLight.dc.html",
+  "iOSVaultNoResultsLight.dc.html",
+  "iOSVaultFilterEmptyLight.dc.html",
+  "iOSBaseLimitLight.dc.html",
+  "iOSNotifications.dc.html",
+  "iOSNotifyReturns.dc.html",
+  "iOSNotificationsOff.dc.html",
+  "iOSItemReminders.dc.html",
+  "iOSLockScreen.dc.html",
+  "iOSNotifActions.dc.html",
+  "iOSAppearance.dc.html",
+  "iOSNotificationsLight.dc.html",
+  "iOSNotifyReturnsLight.dc.html",
+  "iOSNotificationsOffLight.dc.html",
+  "iOSItemRemindersLight.dc.html",
+  "iOSAppearanceLight.dc.html",
+  "iOSOpening.dc.html",
+  "iOSIntroKeep.dc.html",
+  "iOSIntroRemember.dc.html",
+  "iOSSignIn.dc.html",
+  "iOSCreateAccount.dc.html",
+  "iOSMoveItems.dc.html",
+  "iOSReminders.dc.html",
+  "iOSOpeningLight.dc.html",
+  "iOSIntroKeepLight.dc.html",
+  "iOSIntroRememberLight.dc.html",
+  "iOSSignInLight.dc.html",
+  "iOSCreateAccountLight.dc.html",
+  "iOSMoveItemsLight.dc.html",
+  "iOSRemindersLight.dc.html",
+  "iOSPlans.dc.html",
+  "iOSEssentialBuy.dc.html",
+  "iOSBackingUp.dc.html",
+  "iOSProWelcome.dc.html",
+  "iOSFamilyHome.dc.html",
+  "iOSFamilyInvite.dc.html",
+  "iOSPlansLight.dc.html",
+  "iOSEssentialBuyLight.dc.html",
+  "iOSBackingUpLight.dc.html",
+  "iOSProWelcomeLight.dc.html",
+  "iOSFamilyHomeLight.dc.html",
+  "iOSFamilyInviteLight.dc.html",
+  "iOSSettingsBase.dc.html",
+  "iOSSettingsEssential.dc.html",
+  "iOSSettingsSyncPaused.dc.html",
+  "iOSSettingsPro.dc.html",
+  "iOSSignOut.dc.html",
+  "iOSSettingsBaseLight.dc.html",
+  "iOSSettingsEssentialLight.dc.html",
+  "iOSSettingsSyncPausedLight.dc.html",
+  "iOSSettingsProLight.dc.html",
+  "iOSSignOutLight.dc.html",
+  "DevSE.dc.html",
+  "DevProMax.dc.html",
+  "DevDuoClosed.dc.html",
+  "DevDuoOpen.dc.html",
+  "DevIpadMini.dc.html",
+  "iPadHome.dc.html",
+  "DevMac.dc.html",
+  "DevicePlan.dc.html",
+  "DevSELight.dc.html",
+  "DevProMaxLight.dc.html",
+  "DevDuoClosedLight.dc.html",
+  "DevDuoOpenLight.dc.html",
+  "DevIpadMiniLight.dc.html",
+  "iPadHomeLight.dc.html",
+  "DevMacLight.dc.html",
+  "AppIcon.dc.html"
+ ],
+ "notes": {
+  "s0": {
+   "x": 0,
+   "y": 0,
+   "text": "iPhone · core screens",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n0": {
+   "x": 3330,
+   "y": 260,
+   "w": 320,
+   "text": "Built from the current Flutter screens, claims left out. Glass only on the tab bar, Scan, grouped toolbar buttons, sheets and camera controls. Camera stays dark in Light, like the iOS Camera.",
+   "fill": "yellow"
+  },
+  "l0": {
+   "x": 0,
+   "y": 1710,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s1": {
+   "x": 0,
+   "y": 3520,
+   "text": "Empty and edge states",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n1": {
+   "x": 2860,
+   "y": 3780,
+   "w": 320,
+   "text": "Empty screens keep the paper language: a dashed outline shows where the first ticket goes. All clear still shows the next date, so Home is never blank. Base warns from 20 items and stops at 25 with a way out (archive or upgrade).",
+   "fill": "yellow"
+  },
+  "l1": {
+   "x": 0,
+   "y": 4654,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s2": {
+   "x": 0,
+   "y": 5888,
+   "text": "Notifications and appearance",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n2": {
+   "x": 3330,
+   "y": 6148,
+   "w": 320,
+   "text": "Appearance and Notifications are › rows in Settings like everything else. Each deadline kind (return, warranty, part warranty, policy, validity, agreement) has its own lead times and channels; one item can override or mute. Lock Screen and the long-press menu are drawn by iOS, so they have no Light board here.",
+   "fill": "yellow"
+  },
+  "l2": {
+   "x": 0,
+   "y": 8078,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s3": {
+   "x": 0,
+   "y": 10368,
+   "text": "First launch and accounts",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n3": {
+   "x": 3330,
+   "y": 10628,
+   "w": 320,
+   "text": "Base needs no account: Start your vault goes straight to Home. I already have an account opens Sign in. Continue with Apple comes first (needed for Essential); email stays for the website. Signing in with items already on the phone asks before moving them. Opening animation loops here; in the app it plays once (1.5 s reveal, 0.35 s hold).",
+   "fill": "yellow"
+  },
+  "l3": {
+   "x": 0,
+   "y": 11502,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s4": {
+   "x": 0,
+   "y": 12736,
+   "text": "Plans and purchase",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n4": {
+   "x": 2860,
+   "y": 12996,
+   "w": 320,
+   "text": "Plan cards are the website’s pricing tickets. Prices are placeholders until the cost estimate is done. Essential: Continue with Apple, then the App Store sheet, then the first iCloud backup. Pro adds the website and email reminders. Family is still open in the spec, so its two screens are proposals.",
+   "fill": "yellow"
+  },
+  "l4": {
+   "x": 0,
+   "y": 15126,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s5": {
+   "x": 0,
+   "y": 17616,
+   "text": "Settings by plan",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n5": {
+   "x": 2390,
+   "y": 17876,
+   "w": 320,
+   "text": "The ticket at the top shows how many items you keep and where they live: 18 of 25 on this iPhone with an Export button (Base), 42 synced to iCloud (Essential), 42 on paperdrawer.app (Pro). iCloud full pauses sync and says so. Sign out never deletes anything.",
+   "fill": "yellow"
+  },
+  "l5": {
+   "x": 0,
+   "y": 19306,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s6": {
+   "x": 0,
+   "y": 21096,
+   "text": "Every screen size",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "n6": {
+   "x": 7335,
+   "y": 21356,
+   "w": 320,
+   "text": "Layout switches on the width the app gets, not the device: under 600 pt one column with the floating tab bar; 600 pt and up, two or three columns with a sidebar or top tab bar. iPhone Duo open is regular width, with its bars down the right edge. SE and Duo use Touch ID.",
+   "fill": "yellow"
+  },
+  "l6": {
+   "x": 0,
+   "y": 22519,
+   "text": "Light",
+   "kind": "title1",
+   "maxW": 600
+  },
+  "s7": {
+   "x": 0,
+   "y": 24042,
+   "text": "App icon",
+   "kind": "title1",
+   "maxW": 3200
+  },
+  "nL": {
+   "x": 3600,
+   "y": -300,
+   "w": 340,
+   "text": "Every row has its Light twin underneath, built from the website’s light theme: cream page #F7F3DF, warm tiles, olive #465B16 where lime would be text. Paper, tickets, lime buttons and the orange ticket look the same in both themes. Appearance defaults to System.",
+   "fill": "green"
+  }
+ },
+ "designSystems": []
+}

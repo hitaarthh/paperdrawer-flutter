@@ -15,7 +15,7 @@ import '../failure/app_failure.dart';
 /// };
 /// ```
 @immutable
-sealed class ViewState<T> {
+sealed class ViewState<T extends Object> {
   const ViewState();
 
   /// The data to show, if any (a failed refresh can keep the last good data).
@@ -30,28 +30,56 @@ sealed class ViewState<T> {
 }
 
 /// Nothing requested yet.
-final class ViewIdle<T> extends ViewState<T> {
+final class ViewIdle<T extends Object> extends ViewState<T> {
   const ViewIdle();
+
+  @override
+  bool operator ==(Object other) => other is ViewIdle;
+
+  @override
+  int get hashCode => (ViewIdle).hashCode;
 }
 
 /// Work in progress. [previous] keeps the last data on screen during a
 /// refresh so lists don't flash empty.
-final class ViewLoading<T> extends ViewState<T> {
+final class ViewLoading<T extends Object> extends ViewState<T> {
   const ViewLoading({this.previous});
 
   final T? previous;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ViewLoading && other.previous == previous;
+
+  @override
+  int get hashCode => Object.hash(ViewLoading, previous);
 }
 
-final class ViewReady<T> extends ViewState<T> {
+final class ViewReady<T extends Object> extends ViewState<T> {
   const ViewReady(this.data);
 
   final T data;
+
+  @override
+  bool operator ==(Object other) => other is ViewReady && other.data == data;
+
+  @override
+  int get hashCode => Object.hash(ViewReady, data);
 }
 
 /// The last attempt failed. [previous] is the last good data, if any.
-final class ViewFailed<T> extends ViewState<T> {
+final class ViewFailed<T extends Object> extends ViewState<T> {
   const ViewFailed(this.failure, {this.previous});
 
   final AppFailure failure;
   final T? previous;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ViewFailed &&
+      other.failure == failure &&
+      other.previous == previous;
+
+  @override
+  int get hashCode => Object.hash(failure, previous);
 }

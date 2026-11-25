@@ -9,21 +9,40 @@ import '../../core/failure/validation_issue.dart';
 /// Copy rules (design system "Content"): short, calm, sentence case, second
 /// person, say what to do next, typographic apostrophe (’), no exclamation
 /// marks, never blame the user, never show codes or raw errors.
-abstract final class FailureCopy {
-  static String message(AppFailure failure) => switch (failure) {
+///
+/// Built once per app with the device noun ("iPhone", "iPad", "Mac") and the
+/// limits the copy mentions, so nothing here goes stale when they change.
+final class FailureCopy {
+  const FailureCopy({
+    this.deviceNoun = 'iPhone',
+    this.maxAttachmentMegabytes = 20,
+  });
+
+  final String deviceNoun;
+  final int maxAttachmentMegabytes;
+
+  /// The message for [failure], or `null` for silent failures (show nothing).
+  String? message(AppFailure failure) => switch (failure) {
     ValidationFailure(:final issue) => validation(issue),
-    NotFoundFailure() => 'This item is no longer in your drawer.',
-    LimitReachedFailure(:final limit) =>
-      '$limit of $limit items on Base. Archive an old item or upgrade to add more. Nothing is deleted.',
+    NotFoundFailure(:final entity) => switch (entity) {
+      'attachment' => 'This file is no longer attached.',
+      _ => 'This item is no longer in your drawer.',
+    },
+    LimitReachedFailure(:final limit, :final count, :final toArchive) =>
+      count > limit
+          ? '$count items, and Base keeps $limit. Archive $toArchive or upgrade to add more. Nothing is deleted.'
+          : '$limit of $limit items on Base. Archive an old item or upgrade to add more. Nothing is deleted.',
     StorageFailure(:final kind) => switch (kind) {
       StorageFailureKind.full =>
-        'Your iPhone is out of space. Free some up and try again. Nothing you typed is lost.',
+        'Your $deviceNoun is out of space. Free some up and try again. Nothing you typed is lost.',
       StorageFailureKind.unreadable =>
         'Couldn’t read this file. Try another photo or PDF.',
       StorageFailureKind.unsupportedFile =>
-        'Choose a photo or PDF up to 20 MB.',
-      StorageFailureKind.writeFailed =>
-        'Couldn’t save that. Try again.',
+        'Choose a photo or PDF up to $maxAttachmentMegabytes MB.',
+      StorageFailureKind.busy => 'Your drawer is busy. Try again.',
+      StorageFailureKind.constraintViolated =>
+        'Couldn’t save that. Nothing was changed.',
+      StorageFailureKind.writeFailed => 'Couldn’t save that. Try again.',
       StorageFailureKind.corrupt =>
         'Part of your drawer couldn’t be read. Your other papers are safe.',
     },
@@ -32,7 +51,7 @@ abstract final class FailureCopy {
     NetworkFailure() =>
       'Needs internet. Try again when you’re online. Your drawer still works.',
     AuthFailure(:final kind) => switch (kind) {
-      AuthFailureKind.cancelled => '',
+      AuthFailureKind.cancelled => null,
       AuthFailureKind.invalidCredentials =>
         'That email and password don’t match.',
       AuthFailureKind.emailAlreadyUsed =>
@@ -40,28 +59,27 @@ abstract final class FailureCopy {
       AuthFailureKind.emailNotConfirmed =>
         'Confirm your email first. We sent you a link.',
       AuthFailureKind.sessionRejected =>
-        'Sign in again to keep syncing. Your papers on this iPhone are safe.',
+        'Sign in again to keep syncing. Your papers on this $deviceNoun are safe.',
       AuthFailureKind.accountDeleted => 'This account was deleted.',
     },
     PurchaseFailure(:final kind) => switch (kind) {
-      PurchaseFailureKind.cancelled => '',
+      PurchaseFailureKind.cancelled => null,
       PurchaseFailureKind.pending =>
         'Waiting for approval. It unlocks as soon as it’s approved.',
       PurchaseFailureKind.notAllowed =>
-        'Purchases are turned off on this iPhone in Screen Time.',
+        'Purchases are turned off on this $deviceNoun in Screen Time.',
       PurchaseFailureKind.unavailable =>
         'This plan isn’t available in your App Store region yet.',
       PurchaseFailureKind.storeError =>
         'The App Store couldn’t finish that. You haven’t been charged. Try again.',
     },
     SyncFailure(:final reason) => syncPaused(reason),
-    CancelledFailure() => '',
-    ScopeClosedFailure() => '',
-    UnexpectedFailure() =>
-      'Something went wrong. Nothing was lost. Try again.',
+    CancelledFailure() => null,
+    ScopeClosedFailure() => null,
+    UnexpectedFailure() => 'Something went wrong. Nothing was lost. Try again.',
   };
 
-  static String validation(ValidationIssue issue) => switch (issue) {
+  String validation(ValidationIssue issue) => switch (issue) {
     ValidationIssue.nameRequired => 'Add a name so you can find it later.',
     ValidationIssue.nameTooLong => 'Use a shorter name.',
     ValidationIssue.purchaseDateRequired => 'Add the date you bought it.',
@@ -79,13 +97,13 @@ abstract final class FailureCopy {
     ValidationIssue.settingInvalid => 'That setting couldn’t be saved.',
   };
 
-  static String syncPaused(SyncPauseReason reason) => switch (reason) {
+  String syncPaused(SyncPauseReason reason) => switch (reason) {
     SyncPauseReason.iCloudUnavailable =>
       'Sync paused. Turn on iCloud in Settings to keep syncing.',
     SyncPauseReason.iCloudFull =>
-      'Sync paused. Your iCloud storage is full. New papers still save on this iPhone.',
+      'Sync paused. Your iCloud storage is full. New papers still save on this $deviceNoun.',
     SyncPauseReason.iCloudAccountMismatch =>
-      'Sync paused. This iPhone’s iCloud belongs to someone else.',
+      'Sync paused. This $deviceNoun’s iCloud belongs to someone else.',
     SyncPauseReason.signInRequired =>
       'Sync paused. Sign in again to keep syncing.',
     SyncPauseReason.appUpdateRequired =>
@@ -93,7 +111,7 @@ abstract final class FailureCopy {
     SyncPauseReason.offline => 'Offline. Syncs when you’re back online.',
   };
 
-  static String _permission(DevicePermission permission, bool permanent) {
+  String _permission(DevicePermission permission, bool permanent) {
     final what = switch (permission) {
       DevicePermission.camera => 'the camera',
       DevicePermission.photos => 'your photos',

@@ -1,0 +1,86 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-25T07:48:19Z"
+ },
+ "title": "PaperDrawer iOS — Liquid Glass",
+ "namespace": "PaperDrawer",
+ "libraries": [],
+ "sections": {},
+ "groups": [
+  "Logos",
+  "Icons"
+ ],
+ "assetGroups": {
+  "Logos": {
+   "name": "Logos",
+   "tile": "l",
+   "order": [
+    "paperdrawer-mark.svg",
+    "app-icon-ios-1024.svg"
+   ],
+   "files": {
+    "paperdrawer-mark.svg": {
+     "name": "paperdrawer-mark.svg",
+     "blob": "6a717dd0536be18e7ae42be95c57455a",
+     "size": 292,
+     "type": "image/svg+xml"
+    },
+    "app-icon-ios-1024.svg": {
+     "name": "app-icon-ios-1024.svg",
+     "blob": "f920ecd7a9c8af45c0658552a4b41e23",
+     "size": 410,
+     "type": "image/svg+xml"
+    }
+   }
+  },
+  "Icons": {
+   "name": "Icons",
+   "tile": "s",
+   "order": [
+    "vault.svg",
+    "settings.svg",
+    "scan.svg",
+    "claims.svg"
+   ],
+   "files": {
+    "vault.svg": {
+     "name": "vault.svg",
+     "blob": "c7e601eba02e54e083550d1abbc484dd",
+     "size": 282,
+     "type": "image/svg+xml"
+    },
+    "settings.svg": {
+     "name": "settings.svg",
+     "blob": "8d9ebd7fc18b013048219d5c5efd4e98",
+     "size": 304,
+     "type": "image/svg+xml"
+    },
+    "scan.svg": {
+     "name": "scan.svg",
+     "blob": "87452c22065967afdd409a1208a977ac",
+     "size": 296,
+     "type": "image/svg+xml"
+    },
+    "claims.svg": {
+     "name": "claims.svg",
+     "blob": "ab5a9fabc68737b3f7d5facdf616468e",
+     "size": 342,
+     "type": "image/svg+xml"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "sections": []
+ },
+ "lastChange": {
+  "by": "Hitarth",
+  "at": "2026-11-25T07:48:19Z",
+  "via": "Claude chat",
+  "note": "New quiet iOS 26 Liquid Glass system: three layers, paper without decoration, glass controls"
+ }
+}

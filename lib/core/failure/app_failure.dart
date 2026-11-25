@@ -30,6 +30,8 @@ sealed class AppFailure {
   bool get isSilent => false;
 
   /// A short developer-facing description for logs and test output.
+  ///
+  /// Must never contain user content or the text of [cause].
   String get debugDescription => '$runtimeType';
 }
 
@@ -75,24 +77,35 @@ final class NotFoundFailure extends AppFailure {
 
 /// The active plan does not allow more items.
 final class LimitReachedFailure extends AppFailure {
-  const LimitReachedFailure({required this.limit, required this.planName});
+  const LimitReachedFailure({
+    required this.count,
+    required this.limit,
+    required this.planName,
+  });
 
+  /// Active items now. Can exceed [limit] after a downgrade.
+  final int count;
   final int limit;
 
   /// `Plan.name`, kept as a string so core does not depend on the domain.
   final String planName;
 
+  /// How many items must be archived before one more fits.
+  int get toArchive => count - limit + 1;
+
   @override
-  String get debugDescription => 'LimitReachedFailure($planName, $limit)';
+  String get debugDescription =>
+      'LimitReachedFailure($planName, $count/$limit)';
 
   @override
   bool operator ==(Object other) =>
       other is LimitReachedFailure &&
+      other.count == count &&
       other.limit == limit &&
       other.planName == planName;
 
   @override
-  int get hashCode => Object.hash(limit, planName);
+  int get hashCode => Object.hash(count, limit, planName);
 }
 
 enum StorageFailureKind {
@@ -104,6 +117,13 @@ enum StorageFailureKind {
 
   /// The type or size of a file is not accepted.
   unsupportedFile,
+
+  /// The database was busy or locked by another connection. Retry.
+  busy,
+
+  /// A write broke a database rule (duplicate ID, missing parent). A bug or
+  /// bad data, so retrying the same write won't help.
+  constraintViolated,
 
   /// A database or file write failed for another reason.
   writeFailed,
@@ -119,10 +139,13 @@ final class StorageFailure extends AppFailure {
   final StorageFailureKind kind;
 
   @override
-  bool get isRetryable => kind == StorageFailureKind.writeFailed;
+  bool get isRetryable =>
+      kind == StorageFailureKind.writeFailed || kind == StorageFailureKind.busy;
 
+  /// Never includes [cause]: database errors embed SQL arguments (item names,
+  /// amounts), which must not reach logs.
   @override
-  String get debugDescription => 'StorageFailure(${kind.name}, $cause)';
+  String get debugDescription => 'StorageFailure(${kind.name})';
 
   @override
   bool operator ==(Object other) =>
@@ -320,14 +343,19 @@ final class ScopeClosedFailure extends AppFailure {
   int get hashCode => (ScopeClosedFailure).hashCode;
 }
 
-/// Anything not anticipated. Logged with its cause; the user sees a calm
-/// generic message and nothing is lost.
+/// Anything not anticipated. Logged with its error type; the user sees a
+/// calm generic message and nothing is lost.
+///
+/// Retrying is offered, so every create must reuse the ID generated once for
+/// its draft: a retry after an unknown outcome then updates instead of
+/// duplicating.
 final class UnexpectedFailure extends AppFailure {
   const UnexpectedFailure({super.cause, super.stackTrace});
 
   @override
   bool get isRetryable => true;
 
+  /// The error's type only: its text may contain user content.
   @override
-  String get debugDescription => 'UnexpectedFailure($cause)';
+  String get debugDescription => 'UnexpectedFailure(${cause.runtimeType})';
 }

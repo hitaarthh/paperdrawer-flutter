@@ -10,26 +10,42 @@ void main() {
 
   test('Base: quiet below 20', () {
     expect(ItemCapacity.of(base, 0), const CapacityRoomLeft(count: 0, max: 25));
-    expect(ItemCapacity.of(base, 19), const CapacityRoomLeft(count: 19, max: 25));
+    expect(
+      ItemCapacity.of(base, 19),
+      const CapacityRoomLeft(count: 19, max: 25),
+    );
   });
 
   test('Base: warns from 20 to 24', () {
     final at20 = ItemCapacity.of(base, 20);
     expect(at20, const CapacityNearLimit(count: 20, max: 25));
     expect((at20 as CapacityNearLimit).left, 5);
-    expect(ItemCapacity.of(base, 24), const CapacityNearLimit(count: 24, max: 25));
+    expect(
+      ItemCapacity.of(base, 24),
+      const CapacityNearLimit(count: 24, max: 25),
+    );
   });
 
-  test('Base: full at 25 and beyond (e.g. after a downgrade)', () {
-    expect(ItemCapacity.of(base, 25), const CapacityFull(max: 25, planName: 'base'));
-    expect(ItemCapacity.of(base, 40), const CapacityFull(max: 25, planName: 'base'));
+  test('Base: full at 25', () {
+    final full = ItemCapacity.of(base, 25);
+    expect(full, const CapacityFull(count: 25, max: 25, planName: 'base'));
+    expect((full as CapacityFull).toArchive, 1);
+  });
+
+  test('Base after a downgrade with 40 items: archive 16 to add one', () {
+    final full = ItemCapacity.of(base, 40) as CapacityFull;
+    expect(full.toArchive, 16);
+    expect(
+      full.checkCanAdd(),
+      const Err<Unit>(LimitReachedFailure(count: 40, limit: 25, planName: 'base')),
+    );
   });
 
   test('checkCanAdd blocks only when full', () {
     expect(ItemCapacity.of(base, 24).checkCanAdd(), const Ok(unit));
     expect(
       ItemCapacity.of(base, 25).checkCanAdd(),
-      const Err<Unit>(LimitReachedFailure(limit: 25, planName: 'base')),
+      const Err<Unit>(LimitReachedFailure(count: 25, limit: 25, planName: 'base')),
     );
   });
 
