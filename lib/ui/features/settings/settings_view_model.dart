@@ -3,11 +3,11 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/drawer_actions.dart';
 import '../../../data/services/exporter.dart';
+import '../../../data/services/legacy_claims.dart';
 import '../../../data/services/reminder_scheduler.dart';
 import '../reminders/reminder_permission.dart';
 
@@ -26,7 +26,7 @@ class SettingsViewModel extends ChangeNotifier {
 
   final SettingsRepository _settings;
   final ItemRepository _items;
-  final ClaimRepository _claims;
+  final LegacyClaims _claims;
   final Exporter _exporter;
   final DrawerActions _actions;
   final ReminderScheduler? _reminders;
@@ -67,7 +67,7 @@ class SettingsViewModel extends ChangeNotifier {
   Future<bool> export(Rect? origin) => _run(() async {
     final file = await _exporter.exportEverything(
       items: _items.items,
-      claims: _claims.claims,
+      claims: await _claims.read(),
     );
     try {
       await _actions.shareFiles([XFile(file.path)], origin: origin);

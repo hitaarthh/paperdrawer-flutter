@@ -18,7 +18,6 @@ import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/text_field.dart';
-import '../account/shared_session.dart';
 import '../reminders/reminder_permission.dart';
 import 'add_details_args.dart';
 import 'item_form_sections.dart';
@@ -27,15 +26,11 @@ import 'item_form_view_model.dart';
 enum _DateAction { change, clear }
 
 class ItemFormScreen extends StatefulWidget {
-  const ItemFormScreen.create(this.initial, {this.shared = false, super.key})
-    : id = null;
-  const ItemFormScreen.edit(this.id, {super.key})
-    : initial = null,
-      shared = false;
+  const ItemFormScreen.create(this.initial, {super.key}) : id = null;
+  const ItemFormScreen.edit(this.id, {super.key}) : initial = null;
 
   final AddDetailsArgs? initial;
   final String? id;
-  final bool shared;
 
   @override
   State<ItemFormScreen> createState() => _ItemFormScreenState();
@@ -56,17 +51,11 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   void initState() {
     super.initState();
     final id = widget.id;
-    if (!widget.shared) _items = context.read<ItemRepository>();
+    _items = context.read<ItemRepository>();
     final original = id == null ? null : _items.byId(id);
     if (id != null && original == null) return;
-    final createShared = widget.shared
-        ? context.read<SharedSession>().itemCreator()
-        : null;
     final form = ItemFormViewModel(
       (draft, files, removed) {
-        if (createShared != null) {
-          return createShared(draft, files.singleOrNull);
-        }
         if (id == null) return _items.create(draft, files: files);
         return _items.update(
           id,
@@ -77,7 +66,6 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       },
       initial: widget.initial,
       original: original,
-      shared: widget.shared,
     );
     _form = form;
     _name = TextEditingController(text: form.initialName);
@@ -123,11 +111,6 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       notes: _notes.text,
     );
     if (!mounted || saved == null) return;
-    if (widget.shared) {
-      showPdSnackbar(context, 'Saved to your vault', success: true);
-      context.go(Routes.item(saved.id));
-      return;
-    }
     final creating = widget.id == null;
     if (creating &&
         shouldOfferReminders(

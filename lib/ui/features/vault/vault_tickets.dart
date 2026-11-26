@@ -2,15 +2,13 @@ import 'package:flutter/foundation.dart';
 
 import '../../../domain/formats.dart';
 import '../../../domain/item_status.dart';
-import '../../../domain/models/claim.dart';
 import '../../../domain/models/item.dart';
-import '../../../domain/models/shared_vault.dart';
 import '../../core/widgets/vault_ticket.dart';
 
 export '../../core/widgets/vault_ticket.dart' show VaultTicketTone;
 
 /// One ticket in the vault's "Due next" strip: a cover window that closes
-/// soon, or a claim that has waited long enough to go one step up.
+/// soon, or a reminder set on an item.
 @immutable
 class VaultTicketData {
   const VaultTicketData._({
@@ -22,8 +20,7 @@ class VaultTicketData {
     required this.body,
     required this.tone,
     required this.semanticLabel,
-    this.itemId,
-    this.claimId,
+    required this.itemId,
   });
 
   factory VaultTicketData.window(
@@ -64,39 +61,6 @@ class VaultTicketData {
     );
   }
 
-  factory VaultTicketData.claim(Claim claim, DateTime today, String key) {
-    final days = daysBetween(claim.waitingSince, today).clamp(0, 999);
-    return VaultTicketData._(
-      key: key,
-      number: days.toString().padLeft(2, '0'),
-      unit: days == 1 ? 'DAY' : 'DAYS',
-      kicker: 'CLAIM · NO REPLY FROM ${claim.type.otherSide}',
-      title: claim.title,
-      body: 'Time to go one step up.',
-      tone: VaultTicketTone.lime,
-      semanticLabel:
-          '${claim.title}, no reply for ${daysWord(days)}. '
-          'Time to go one step up.',
-      claimId: claim.id,
-    );
-  }
-
-  factory VaultTicketData.sharedClaim(SharedClaim claim, DateTime today) =>
-      VaultTicketData._(
-        key: '${isoDate(today)}/shared-claim/${claim.id}',
-        number: daysBetween(
-          claim.opened,
-          today,
-        ).clamp(0, 999).toString().padLeft(2, '0'),
-        unit: 'CLAIM DAY',
-        kicker: 'CLAIM · ${claim.statusLabel.toUpperCase()}',
-        title: claim.title,
-        body: 'Open the claim to see what comes next.',
-        tone: VaultTicketTone.lime,
-        semanticLabel: '${claim.title}, ${claim.statusLabel}.',
-        claimId: claim.id,
-      );
-
   /// Dismissal key; carries today's date so a hidden ticket returns tomorrow.
   final String key;
 
@@ -108,8 +72,7 @@ class VaultTicketData {
   final String body;
   final VaultTicketTone tone;
   final String semanticLabel;
-  final String? itemId;
-  final String? claimId;
+  final String itemId;
 
   /// The soonest deadline is printed in signal orange.
   VaultTicketData asMostUrgent() => VaultTicketData._(
@@ -122,7 +85,6 @@ class VaultTicketData {
     tone: VaultTicketTone.signal,
     semanticLabel: semanticLabel,
     itemId: itemId,
-    claimId: claimId,
   );
 }
 

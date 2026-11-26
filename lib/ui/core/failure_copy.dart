@@ -61,6 +61,10 @@ final class FailureCopy {
       AuthFailureKind.sessionRejected =>
         'Sign in again to keep syncing. Your papers on this $deviceNoun are safe.',
       AuthFailureKind.accountDeleted => 'This account was deleted.',
+      AuthFailureKind.rateLimited =>
+        'Too many tries. Wait a minute and try again.',
+      AuthFailureKind.appleUnavailable =>
+        'Sign in with Apple isn’t available on this $deviceNoun. Use email instead.',
     },
     PurchaseFailure(:final kind) => switch (kind) {
       PurchaseFailureKind.cancelled => null,
@@ -70,6 +74,8 @@ final class FailureCopy {
         'Purchases are turned off on this $deviceNoun in Screen Time.',
       PurchaseFailureKind.unavailable =>
         'This plan isn’t available in your App Store region yet.',
+      PurchaseFailureKind.belongsToAnotherAccount =>
+        'This purchase belongs to another PaperDrawer account. Sign in to that account to use it.',
       PurchaseFailureKind.storeError =>
         'The App Store couldn’t finish that. You haven’t been charged. Try again.',
     },

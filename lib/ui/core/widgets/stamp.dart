@@ -43,7 +43,6 @@ class PdStamp extends StatefulWidget {
     this.angleDegrees = -12,
     this.land = false,
     this.onLanded,
-    this.compactLabel,
     super.key,
   });
 
@@ -52,7 +51,6 @@ class PdStamp extends StatefulWidget {
   final double angleDegrees;
   final bool land;
   final VoidCallback? onLanded;
-  final String? compactLabel;
 
   @override
   State<PdStamp> createState() => _PdStampState();
@@ -106,19 +104,11 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
     final color = switch (widget.kind) {
       StampKind.due => Pd.stampDue,
       StampKind.covered || StampKind.active => Pd.stampCovered,
-      StampKind.inClaim => Pd.ink,
       StampKind.expired => Pd.stampExpired,
-      StampKind.waiting => widget.compactLabel == null ? Pd.text : Pd.textMuted,
-      StampKind.escalate => Pd.signal,
-      StampKind.settled => Pd.settled,
-    };
-    final upright = switch (widget.kind) {
-      StampKind.waiting || StampKind.escalate || StampKind.settled => true,
-      _ => false,
     };
     return ExcludeSemantics(
       child: Transform.rotate(
-        angle: upright ? 0 : widget.angleDegrees * math.pi / 180,
+        angle: widget.angleDegrees * math.pi / 180,
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) => Transform.scale(
@@ -138,13 +128,9 @@ class _PdStampState extends State<PdStamp> with SingleTickerProviderStateMixin {
                 vertical: Pd.s1,
               ),
               child: Text(
-                widget.compactLabel ?? widget.label ?? widget.kind.word,
+                widget.label ?? widget.kind.word,
                 textAlign: TextAlign.center,
-                style:
-                    (widget.compactLabel == null
-                            ? PdType.stamp
-                            : PdType.compactStamp)
-                        .copyWith(color: color),
+                style: PdType.stamp.copyWith(color: color),
               ),
             ),
           ),

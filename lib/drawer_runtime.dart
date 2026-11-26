@@ -23,7 +23,7 @@ class DrawerRuntime {
     );
     deps = AppDependencies(
       items: drawer.items,
-      claims: drawer.claims,
+      legacyClaims: drawer.legacyClaims,
       settings: drawer.settings,
       files: drawer.files,
       exporter: Exporter(drawer.files, today: today),

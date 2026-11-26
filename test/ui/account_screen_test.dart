@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoTextField;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/data/services/shared_account.dart';
-import 'package:paperdrawer/routing/shared_router.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/core/widgets/button.dart';
-import 'package:paperdrawer/ui/features/account/shared_session.dart';
-import 'package:provider/provider.dart';
+import 'package:paperdrawer/ui/features/account/account_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _name = ValueKey('account-name');
@@ -134,7 +133,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(_submit), findsNothing);
     expect(find.text('Open your vault'), findsNothing);
-    // Leave the vault cleanly: its fetch fails against the unused client.
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -182,14 +180,14 @@ void main() {
   });
 
   testWidgets('reset, Terms and Privacy open the web pages', (tester) async {
-    final session = await _launch(tester, create: true);
+    final web = await _launch(tester, create: true);
     await tester.ensureVisible(find.byKey(const ValueKey('account-legal')));
     await tester.pumpAndSettle();
     await tester.tapOnText(find.textRange.ofSubstring('Terms'));
     await tester.tapOnText(find.textRange.ofSubstring('Privacy policy'));
     await _tap(tester, const ValueKey('account-tab-sign-in'));
     await _tap(tester, const ValueKey('account-reset'));
-    expect(session.opened, ['/terms', '/privacy', '/signin']);
+    expect(web.opened, ['/terms', '/privacy', '/signin']);
     expect(tester.takeException(), isNull);
   });
 
@@ -218,41 +216,62 @@ Future<void> _tap(WidgetTester tester, Key key) async {
 String _text(WidgetTester tester, Key key) =>
     tester.widget<CupertinoTextField>(find.byKey(key)).controller!.text;
 
-Future<_FakeSession> _launch(
+/// Hosts the account screen the way the signed-out app does, and leaves it
+/// once the account reports a signed-in user.
+Future<_Web> _launch(
   WidgetTester tester, {
   _FakeAccount? account,
   bool create = false,
   double scale = 1,
 }) async {
-  final session = _FakeSession(account ?? _FakeAccount());
-  final router = buildSharedRouter(session);
+  final actualAccount = account ?? _FakeAccount();
+  final web = _Web();
+  final signedIn = ValueNotifier(false);
+  final changes = actualAccount.changes.listen(
+    (_) => signedIn.value = actualAccount.user != null,
+  );
+  final router = GoRouter(
+    initialLocation: create ? '/account?mode=create' : '/account',
+    refreshListenable: signedIn,
+    redirect: (context, state) =>
+        signedIn.value && state.matchedLocation == '/account' ? '/home' : null,
+    routes: [
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => AccountScreen(
+          key: ValueKey(state.uri.queryParameters['mode']),
+          account: actualAccount,
+          openWeb: web.open,
+          startCreating: state.uri.queryParameters['mode'] == 'create',
+        ),
+      ),
+      GoRoute(
+        path: '/home',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+    ],
+  );
   tester.view.devicePixelRatio = 3;
   tester.view.physicalSize = const Size(1179, 2556);
   tester.view.padding = const FakeViewPadding(top: 177, bottom: 102);
   tester.platformDispatcher.textScaleFactorTestValue = scale;
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  addTearDown(session.dispose);
+  addTearDown(changes.cancel);
+  addTearDown(signedIn.dispose);
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
-    ChangeNotifierProvider<SharedSession>.value(
-      value: session,
-      child: MaterialApp.router(routerConfig: router, theme: pdTheme()),
-    ),
+    MaterialApp.router(routerConfig: router, theme: pdTheme()),
   );
-  router.go(create ? '/account?mode=create' : '/account');
   await tester.pumpAndSettle();
-  return session;
+  return web;
 }
 
-class _FakeSession extends SharedSession {
-  _FakeSession(super.account);
-
+class _Web {
   final opened = <String>[];
 
-  @override
-  Future<void> openWeb(String path) async => opened.add(path);
+  Future<void> open(String path) async => opened.add(path);
 }
 
 class _FakeAccount extends SharedAccount {

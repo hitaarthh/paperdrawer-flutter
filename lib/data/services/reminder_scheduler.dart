@@ -8,7 +8,6 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/formats.dart';
 import '../../domain/item_status.dart';
-import '../../domain/models/claim.dart';
 import '../../domain/models/item.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/settings_repository.dart';
@@ -37,7 +36,6 @@ class PlannedReminder {
 
 List<PlannedReminder> planReminders({
   required List<Item> items,
-  List<Claim> claims = const [],
   required int leadDays,
   required DateTime now,
 }) {
@@ -82,27 +80,12 @@ List<PlannedReminder> planReminders({
       }
     }
   }
-  for (final claim in claims) {
-    final followUp = claim.followUp;
-    if (claim.isOpen && followUp != null && followUp.isAfter(now)) {
-      plans.add(claimFollowUp(claim.id, claim.title, followUp));
-    }
-  }
   plans.sort((a, b) {
     final time = a.at.compareTo(b.at);
     return time == 0 ? a.key.compareTo(b.key) : time;
   });
   return plans.take(60).toList(growable: false);
 }
-
-PlannedReminder claimFollowUp(String id, String title, DateTime at) =>
-    PlannedReminder(
-      key: 'claim/$id',
-      at: at.toLocal(),
-      title: 'Follow up on $title',
-      body: 'Open the claim ledger to see your entries.',
-      location: '/claims/$id',
-    );
 
 abstract interface class NotificationGateway {
   Future<void> initialize(void Function(String) onTap);
@@ -153,15 +136,6 @@ class FlutterLocalNotificationsGateway implements NotificationGateway {
 
   Future<void> clear() async {
     if (Platform.isIOS) await _plugin.cancelAll();
-  }
-
-  Future<void> cancelClaimReminders() async {
-    if (!Platform.isIOS) return;
-    for (final pending in await _plugin.pendingNotificationRequests()) {
-      if (pending.payload?.startsWith('/claims/') ?? false) {
-        await _plugin.cancel(id: pending.id);
-      }
-    }
   }
 
   @override

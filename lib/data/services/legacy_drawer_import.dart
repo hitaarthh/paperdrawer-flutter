@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import 'file_store.dart';
+import 'legacy_claims.dart';
 
 /// Claims the old unassigned drawer explicitly and preserves the source as a
 /// recovery copy. The destination marker commits with all imported records.
@@ -13,13 +14,7 @@ class LegacyDrawerImport {
 
   static const _ownerKey = 'legacy_drawer_owner';
   static const _importedKey = 'legacy_drawer_imported';
-  static const _tables = [
-    'items',
-    'attachments',
-    'claims',
-    'claim_events',
-    'claim_event_photos',
-  ];
+  static const _tables = ['items', 'attachments', ...LegacyClaimTables.all];
   static const _settings = [
     'reminders_on',
     'lead_days',
@@ -37,7 +32,7 @@ class LegacyDrawerImport {
     if (claimed != null && claimed != owner) return false;
     final rows = await _source.rawQuery('''
       SELECT 1 FROM items
-      UNION SELECT 1 FROM claims
+      UNION SELECT 1 FROM ${LegacyClaimTables.claims}
       LIMIT 1
     ''');
     return rows.isNotEmpty;
@@ -72,14 +67,14 @@ class LegacyDrawerImport {
             table: await txn.query(table),
         },
       );
-      for (final table in ['attachments', 'claim_event_photos']) {
+      for (final table in ['attachments', LegacyClaimTables.eventPhotos]) {
         snapshot[table] = [
           for (final row in snapshot[table]!)
             await _copy(
               row,
               originals,
               copied,
-              claimPhoto: table == 'claim_event_photos',
+              claimPhoto: table == LegacyClaimTables.eventPhotos,
             ),
         ];
       }

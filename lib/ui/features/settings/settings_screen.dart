@@ -3,11 +3,11 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/repositories/claim_repository.dart';
 import '../../../data/repositories/item_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../data/services/drawer_actions.dart';
 import '../../../data/services/exporter.dart';
+import '../../../data/services/legacy_claims.dart';
 import '../../../data/services/reminder_scheduler.dart';
 import '../../../domain/formats.dart';
 import '../../../routing/router.dart';
@@ -32,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
     create: (context) => SettingsViewModel(
       context.read<SettingsRepository>(),
       context.read<ItemRepository>(),
-      context.read<ClaimRepository>(),
+      context.read<LegacyClaims>(),
       context.read<Exporter>(),
       context.read<DrawerActions>(),
       context.read<ReminderScheduler?>(),

@@ -4,18 +4,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/app.dart';
-import 'package:paperdrawer/data/repositories/claim_repository.dart';
 import 'package:paperdrawer/data/repositories/item_repository.dart';
 import 'package:paperdrawer/data/repositories/settings_repository.dart';
 import 'package:paperdrawer/data/services/capture_service.dart';
 import 'package:paperdrawer/data/services/drawer_actions.dart';
 import 'package:paperdrawer/data/services/exporter.dart';
 import 'package:paperdrawer/data/services/file_store.dart';
+import 'package:paperdrawer/data/services/legacy_claims.dart';
 import 'package:paperdrawer/data/services/text_recognizer.dart';
 import 'package:paperdrawer/data/services/today.dart';
 import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/item_status.dart';
-import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/ui/core/theme/tokens.dart';
@@ -202,20 +201,7 @@ void main() {
           draft: const ItemDraft(kind: ItemKind.vehicle, name: 'Activa PUC'),
         ),
       ]);
-      final claims = _Claims([
-        Claim(
-          id: 'claim-1',
-          itemId: 'policy',
-          itemLabel: 'Family health policy',
-          type: ClaimType.insurance,
-          want: ClaimWant.payout,
-          problem: 'I submitted my documents and am waiting for a reply.',
-          openedOn: addDays(_today, -17),
-          stepSince: addDays(_today, -17),
-          step: 0,
-        ),
-      ]);
-      await _launch(tester, items, claims: claims, scale: 1.3);
+      await _launch(tester, items, scale: 1.3);
 
       expect(_key('home-ticket-due/warranty'), findsOneWidget);
       await _tap(tester, 'vault-tab');
@@ -232,8 +218,6 @@ void main() {
       await _tap(tester, 'vault-filter-due');
       expect(_key('vault-item-due'), findsOneWidget);
       expect(_key('vault-item-policy'), findsNothing);
-      await _tap(tester, 'home-tab');
-      expect(find.text('Open claims'), findsNothing);
       await _tap(tester, 'settings-tab');
       await _tap(tester, 'settings-data');
       await _tap(tester, 'settings-archive');
@@ -246,25 +230,14 @@ void main() {
   );
 
   testWidgets('saved claim links resolve to Home at 130% text', (tester) async {
-    final claims = _Claims([
-      Claim(
-        id: 'laptop',
-        itemLabel: 'Laptop',
-        type: ClaimType.repair,
-        want: ClaimWant.repair,
-        problem: 'The hinge is loose.',
-        openedOn: _today,
-        stepSince: _today,
-        step: 0,
-      ),
-    ]);
-    await _launch(tester, _Items([]), claims: claims, scale: 1.3);
+    final claims = _LegacyClaims();
+    await _launch(tester, _Items([]), legacyClaims: claims, scale: 1.3);
     final router = GoRouter.of(tester.element(find.text('Coming up')));
     for (final link in [
-      Routes.claims,
-      Routes.claim('laptop'),
-      Routes.claimGuidance('laptop'),
-      Routes.startClaim('laptop'),
+      '/claims',
+      '/claims/laptop',
+      '/claims/laptop/guidance',
+      '/vault/item/laptop/claim',
     ]) {
       router.go(Routes.settings);
       await tester.pumpAndSettle();
@@ -273,7 +246,27 @@ void main() {
       expect(find.text('Coming up'), findsOneWidget);
       expect(find.textContaining('claim', findRichText: true), findsNothing);
     }
-    expect(claims.claims.single.itemLabel, 'Laptop');
+    expect(claims.erased, 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('claim rows are erased only after Clear this drawer is confirmed', (
+    tester,
+  ) async {
+    final claims = _LegacyClaims();
+    await _launch(tester, _Items([]), legacyClaims: claims);
+    await _tap(tester, 'settings-tab');
+    await _tap(tester, 'settings-data');
+
+    await _tap(tester, 'settings-clear');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(claims.erased, 0);
+
+    await _tap(tester, 'settings-clear');
+    await tester.tap(find.text('Clear drawer'));
+    await tester.pumpAndSettle();
+    expect(claims.erased, 1);
     expect(tester.takeException(), isNull);
   });
 
@@ -310,12 +303,11 @@ Future<void> _tap(WidgetTester tester, String key) async {
 Future<void> _launch(
   WidgetTester tester,
   _Items items, {
-  _Claims? claims,
+  _LegacyClaims? legacyClaims,
   DrawerActions actions = const _Actions(),
   CaptureService capture = const CaptureService(),
   double scale = 1,
 }) async {
-  final actualClaims = claims ?? _Claims([]);
   final settings = _Settings();
   final today = Today(() => _today);
   final files = FileStore(Directory.systemTemp);
@@ -328,7 +320,6 @@ Future<void> _launch(
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox.shrink());
     items.dispose();
-    actualClaims.dispose();
     settings.dispose();
     today.dispose();
   });
@@ -336,7 +327,7 @@ Future<void> _launch(
     PaperDrawerApp(
       deps: AppDependencies(
         items: items,
-        claims: actualClaims,
+        legacyClaims: legacyClaims ?? _LegacyClaims(),
         settings: settings,
         files: files,
         exporter: Exporter(files, today: today),
@@ -412,6 +403,12 @@ class _Items extends ChangeNotifier implements ItemRepository {
   }
 
   @override
+  Future<void> eraseAll() async {
+    items.clear();
+    notifyListeners();
+  }
+
+  @override
   Future<void> setArchived(String id, bool archived) async {
     final index = items.indexWhere((item) => item.id == id);
     final item = items[index];
@@ -429,25 +426,15 @@ class _Items extends ChangeNotifier implements ItemRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Claims extends ChangeNotifier implements ClaimRepository {
-  _Claims(this.claims);
+class _LegacyClaims implements LegacyClaims {
+  int erased = 0;
 
   @override
-  final List<Claim> claims;
+  Future<LegacyClaimRows> read() async => LegacyClaimRows.empty;
   @override
-  bool hasOpenClaim(String itemId) => openFor(itemId) != null;
-  @override
-  Claim? openFor(String itemId) => claims
-      .where((claim) => claim.itemId == itemId && claim.isOpen)
-      .firstOrNull;
-  @override
-  Claim? byId(String id) => claims.where((claim) => claim.id == id).firstOrNull;
-  @override
-  int needsAction(DateTime today) => claims
-      .where((claim) => claim.status(today) == ClaimStatus.escalate)
-      .length;
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<void> eraseAll() async {
+    erased++;
+  }
 }
 
 class _Settings extends ChangeNotifier implements SettingsRepository {
@@ -463,6 +450,8 @@ class _Settings extends ChangeNotifier implements SettingsRepository {
   int get leadDays => 7;
   @override
   bool get remindersOn => false;
+  @override
+  Future<void> eraseAll() async {}
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

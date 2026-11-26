@@ -136,8 +136,10 @@ files only), `lib/ui/core/layout/**`, `lib/ui/core/glass/**`,
   `design/liquid-glass/components/*/README.md`.
 - Widget tests in both themes at iPhone 16 size and at 1180×820.
 
-### Wave 2 — data (after wave 1 merges)
-**2A Data layer.** Owns `lib/data/**` (except sync transports),
+### Wave 2 — data (2A starts after 1A; 2B after 1B and 1C)
+**2A Data layer.** Owns `lib/data/**` (except `lib/data/sync/**`,
+`lib/data/purchases/**`, `lib/data/auth/**`), `lib/data/sync/sqlite_sync_store.dart`
+and `lib/domain/sync/field_merge.dart` (new),
 `lib/domain/models/**`, `lib/domain/item_status*.dart`,
 `lib/drawer_runtime.dart`, the view-model call sites that break from data
 API changes (`lib/ui/features/*/*_view_model.dart` only), and their tests.
@@ -153,7 +155,15 @@ guest drawer always openable (replace the claimed-file lock with
 per-row "moved" markers); unify legacy import with "Move items into
 account"; Exporter from raw tables incl. claim backups; AccountSettingsSync
 on the `settings` table (keep writing the derived `profiles` columns the
-website still reads); `ReminderScheduler` driven by wave 1C's planner.
+website still reads); `SqliteSyncStore` implementing the `SyncStore` port
+(`lib/domain/sync/sync_store.dart`) with the shared field merge, attachment
+`content_hash` and per-transport upload state columns, and cursors in
+`settings` (device-only keys).
+
+**2B Wiring (after 1B, 1C and 2A merge).** `EntitlementRepository`
+(implements 1B's `EntitlementStore`), notification preferences and per-item
+reminder settings storage, `ReminderScheduler` driven by 1C's planner,
+`AppearanceStore` for 1D.
 
 ### Wave 3 — app shell (after wave 2)
 **3A Composition root, theme migration and shell.** Owns `lib/main.dart`,
@@ -187,14 +197,27 @@ decorations removed.
   upgrade prompts. Boards: iOSPlans*, iOSEssentialBuy*, iOSBackingUp*,
   iOSProWelcome*.
 
-### Wave 5 — sync transports (parallel, after wave 2)
-- **5A Supabase (Pro)**: `lib/data/sync/supabase/**`, a SQL migration in
-  `supabase/` for the sync columns and `user_settings`; outbox, field merge,
-  attachment upload by content hash, contract tests.
+### Wave 5 — sync transports (parallel; start now against the `SyncStore` port)
+Both transports talk to the drawer only through `SyncStore`
+(`lib/domain/sync/sync_store.dart`, owned by the coordinator; propose changes
+in your report) and implement `SyncTransport`. Test them with an in-memory
+`FakeSyncStore` (each owns its own copy under its test folder) and the shared
+contract `test/domain/sync/sync_transport_contract.dart`.
+- **5A Supabase (Pro)**: `lib/data/sync/supabase/**`, `test/data/sync/supabase/**`,
+  and `supabase/migrations/**` (new: SQL for `vault_items`/`vault_attachments`
+  sync tables or columns, `user_settings`, RLS, a change-feed RPC or
+  `updated_at` index; the owner copies it to the web repo's Supabase
+  project). Push the outbox in batches, pull since cursor, retry with
+  backoff, attachments to Storage by content hash, Realtime nudge optional,
+  pause reasons mapped to `SyncPauseReason`.
 - **5B CloudKit (Essential)**: `ios/Runner/CloudKit/**` (Swift CKSyncEngine
-  plugin, iOS 17+, one zone per account, account-mismatch pause),
-  `lib/data/sync/cloudkit/**` (method-channel transport), entitlements and
-  capability notes, contract tests with a fake channel.
+  plugin, iOS 17+, private database, one zone per account, CKAsset for
+  originals, account-change → `iCloudAccountMismatch`, quota →
+  `iCloudFull`), `lib/data/sync/cloudkit/**` (method-channel transport),
+  `test/data/sync/cloudkit/**`, and `docs/CLOUDKIT_SETUP.md` (capability,
+  container ID, entitlements). It may not edit `AppDelegate.swift`,
+  `Info.plist` or project files: list the exact changes needed in the report
+  and in the setup doc.
 
 ### Wave 6 — review (coordinator + reviewer agents)
 Whole-app review against this plan and `AGENTS.md`; fix; deliver; the owner
@@ -252,9 +275,9 @@ change (agents never decide these):
 | Wave | Status |
 |------|--------|
 | 0 Foundation | Done (reviewed, fixes applied) |
-| 1 Claims removal · Plans/auth ports · Notification rules · Theme/kit | Next |
-| 2 Data | |
+| 1 Claims removal · Plans/auth ports · Notification rules · Theme/kit | 1A merged; 1B, 1C, 1D running |
+| 2 Data | 2A running |
 | 3 Shell | |
 | 4 Screens | |
-| 5 Sync transports | |
+| 5 Sync transports | 5A, 5B running |
 | 6 Review and verification | |

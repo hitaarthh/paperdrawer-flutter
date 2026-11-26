@@ -24,7 +24,6 @@ import 'paper_page.dart';
 abstract final class Routes {
   static const home = '/home';
   static const vault = '/vault';
-  static const claims = '/claims';
   static const settings = '/settings';
   static const settingsAccount = '/settings/account';
   static const settingsPlan = '/settings/plan';
@@ -42,9 +41,6 @@ abstract final class Routes {
 
   static String item(String id) => '/vault/item/$id';
   static String homeItem(String id) => '/home/item/$id';
-  static String startClaim(String itemId) => '/vault/item/$itemId/claim';
-  static String claim(String id) => '/claims/$id';
-  static String claimGuidance(String id) => '/claims/$id/guidance';
   static String edit(String id) => '/edit/$id';
   static String vaultWithRecent(String id) =>
       Uri(path: vault, queryParameters: {'added': id}).toString();
@@ -160,38 +156,34 @@ GoRouter buildRouter({String? initialLocation}) => GoRouter(
   ],
 );
 
-/// Old notification links and bookmarks lead to Home.
+/// Claims were removed. Old notification links and bookmarks to them lead
+/// to Home.
 List<GoRoute> retiredClaimLinks() => [
   for (final path in [
-    Routes.claims,
-    '${Routes.claims}/:id',
-    '${Routes.claims}/:id/guidance',
+    '/claims',
+    '/claims/:id',
+    '/claims/:id/guidance',
     '${Routes.vault}/item/:id/claim',
   ])
     GoRoute(path: path, redirect: (context, state) => Routes.home),
 ];
 
-GoRoute buildEditRoute({
-  required GlobalKey<NavigatorState> navigatorKey,
-  bool shared = false,
-}) => GoRoute(
-  path: Routes.edit(':id'),
-  parentNavigatorKey: navigatorKey,
-  pageBuilder: (context, state) {
-    final id = state.pathParameters['id']!;
-    return PdPage<void>(
-      key: state.pageKey,
-      fullscreenDialog: true,
-      child: ManualItemForm(key: ValueKey(id), id: id, shared: shared),
+GoRoute buildEditRoute({required GlobalKey<NavigatorState> navigatorKey}) =>
+    GoRoute(
+      path: Routes.edit(':id'),
+      parentNavigatorKey: navigatorKey,
+      pageBuilder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return PdPage<void>(
+          key: state.pageKey,
+          fullscreenDialog: true,
+          child: ManualItemForm(key: ValueKey(id), id: id),
+        );
+      },
     );
-  },
-);
 
-/// Capture and review cover the tab bar in both build modes.
-List<GoRoute> buildAddRoutes({
-  GlobalKey<NavigatorState>? navigatorKey,
-  bool shared = false,
-}) => [
+/// Capture and review cover the tab bar.
+List<GoRoute> buildAddRoutes({GlobalKey<NavigatorState>? navigatorKey}) => [
   GoRoute(
     path: Routes.add,
     parentNavigatorKey: navigatorKey,
@@ -202,7 +194,6 @@ List<GoRoute> buildAddRoutes({
         kind: state.extra is ItemKind
             ? state.extra! as ItemKind
             : ItemKind.bill,
-        shared: shared,
       ),
     ),
   ),
@@ -214,7 +205,6 @@ List<GoRoute> buildAddRoutes({
       fullscreenDialog: true,
       child: CameraScreen(
         kind: state.extra is ItemKind ? state.extra! as ItemKind : null,
-        singleOriginal: shared,
       ),
     ),
   ),
@@ -228,13 +218,9 @@ List<GoRoute> buildAddRoutes({
         final CaptureReadingArgs args => ReadingScreen(
           files: args.files,
           kind: args.kind,
-          shared: shared,
         ),
-        final List<PendingFile> files => ReadingScreen(
-          files: files,
-          shared: shared,
-        ),
-        _ => ReadingScreen(files: const [], shared: shared),
+        final List<PendingFile> files => ReadingScreen(files: files),
+        _ => const ReadingScreen(files: []),
       },
     ),
   ),
@@ -248,7 +234,6 @@ List<GoRoute> buildAddRoutes({
         state.extra is AddDetailsArgs
             ? state.extra! as AddDetailsArgs
             : const AddDetailsArgs(),
-        shared: shared,
       ),
     ),
   ),

@@ -7,8 +7,8 @@ import '../../core/theme/type.dart';
 import '../../core/widgets/vault_ticket.dart';
 import 'vault_tickets.dart';
 
-/// "DUE NEXT · 1 OF 3": the soonest deadlines and stalled claims as tickets
-/// that scroll sideways, bleeding to the screen edges.
+/// "DUE NEXT · 1 OF 3": the soonest deadlines as tickets that scroll
+/// sideways, bleeding to the screen edges.
 class VaultDueNext extends StatefulWidget {
   const VaultDueNext({
     required this.tickets,
@@ -122,11 +122,7 @@ class _VaultDueNextState extends State<VaultDueNext> {
                           key: ValueKey(ticket.key),
                           width: width,
                           child: VaultTicket(
-                            key: ValueKey(
-                              ticket.itemId != null
-                                  ? 'vault-ticket-${ticket.itemId}'
-                                  : 'vault-ticket-claim-${ticket.claimId}',
-                            ),
+                            key: ValueKey('vault-ticket-${ticket.itemId}'),
                             number: ticket.number,
                             unit: ticket.unit,
                             kicker: ticket.kicker,

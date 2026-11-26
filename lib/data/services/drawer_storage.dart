@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
-import '../repositories/claim_repository.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/settings_repository.dart';
 import 'app_database.dart';
 import 'file_store.dart';
+import 'legacy_claims.dart';
 import 'legacy_drawer_import.dart';
 
 /// The auth ID is stable across email changes. The project isolates test and
@@ -48,14 +48,22 @@ class DrawerStorage {
       files,
       onBasePlan: () => settings.onBasePlan,
     );
-    final claims = ClaimRepository(db, files);
-    final drawer = LocalDrawer(db, files, settings, items, claims, owner?.key);
+    // Claim rows are kept as they are; nothing parses them on open.
+    final legacyClaims = SqliteLegacyClaims(db, files);
+    final drawer = LocalDrawer(
+      db,
+      files,
+      settings,
+      items,
+      legacyClaims,
+      owner?.key,
+    );
     try {
       if (owner == null && await LegacyDrawerImport.isClaimed(db)) {
         throw const FormatException('Sign in to open your drawer.');
       }
       if (owner != null) await _recoverOriginals(db, files);
-      await Future.wait([settings.load(), items.load(), claims.load()]);
+      await Future.wait([settings.load(), items.load()]);
       return drawer;
     } catch (_) {
       await drawer.close();
@@ -89,11 +97,7 @@ class DrawerStorage {
         source,
         root,
       ).copyTo(owner.key, drawer._db, drawer.files);
-      await Future.wait([
-        drawer.items.load(),
-        drawer.claims.load(),
-        drawer.settings.load(),
-      ]);
+      await Future.wait([drawer.items.load(), drawer.settings.load()]);
     } finally {
       await source.close();
     }
@@ -105,10 +109,11 @@ class DrawerStorage {
 
   String _path(Directory directory) => p.join(directory.path, 'vault.sqlite');
 
+  /// Keeps every original a row refers to, claim photos included.
   Future<void> _recoverOriginals(Database db, FileStore files) async {
     final rows = await db.rawQuery('''
       SELECT rel_path FROM attachments
-      UNION SELECT rel_path FROM claim_event_photos
+      UNION SELECT rel_path FROM ${LegacyClaimTables.eventPhotos}
     ''');
     await files.removeUnreferenced(
       rows.map((row) => row['rel_path']! as String).toSet(),
@@ -122,7 +127,7 @@ class LocalDrawer {
     this.files,
     this.settings,
     this.items,
-    this.claims,
+    this.legacyClaims,
     this._ownerKey,
   );
 
@@ -130,18 +135,17 @@ class LocalDrawer {
   final FileStore files;
   final SettingsRepository settings;
   final ItemRepository items;
-  final ClaimRepository claims;
+  final SqliteLegacyClaims legacyClaims;
   final String? _ownerKey;
 
   Future<void> close() async {
     await Future.wait([
       settings.finishWrites(),
       items.finishWrites(),
-      claims.finishWrites(),
+      legacyClaims.finishWrites(),
     ]);
     settings.dispose();
     items.dispose();
-    claims.dispose();
     await _db.close();
   }
 }

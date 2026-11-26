@@ -10,7 +10,6 @@ import '../../../data/services/reminder_scheduler.dart';
 import '../../../data/services/today.dart';
 import '../../../domain/formats.dart';
 import '../../../domain/models/item.dart';
-import '../../../domain/models/shared_vault.dart';
 import '../../../routing/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/type.dart';
@@ -21,22 +20,15 @@ import '../../core/widgets/nav.dart';
 import '../../core/widgets/sheets.dart';
 import '../../core/widgets/snackbar.dart';
 import '../../core/widgets/text_field.dart';
-import '../account/shared_session.dart';
 import '../reminders/reminder_permission.dart';
 import 'add_details_args.dart';
 import 'item_form_view_model.dart';
 
 class ManualItemForm extends StatefulWidget {
-  const ManualItemForm({
-    this.id,
-    this.kind = ItemKind.bill,
-    this.shared = false,
-    super.key,
-  });
+  const ManualItemForm({this.id, this.kind = ItemKind.bill, super.key});
 
   final String? id;
   final ItemKind kind;
-  final bool shared;
 
   @override
   State<ManualItemForm> createState() => _ManualItemFormState();
@@ -44,7 +36,6 @@ class ManualItemForm extends StatefulWidget {
 
 class _ManualItemFormState extends State<ManualItemForm> {
   ItemFormViewModel? _form;
-  SharedItem? _sharedItem;
   final _title = TextEditingController();
   final _scroll = ScrollController();
   final _fileField = GlobalKey();
@@ -54,7 +45,6 @@ class _ManualItemFormState extends State<ManualItemForm> {
   String? _fileError;
 
   bool get _editing => widget.id != null;
-  bool get _sharedEdit => _editing && widget.shared;
   String get _heading => _editing ? 'Edit item' : 'Add a file';
   bool get _blocked => _picking || _saving;
 
@@ -62,20 +52,14 @@ class _ManualItemFormState extends State<ManualItemForm> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_form != null) return;
-    final session = widget.shared ? context.watch<SharedSession>() : null;
-    final items = widget.shared ? null : context.read<ItemRepository>();
+    final items = context.read<ItemRepository>();
     final id = widget.id;
-    final sharedItem = _sharedItem = id == null ? null : session?.itemById(id);
-    final original = id == null ? null : sharedItem?.item ?? items?.byId(id);
+    final original = id == null ? null : items.byId(id);
     if (_editing && original == null) return;
-    final saveShared = sharedItem == null
-        ? session?.itemCreator()
-        : session!.itemEditor(sharedItem);
     final form = _form = ItemFormViewModel(
       (draft, files, removed) {
-        if (saveShared != null) return saveShared(draft, files.firstOrNull);
-        if (original == null) return items!.create(draft, files: files);
-        return items!.update(
+        if (original == null) return items.create(draft, files: files);
+        return items.update(
           original.id,
           draft,
           addFiles: files,
@@ -85,7 +69,6 @@ class _ManualItemFormState extends State<ManualItemForm> {
       },
       initial: AddDetailsArgs(kind: widget.kind),
       original: original,
-      shared: widget.shared,
       fileFirst: true,
     );
     _title.text = form.initialName;
@@ -156,12 +139,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
     if (mounted && !_blocked && renews != null) form.setCoverageRenews(renews);
   }
 
-  Future<void> _chooseDate(
-    ItemFormViewModel form, {
-    bool purchase = false,
-  }) async {
-    final label = purchase ? 'Purchase date' : _dateLabel(form.kind);
-    final current = purchase ? form.startsOn : form.coverUntil;
+  Future<void> _chooseDate(ItemFormViewModel form) async {
+    final label = _dateLabel(form.kind);
+    final current = form.coverUntil;
     final actions = current == null
         ? null
         : await showPdActions<bool>(
@@ -177,11 +157,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
         ? null
         : await showPdDatePicker(context, title: label, initial: current);
     if (!mounted || _blocked || (actions != false && date == null)) return;
-    if (purchase) {
-      form.setStartsOn(date);
-    } else {
-      form.setCoverUntil(date);
-    }
+    form.setCoverUntil(date);
   }
 
   Future<void> _chooseReminder(ItemFormViewModel form) async {
@@ -217,7 +193,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
         _reveal(_saveError);
         return;
       }
-      if (!widget.shared && saved.draft.reminderAt != null) {
+      if (saved.draft.reminderAt != null) {
         final settings = context.read<SettingsRepository>();
         if (!settings.remindersOn && !settings.remindersOffered) {
           try {
@@ -263,29 +239,16 @@ class _ManualItemFormState extends State<ManualItemForm> {
   Widget build(BuildContext context) {
     final form = _form;
     if (form == null) {
-      final session = widget.shared ? context.watch<SharedSession>() : null;
       return PdPushedScaffold(
         title: _heading,
         backLabel: 'Cancel',
         onBack: _close,
         closeOnRight: true,
-        children: [
-          if (session?.loading == true)
-            Text('Loading your item…', style: PdType.callout)
-          else if (session?.failed == true)
-            DashedTile(
-              title: 'Couldn’t load this item',
-              body: 'Check your connection and try again.',
-              action: PdButton.text(
-                label: 'Try again',
-                onPressed: session!.refresh,
-              ),
-            )
-          else
-            const DashedTile(
-              title: 'Item unavailable',
-              body: 'Return to your drawer.',
-            ),
+        children: const [
+          DashedTile(
+            title: 'Item unavailable',
+            body: 'Return to your drawer.',
+          ),
         ],
       );
     }
@@ -293,12 +256,9 @@ class _ManualItemFormState extends State<ManualItemForm> {
       listenable: form,
       builder: (context, _) {
         final picked = form.added.firstOrNull;
-        final existing = _sharedItem?.originals.firstOrNull?.name;
-        final name =
-            picked?.name ?? existing ?? form.retained.firstOrNull?.name;
+        final name = picked?.name ?? form.retained.firstOrNull?.name;
         final allowsMeaning =
-            !widget.shared &&
-            (form.kind == ItemKind.policy || form.kind == ItemKind.agreement);
+            form.kind == ItemKind.policy || form.kind == ItemKind.agreement;
         return PopScope(
           canPop: !_blocked,
           child: PdPushedScaffold(
@@ -324,13 +284,6 @@ class _ManualItemFormState extends State<ManualItemForm> {
                   if (!_blocked) _pick(form);
                 },
               ),
-              if (_sharedEdit && picked != null)
-                PdButton.text(
-                  label: existing == null
-                      ? 'Remove selected file'
-                      : 'Keep current file',
-                  onPressed: _blocked ? null : () => form.removeAdded(picked),
-                ),
               if (_fileError case final error?)
                 KeyedSubtree(key: _fileField, child: _inlineError(error))
               else if (name == null)
@@ -355,24 +308,10 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 key: const ValueKey('item-kind-picker'),
                 label: 'Type',
                 value: _kindLabel(form.kind),
-                onTap: _sharedEdit
-                    ? null
-                    : () {
-                        if (!_blocked) _chooseKind(form);
-                      },
+                onTap: () {
+                  if (!_blocked) _chooseKind(form);
+                },
               ),
-              if (widget.shared && form.kind == ItemKind.bill) ...[
-                const SizedBox(height: Pd.s4),
-                PdFieldButton(
-                  key: const ValueKey('item-start-date'),
-                  label: 'Purchase date',
-                  value: form.startsOn == null ? '' : longDate(form.startsOn!),
-                  hint: 'Required',
-                  onTap: () {
-                    if (!_blocked) _chooseDate(form, purchase: true);
-                  },
-                ),
-              ],
               const SizedBox(height: Pd.s4),
               if (allowsMeaning) ...[
                 PdFieldButton(
@@ -393,44 +332,40 @@ class _ManualItemFormState extends State<ManualItemForm> {
                 value: form.coverUntil == null
                     ? ''
                     : longDate(form.coverUntil!),
-                hint: widget.shared && form.kind != ItemKind.bill
-                    ? 'Required'
-                    : 'Optional',
+                hint: 'Optional',
                 onTap: () {
                   if (!_blocked) _chooseDate(form);
                 },
               ),
-              if (!widget.shared) ...[
-                const SizedBox(height: Pd.s4),
-                PdListRow(
-                  title: 'Remind me',
-                  trailing: PdSwitch(
-                    key: const ValueKey('item-reminder-switch'),
-                    value: form.remind,
-                    onChanged: _blocked
-                        ? null
-                        : (enabled) {
-                            if (!enabled) {
-                              form.setRemind(false);
-                            } else {
-                              _chooseReminder(form);
-                            }
-                          },
-                  ),
+              const SizedBox(height: Pd.s4),
+              PdListRow(
+                title: 'Remind me',
+                trailing: PdSwitch(
+                  key: const ValueKey('item-reminder-switch'),
+                  value: form.remind,
+                  onChanged: _blocked
+                      ? null
+                      : (enabled) {
+                          if (!enabled) {
+                            form.setRemind(false);
+                          } else {
+                            _chooseReminder(form);
+                          }
+                        },
                 ),
-                if (form.remind)
-                  PdFieldButton(
-                    key: const ValueKey('item-reminder-date'),
-                    label: 'Reminder date and time',
-                    value: form.reminderAt == null
-                        ? 'Automatic'
-                        : DateFormat('d MMM yyyy, h:mm a')
-                              .format(form.reminderAt!.toLocal()),
-                    onTap: () {
-                      if (!_blocked) _chooseReminder(form);
-                    },
-                  ),
-              ],
+              ),
+              if (form.remind)
+                PdFieldButton(
+                  key: const ValueKey('item-reminder-date'),
+                  label: 'Reminder date and time',
+                  value: form.reminderAt == null
+                      ? 'Automatic'
+                      : DateFormat('d MMM yyyy, h:mm a')
+                            .format(form.reminderAt!.toLocal()),
+                  onTap: () {
+                    if (!_blocked) _chooseReminder(form);
+                  },
+                ),
               if (form.error case final error?)
                 KeyedSubtree(key: _saveError, child: _inlineError(error)),
             ],
@@ -450,7 +385,7 @@ class _ManualItemFormState extends State<ManualItemForm> {
 
   String _dateLabel(ItemKind kind) => switch (kind) {
     ItemKind.bill => 'Warranty end date',
-    ItemKind.policy => widget.shared ? 'Renewal date' : 'Policy date',
+    ItemKind.policy => 'Policy date',
     ItemKind.vehicle => 'Valid until',
     ItemKind.agreement => 'Agreement date',
   };

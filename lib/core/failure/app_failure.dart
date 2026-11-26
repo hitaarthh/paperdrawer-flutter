@@ -212,6 +212,12 @@ enum AuthFailureKind {
 
   /// The account was deleted, possibly on the website.
   accountDeleted,
+
+  /// Too many attempts; the server asks to wait.
+  rateLimited,
+
+  /// Sign in with Apple isn't available on this device or OS.
+  appleUnavailable,
 }
 
 /// Sign-in, sign-up or session problems.
@@ -244,6 +250,10 @@ enum PurchaseFailureKind {
 
   /// The product is not available in this storefront.
   unavailable,
+
+  /// This App Store purchase is already linked to another PaperDrawer
+  /// account (purchases never move between accounts).
+  belongsToAnotherAccount,
 
   /// The store returned an error.
   storeError,

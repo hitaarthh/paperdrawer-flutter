@@ -170,46 +170,29 @@ class CoverWindow {
   }
 }
 
-enum ItemStatus { due, covered, inClaim, expired, none }
+enum ItemStatus { due, covered, expired, none }
 
-enum StampKind {
-  due,
-  covered,
-  active,
-  inClaim,
-  expired,
-  waiting,
-  escalate,
-  settled,
-}
+enum StampKind { due, covered, active, expired }
 
 extension StampWord on StampKind {
   String get word => switch (this) {
     StampKind.due => 'DUE',
     StampKind.covered => 'COVERED',
     StampKind.active => 'ACTIVE',
-    StampKind.inClaim => 'IN CLAIM',
     StampKind.expired => 'EXPIRED',
-    StampKind.waiting => 'WAITING',
-    StampKind.escalate => 'ESCALATE',
-    StampKind.settled => 'SETTLED',
   };
 }
 
 /// Every printed line of an item, derived once per build from its facts.
 class ItemSummary {
-  ItemSummary._(this.item, this.today, this.windows, this.hasOpenClaim);
+  ItemSummary._(this.item, this.today, this.windows);
 
-  factory ItemSummary.of(
-    Item item,
-    DateTime today, {
-    bool hasOpenClaim = false,
-  }) => ItemSummary._(item, today, windowsOf(item), hasOpenClaim);
+  factory ItemSummary.of(Item item, DateTime today) =>
+      ItemSummary._(item, today, windowsOf(item));
 
   final Item item;
   final DateTime today;
   final List<CoverWindow> windows;
-  final bool hasOpenClaim;
 
   ItemDraft get d => item.draft;
 
@@ -232,7 +215,6 @@ class ItemSummary {
   }
 
   ItemStatus get status {
-    if (hasOpenClaim) return ItemStatus.inClaim;
     if (windows.isEmpty) return ItemStatus.none;
     final upcoming = next;
     if (upcoming == null) return ItemStatus.expired;
@@ -243,7 +225,6 @@ class ItemSummary {
     ItemStatus.due => StampKind.due,
     ItemStatus.covered =>
       item.kind == ItemKind.bill ? StampKind.covered : StampKind.active,
-    ItemStatus.inClaim => StampKind.inClaim,
     ItemStatus.expired => StampKind.expired,
     ItemStatus.none => null,
   };

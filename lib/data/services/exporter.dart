@@ -1,30 +1,38 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../domain/formats.dart';
-import '../../domain/models/claim.dart';
 import '../../domain/models/item.dart';
-import 'drawer_actions.dart';
 import 'file_store.dart';
+import 'legacy_claims.dart';
 import 'today.dart';
 
 class Exporter {
-  Exporter(this._files, {Today? today}) : _today = today ?? Today();
+  Exporter(
+    this._files, {
+    Today? today,
+    Future<Directory> Function() temporaryDirectory = getTemporaryDirectory,
+  }) : _today = today ?? Today(),
+       _temporaryDirectory = temporaryDirectory;
 
   final FileStore _files;
   final Today _today;
+  final Future<Directory> Function() _temporaryDirectory;
 
+  /// Writes every item, its originals, and the rows and photos the removed
+  /// claims feature left in this drawer into one zip.
+  ///
+  /// Throws if a file can't be read or the zip can't be written; then no
+  /// export file is left behind.
   Future<File> exportEverything({
     required List<Item> items,
-    required List<Claim> claims,
+    required LegacyClaimRows claims,
   }) async {
-    final cache = await getTemporaryDirectory();
+    final cache = await _temporaryDirectory();
     final folder = await cache.createTemp('paperdrawer-');
     final output = File(
       p.join(folder.path, 'paperdrawer-export-${isoDate(_today.value)}.zip'),
@@ -34,9 +42,9 @@ class Exporter {
       zip.create(output.path);
       try {
         final json = const JsonEncoder.withIndent('  ').convert({
-          'version': 3,
+          'version': 4,
           'items': items.map(_encodeItem).toList(),
-          'claims': claims.map(_encodeClaim).toList(),
+          'legacy_claims': _encodeClaims(claims),
         });
         zip.addArchiveFile(ArchiveFile.string('paperdrawer.json', json));
         for (final item in items) {
@@ -45,13 +53,9 @@ class Exporter {
             await zip.addFile(File(path), _archivePath(item, attachment));
           }
         }
-        for (final claim in claims) {
-          for (final event in claim.events) {
-            if (event.photo case final photo?) {
-              final path = _files.absolute(_files.relative(photo.path));
-              await zip.addFile(File(path), _claimPhotoPath(claim, photo));
-            }
-          }
+        for (final photo in claims.eventPhotos) {
+          final path = _files.absolute(photo['rel_path']! as String);
+          await zip.addFile(File(path), _claimPhotoPath(photo));
         }
       } finally {
         await zip.close();
@@ -66,49 +70,14 @@ class Exporter {
   Future<void> discardExport(File export) =>
       export.parent.delete(recursive: true);
 
-  Future<List<XFile>> claimKit(Item item, {Claim? claim}) async => [
-    for (final attachment in item.attachments)
-      XFile(attachment.path, name: attachment.name),
-    claimKitSummary(item, claim: claim),
-  ];
-
-  static XFile claimKitSummary(Item item, {Claim? claim}) {
-    final draft = item.draft;
-    final amount = draft.amountMinor;
-    final summary = [
-      item.name,
-      item.kind.label,
-      if (draft.source.isNotEmpty) draft.source,
-      if (draft.reference.isNotEmpty) 'Reference: ${draft.reference}',
-      if (draft.serialNumber.isNotEmpty) 'Serial number: ${draft.serialNumber}',
-      if (draft.startsOn case final date?) 'Date: ${longDate(date)}',
-      if (amount != null) 'Amount: ${money(amount, draft.currency)}',
-      if (draft.returnUntil case final date?) 'Return by: ${longDate(date)}',
-      if (draft.coverUntil case final date?) 'Cover ends: ${longDate(date)}',
-      if (draft.componentWarrantyUntil case final date?)
-        '${draft.componentWarrantyName.isEmpty ? 'Component' : draft.componentWarrantyName} '
-            'warranty ends: ${longDate(date)}',
-      if (draft.notes.isNotEmpty) draft.notes,
-      if (claim != null) ...[
-        '',
-        claim.title,
-        claim.problem,
-        'Requested: ${claim.want.phrase}',
-      ],
-    ].join('\n');
-    final name = '${_safeName(item.name)}-claim-kit.txt';
-    return NamedShareData(
-      Uint8List.fromList(utf8.encode(summary)),
-      name: name,
-      mimeType: 'text/plain',
-    );
-  }
-
   String _archivePath(Item item, Attachment file) =>
       'originals/${item.id}/${file.id}-${_safeName(file.name)}';
 
-  String _claimPhotoPath(Claim claim, Attachment file) =>
-      'claim-photos/${claim.id}/${file.id}-${_safeName(file.name)}';
+  /// One folder per claim event; an event has at most one photo.
+  String _claimPhotoPath(Map<String, Object?> photo) {
+    final name = _safeName(photo['name']! as String);
+    return 'claim-photos/${photo['event_id']}/$name';
+  }
 
   static String _safeName(String name) =>
       name.replaceAll(RegExp(r'[\\/:\x00-\x1f]'), '-');
@@ -145,37 +114,15 @@ class Exporter {
     ],
   };
 
-  Map<String, Object?> _encodeClaim(Claim claim) => {
-    'id': claim.id,
-    'item_id': claim.itemId,
-    'item_label': claim.itemLabel,
-    'type': claim.type.name,
-    'want': claim.want.name,
-    'problem': claim.problem,
-    'reference': claim.reference,
-    'opened_on': isoDate(claim.openedOn),
-    'noticed_on': _date(claim.noticedOn),
-    'step': claim.step,
-    'step_since': isoDate(claim.stepSince),
-    'last_heard_on': _date(claim.lastHeardOn),
-    'settled_on': _date(claim.settledOn),
-    'nudge_days': claim.nudgeDays,
-    'follow_up_at': claim.followUp?.toUtc().toIso8601String(),
-    'events': [
-      for (final event in claim.events)
-        {
-          'id': event.id,
-          'on': isoDate(event.on),
-          'kind': event.kind.name,
-          'text': event.text,
-          'reference': event.reference,
-          if (event.photo case final photo?)
-            'photo': {
-              'name': photo.name,
-              'path': _claimPhotoPath(claim, photo),
-              'bytes': photo.bytes,
-            },
-        },
+  /// Raw rows under fixed keys, so the export format doesn't change when the
+  /// tables are renamed. Each photo row gains the `path` of its copy in the
+  /// zip.
+  Map<String, Object?> _encodeClaims(LegacyClaimRows claims) => {
+    'claims': claims.claims,
+    'claim_events': claims.events,
+    'claim_event_photos': [
+      for (final photo in claims.eventPhotos)
+        {...photo, 'path': _claimPhotoPath(photo)},
     ],
   };
 

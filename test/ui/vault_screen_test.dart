@@ -3,17 +3,16 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/app.dart';
-import 'package:paperdrawer/data/repositories/claim_repository.dart';
 import 'package:paperdrawer/data/repositories/item_repository.dart';
 import 'package:paperdrawer/data/repositories/settings_repository.dart';
 import 'package:paperdrawer/data/services/drawer_actions.dart';
 import 'package:paperdrawer/data/services/exporter.dart';
 import 'package:paperdrawer/data/services/file_store.dart';
+import 'package:paperdrawer/data/services/legacy_claims.dart';
 import 'package:paperdrawer/data/services/text_recognizer.dart';
 import 'package:paperdrawer/data/services/today.dart';
 import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/item_status.dart';
-import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/ui/core/widgets/vault_ticket.dart';
@@ -53,18 +52,13 @@ void main() {
   group('full vault', () {
     for (final scale in [1.0, 1.3]) {
       testWidgets('lays out every section at ${scale}x', (tester) async {
-        await _launch(tester, _fullItems(), claims: _claims(), scale: scale);
+        await _launch(tester, _fullItems(), scale: scale);
 
-        expect(
-          find.text('005 ITEMS · 4 DUE SOON · 1 OPEN CLAIM'),
-          findsNothing,
-        );
         expect(find.text('Your drawer'), findsOneWidget);
         expect(_key('vault-search'), findsOneWidget);
         expect(find.text('5 FILES'), findsOneWidget);
         expect(find.text('DUE NEXT'), findsNothing);
         expect(find.byType(VaultTicket), findsNothing);
-        expect(find.text('IN CLAIM'), findsNothing);
         await tester.ensureVisible(_key('vault-filter-expired'));
         await tester.pumpAndSettle();
         expect(find.text('EXPIRED 0'), findsOneWidget);
@@ -143,7 +137,6 @@ void main() {
         await _launch(
           tester,
           _fullItems(),
-          claims: _claims(),
           startAtHome: true,
           scale: 1.3,
         );
@@ -170,18 +163,14 @@ void main() {
       },
     );
 
-    testWidgets('a Home ticket opens its item without claim controls', (
-      tester,
-    ) async {
-      await _launch(tester, _fullItems(), claims: _claims(), startAtHome: true);
+    testWidgets('a Home ticket opens its item', (tester) async {
+      await _launch(tester, _fullItems(), startAtHome: true);
 
       await _tap(tester, 'home-ticket-earbuds/returnWindow');
       expect(_key('item-edit'), findsOneWidget);
       expect(_key('drawer-notifications'), findsNothing);
       await _tap(tester, 'back-button');
       expect(_key('coming-up-list'), findsOneWidget);
-
-      expect(_key('home-claim-claim-1'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -203,7 +192,6 @@ void main() {
       await _launch(
         tester,
         items,
-        claims: _claims(),
         startAtHome: true,
         scale: 1.3,
       );
@@ -219,12 +207,11 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(last.hitTestable(), findsOneWidget);
-      expect(_key('claims-tab'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('filter tabs and search narrow the list', (tester) async {
-      await _launch(tester, _fullItems(), claims: _claims());
+      await _launch(tester, _fullItems());
 
       await _tap(tester, 'vault-filter-undated');
       expect(find.text('Every file has a tracked date'), findsOneWidget);
@@ -324,20 +311,6 @@ _Items _fullItems() => _Items([
   ),
 ]);
 
-_Claims _claims() => _Claims([
-  Claim(
-    id: 'claim-1',
-    itemId: 'laptop',
-    itemLabel: 'Laptop',
-    type: ClaimType.repair,
-    want: ClaimWant.repair,
-    problem: 'The hinge cracked.',
-    openedOn: addDays(_today, -14),
-    stepSince: addDays(_today, -14),
-    step: 0,
-  ),
-]);
-
 Finder _key(String key) => find.byKey(ValueKey(key));
 
 Future<void> _tap(WidgetTester tester, String key) async {
@@ -351,11 +324,9 @@ Future<void> _tap(WidgetTester tester, String key) async {
 Future<void> _launch(
   WidgetTester tester,
   _Items items, {
-  _Claims? claims,
   bool startAtHome = false,
   double scale = 1,
 }) async {
-  final actualClaims = claims ?? _Claims([]);
   final actualSettings = _Settings();
   final today = Today(() => _today);
   final files = FileStore(Directory.systemTemp);
@@ -368,7 +339,6 @@ Future<void> _launch(
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox.shrink());
     items.dispose();
-    actualClaims.dispose();
     actualSettings.dispose();
     today.dispose();
   });
@@ -377,7 +347,7 @@ Future<void> _launch(
       initialLocation: startAtHome ? Routes.home : Routes.vault,
       deps: AppDependencies(
         items: items,
-        claims: actualClaims,
+        legacyClaims: const _LegacyClaims(),
         settings: actualSettings,
         files: files,
         exporter: Exporter(files, today: today),
@@ -409,25 +379,13 @@ class _Items extends ChangeNotifier implements ItemRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Claims extends ChangeNotifier implements ClaimRepository {
-  _Claims(this.claims);
+class _LegacyClaims implements LegacyClaims {
+  const _LegacyClaims();
 
   @override
-  final List<Claim> claims;
+  Future<LegacyClaimRows> read() async => LegacyClaimRows.empty;
   @override
-  bool hasOpenClaim(String itemId) => openFor(itemId) != null;
-  @override
-  Claim? openFor(String itemId) => claims
-      .where((claim) => claim.itemId == itemId && claim.isOpen)
-      .firstOrNull;
-  @override
-  Claim? byId(String id) => claims.where((claim) => claim.id == id).firstOrNull;
-  @override
-  int needsAction(DateTime today) => claims
-      .where((claim) => claim.status(today) == ClaimStatus.escalate)
-      .length;
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<void> eraseAll() async {}
 }
 
 class _Settings extends ChangeNotifier implements SettingsRepository {

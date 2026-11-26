@@ -49,7 +49,6 @@ void main() {
     expect(windows.last.end, DateTime.utc(2031, 11, 14));
     final reminders = planReminders(
       items: [bill],
-      claims: [],
       leadDays: 7,
       now: DateTime(2027, 11, 1),
     );

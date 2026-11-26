@@ -129,7 +129,6 @@ void main() {
 
     List<PlannedReminder> reminders(DateTime now) => planReminders(
       items: restored.active,
-      claims: [],
       leadDays: 7,
       now: now,
     );

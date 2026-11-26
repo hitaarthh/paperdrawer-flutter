@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
-import 'data/repositories/claim_repository.dart';
 import 'data/repositories/item_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/services/account_settings_sync.dart';
@@ -12,6 +11,7 @@ import 'data/services/capture_service.dart';
 import 'data/services/drawer_actions.dart';
 import 'data/services/exporter.dart';
 import 'data/services/file_store.dart';
+import 'data/services/legacy_claims.dart';
 import 'data/services/reminder_scheduler.dart';
 import 'data/services/text_recognizer.dart';
 import 'data/services/today.dart';
@@ -25,7 +25,7 @@ import 'ui/features/shell/tab_reselect.dart';
 class AppDependencies {
   const AppDependencies({
     required this.items,
-    required this.claims,
+    required this.legacyClaims,
     required this.settings,
     required this.files,
     required this.exporter,
@@ -38,7 +38,10 @@ class AppDependencies {
   });
 
   final ItemRepository items;
-  final ClaimRepository claims;
+
+  /// Rows the removed claims feature left behind; only export and "Clear
+  /// this drawer" use them.
+  final LegacyClaims legacyClaims;
   final SettingsRepository settings;
   final FileStore files;
   final Exporter exporter;
@@ -112,12 +115,12 @@ class _PaperDrawerAppState extends State<PaperDrawerApp>
       providers: [
         Provider<DrawerAccountActions?>.value(value: widget.account),
         ChangeNotifierProvider.value(value: deps.items),
-        ChangeNotifierProvider.value(value: deps.claims),
         ChangeNotifierProvider.value(value: deps.settings),
         ChangeNotifierProvider.value(value: deps.today),
         ChangeNotifierProvider.value(value: _reselect),
         Provider.value(value: deps.files),
         Provider.value(value: deps.exporter),
+        Provider<LegacyClaims>.value(value: deps.legacyClaims),
         Provider.value(value: deps.recognizer),
         Provider.value(value: deps.capture),
         Provider.value(value: deps.actions),

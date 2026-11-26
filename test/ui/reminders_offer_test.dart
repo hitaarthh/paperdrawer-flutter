@@ -4,19 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/app.dart';
-import 'package:paperdrawer/data/repositories/claim_repository.dart';
 import 'package:paperdrawer/data/repositories/item_repository.dart';
 import 'package:paperdrawer/data/repositories/settings_repository.dart';
 import 'package:paperdrawer/data/services/drawer_actions.dart';
 import 'package:paperdrawer/data/services/exporter.dart';
 import 'package:paperdrawer/data/services/file_store.dart';
+import 'package:paperdrawer/data/services/legacy_claims.dart';
 import 'package:paperdrawer/data/services/reminder_scheduler.dart';
 import 'package:paperdrawer/data/services/text_recognizer.dart';
 import 'package:paperdrawer/data/services/today.dart';
 import 'package:paperdrawer/domain/bill_reader.dart';
 import 'package:paperdrawer/domain/formats.dart';
 import 'package:paperdrawer/domain/item_status.dart';
-import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/routing/router.dart';
 import 'package:paperdrawer/ui/features/add/add_details_args.dart';
@@ -188,7 +187,6 @@ Future<_App> _launch(
   double scale = 1,
 }) async {
   final items = _Items();
-  final claims = _Claims();
   final settings = _Settings();
   final gateway = _Gateway(grant);
   final today = Today(() => _today);
@@ -208,7 +206,6 @@ Future<_App> _launch(
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox.shrink());
     items.dispose();
-    claims.dispose();
     settings.dispose();
     today.dispose();
   });
@@ -216,7 +213,7 @@ Future<_App> _launch(
     PaperDrawerApp(
       deps: AppDependencies(
         items: items,
-        claims: claims,
+        legacyClaims: const _LegacyClaims(),
         settings: settings,
         files: files,
         exporter: Exporter(files, today: today),
@@ -285,19 +282,13 @@ class _Items extends ChangeNotifier implements ItemRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Claims extends ChangeNotifier implements ClaimRepository {
+class _LegacyClaims implements LegacyClaims {
+  const _LegacyClaims();
+
   @override
-  final List<Claim> claims = [];
+  Future<LegacyClaimRows> read() async => LegacyClaimRows.empty;
   @override
-  bool hasOpenClaim(String itemId) => false;
-  @override
-  Claim? openFor(String itemId) => null;
-  @override
-  Claim? byId(String id) => null;
-  @override
-  int needsAction(DateTime today) => 0;
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<void> eraseAll() async {}
 }
 
 class _Settings extends ChangeNotifier implements SettingsRepository {

@@ -50,14 +50,13 @@ abstract final class PdType {
   static final title2 = _display(22, 26, 700, -0.02);
   static final cardTitle = _display(20, 24, 700, -0.02);
   static final ticketNumber = _display(52, 48, 800, -0.04);
-  static final claimDay = _display(32, 36, 800, -0.04);
   static final choiceNumber = _display(28, 32, 800, -0.04);
 
   /// Editorial screen headline ("The vault", "Start your vault"): 44/42,
   /// -0.05em. Screens may step it down to 40 with `copyWith(fontSize:)`.
   static final heroTitle = _display(44, 42, 700, -0.05);
 
-  /// Headline on the full-scroll claim tracker.
+  /// Headline on pushed detail pages (item detail, Settings subpages).
   static final trackerTitle = _display(38, 38, 700, -0.05);
 
   /// Option-card title (Add sheet item types): 17/19, -0.02em.

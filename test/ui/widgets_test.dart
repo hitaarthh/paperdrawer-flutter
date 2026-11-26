@@ -2,12 +2,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:paperdrawer/domain/item_status.dart';
-import 'package:paperdrawer/domain/models/claim.dart';
 import 'package:paperdrawer/domain/models/item.dart';
 import 'package:paperdrawer/ui/core/theme/app_theme.dart';
 import 'package:paperdrawer/ui/core/widgets/button.dart';
 import 'package:paperdrawer/ui/core/widgets/chips.dart';
-import 'package:paperdrawer/ui/core/widgets/claim_ladder.dart';
 import 'package:paperdrawer/ui/core/widgets/countdown_ticket.dart';
 import 'package:paperdrawer/ui/core/widgets/glass.dart';
 import 'package:paperdrawer/ui/core/widgets/item_card.dart';
@@ -32,16 +30,6 @@ void main() {
   );
   final item = Item(id: '1', draft: draft, createdAt: now);
   final summary = ItemSummary.of(item, now);
-  final claim = Claim(
-    id: '1',
-    type: ClaimType.repair,
-    want: ClaimWant.repair,
-    itemLabel: draft.name,
-    problem: 'Does not power on',
-    openedOn: now,
-    step: 1,
-    stepSince: now,
-  );
 
   Future<void> root(WidgetTester tester, Widget child, double scale) async {
     tester.view.physicalSize = const Size(1179, 2556);
@@ -173,7 +161,7 @@ void main() {
                           onTap: () {},
                         ),
                         PdFilterChip(
-                          label: 'In claim',
+                          label: 'Expired',
                           count: 10,
                           selected: false,
                           onTap: () {},
@@ -231,7 +219,7 @@ void main() {
         Builder(
           builder: (context) => PdPushedScaffold(
             backLabel: 'Vault',
-            title: 'Start a claim',
+            title: 'Edit item',
             actions: [
               PdNavIcon(
                 icon: const Icon(Icons.add),
@@ -268,7 +256,6 @@ void main() {
               ),
             ),
             children: [
-              ClaimLadder(claim: claim, today: now),
               PdListGroup(
                 header: 'Reminders',
                 children: [
@@ -294,7 +281,7 @@ void main() {
                 validator: (text) => text.isEmpty ? 'Required' : null,
               ),
               LimitNotice(count: 25, onReview: () {}, onWaitlist: () {}),
-              const PdStamp(StampKind.settled),
+              const PdStamp(StampKind.expired),
             ],
           ),
         ),
